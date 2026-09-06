@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+**/__pycache__/
+*.py[cod]
+artifacts/
+dist/
+backups/
+plugins/auto-solidworks/runtime/
+.vs/
+.env
+.env.*
+!.env.example
+*.user
+*.suo

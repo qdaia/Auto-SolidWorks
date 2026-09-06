@@ -1,0 +1,510 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://auto-solidworks.local/schemas/drawing-contracts/1.0.0",
+  "title": "Auto SolidWorks Drawing Evidence Contracts",
+  "description": "Strongly separates source facts, observations, interpretations, 3D hypotheses, feature-plan references, and full-chain traceability.",
+  "oneOf": [
+    { "$ref": "#/$defs/drawing_contract_package" },
+    { "$ref": "#/$defs/source_manifest" },
+    { "$ref": "#/$defs/observation_document" },
+    { "$ref": "#/$defs/interpretation_document" },
+    { "$ref": "#/$defs/hypothesis_document" },
+    { "$ref": "#/$defs/feature_plan_document" },
+    { "$ref": "#/$defs/trace_map" }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" },
+    "non_empty_string": { "type": "string", "minLength": 1 },
+    "document_status": { "enum": ["valid", "candidate", "conflict", "pending_clarification", "rejected"] },
+    "evidence_status": { "enum": ["confirmed", "candidate", "conflict", "unreadable"] },
+    "fact_status": { "enum": ["stated", "derived", "assumed", "unknown"] },
+    "measurement_unit": { "enum": ["pixel", "pdf_point", "millimeter", "inch", "meter", "degree", "unitless"] },
+    "coordinate_space": { "enum": ["source_pixel", "normalized_pixel", "sheet_space", "view_local", "object_xyz", "solidworks_model"] },
+    "producer_stamp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer_name", "producer_version", "configuration_hash", "created_at"],
+      "properties": {
+        "producer_name": { "$ref": "#/$defs/non_empty_string" },
+        "producer_version": { "$ref": "#/$defs/non_empty_string" },
+        "configuration_hash": { "$ref": "#/$defs/sha256" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "fact_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "source_ids", "rationale"],
+      "properties": {
+        "status": { "$ref": "#/$defs/fact_status" },
+        "previous_status": { "oneOf": [{ "$ref": "#/$defs/fact_status" }, { "type": "null" }] },
+        "source_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "rationale": { "type": "string" },
+        "assumption_authorization_id": { "type": ["string", "null"] }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "code", "severity", "blocking", "message", "document_id", "field_path", "affected_ids"],
+      "properties": {
+        "id": { "$ref": "#/$defs/non_empty_string" },
+        "code": { "$ref": "#/$defs/non_empty_string" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "blocking": { "type": "boolean" },
+        "message": { "$ref": "#/$defs/non_empty_string" },
+        "document_id": { "type": "string" },
+        "field_path": { "$ref": "#/$defs/non_empty_string" },
+        "evidence_id": { "type": ["string", "null"] },
+        "affected_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true }
+      }
+    },
+    "unresolved_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "category", "blocking", "affected_ids", "reason", "minimum_question", "suggested_evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/non_empty_string" },
+        "category": { "$ref": "#/$defs/non_empty_string" },
+        "blocking": { "type": "boolean" },
+        "affected_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "reason": { "$ref": "#/$defs/non_empty_string" },
+        "minimum_question": { "$ref": "#/$defs/non_empty_string" },
+        "suggested_evidence": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "kind", "uri", "media_type", "sha256"],
+      "properties": {
+        "artifact_id": { "$ref": "#/$defs/non_empty_string" },
+        "kind": { "enum": ["source_file", "source_page", "normalized_page", "view_crop", "json_document", "preview", "native_model", "neutral_model", "validation_report", "other"] },
+        "uri": { "$ref": "#/$defs/non_empty_string" },
+        "media_type": { "$ref": "#/$defs/non_empty_string" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "page_number": { "type": ["integer", "null"], "minimum": 1 }
+      }
+    },
+    "coordinate_frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frame_id", "space", "unit", "artifact_id", "origin_description", "axis_labels"],
+      "properties": {
+        "frame_id": { "$ref": "#/$defs/non_empty_string" },
+        "space": { "$ref": "#/$defs/coordinate_space" },
+        "unit": { "$ref": "#/$defs/measurement_unit" },
+        "artifact_id": { "$ref": "#/$defs/non_empty_string" },
+        "origin_description": { "$ref": "#/$defs/non_empty_string" },
+        "axis_labels": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "minItems": 2 }
+      }
+    },
+    "located_point_2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coordinate_frame_id", "x", "y"],
+      "properties": {
+        "coordinate_frame_id": { "$ref": "#/$defs/non_empty_string" },
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      }
+    },
+    "located_point_3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coordinate_frame_id", "x", "y", "z"],
+      "properties": {
+        "coordinate_frame_id": { "$ref": "#/$defs/non_empty_string" },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      }
+    },
+    "matrix": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 4,
+      "items": { "type": "array", "minItems": 3, "maxItems": 4, "items": { "type": "number" } }
+    },
+    "transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transform_id", "from_frame_id", "to_frame_id", "forward_matrix", "inverse_matrix", "input_unit", "output_unit", "parameters", "error_estimate", "error_unit", "source", "before_artifact_id", "after_artifact_id"],
+      "properties": {
+        "transform_id": { "$ref": "#/$defs/non_empty_string" },
+        "from_frame_id": { "$ref": "#/$defs/non_empty_string" },
+        "to_frame_id": { "$ref": "#/$defs/non_empty_string" },
+        "forward_matrix": { "$ref": "#/$defs/matrix" },
+        "inverse_matrix": { "$ref": "#/$defs/matrix" },
+        "input_unit": { "$ref": "#/$defs/measurement_unit" },
+        "output_unit": { "$ref": "#/$defs/measurement_unit" },
+        "parameters": { "type": "object", "additionalProperties": { "type": "number" } },
+        "error_estimate": { "type": "number", "minimum": 0 },
+        "error_unit": { "$ref": "#/$defs/measurement_unit" },
+        "source": { "$ref": "#/$defs/non_empty_string" },
+        "before_artifact_id": { "$ref": "#/$defs/non_empty_string" },
+        "after_artifact_id": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "migration_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from_version", "to_version", "migrator_name", "migrated_at", "rationale"],
+      "properties": {
+        "from_version": { "$ref": "#/$defs/non_empty_string" },
+        "to_version": { "$ref": "#/$defs/non_empty_string" },
+        "migrator_name": { "$ref": "#/$defs/non_empty_string" },
+        "migrated_at": { "type": "string", "format": "date-time" },
+        "rationale": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "document_base": {
+      "type": "object",
+      "required": ["schema_version", "document_id", "source_sha256", "producer_name", "producer_version", "configuration_hash", "created_at", "status", "evidence_status", "fact_status", "diagnostics", "unresolved_items", "artifact_manifest", "coordinate_frames", "transforms", "migration_history"],
+      "properties": {
+        "schema_version": { "const": "1.0.0" },
+        "document_id": { "$ref": "#/$defs/non_empty_string" },
+        "source_sha256": { "$ref": "#/$defs/sha256" },
+        "producer_name": { "$ref": "#/$defs/non_empty_string" },
+        "producer_version": { "$ref": "#/$defs/non_empty_string" },
+        "configuration_hash": { "$ref": "#/$defs/sha256" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "status": { "$ref": "#/$defs/document_status" },
+        "evidence_status": { "$ref": "#/$defs/evidence_status" },
+        "fact_status": { "$ref": "#/$defs/fact_status" },
+        "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
+        "unresolved_items": { "type": "array", "items": { "$ref": "#/$defs/unresolved_item" } },
+        "artifact_manifest": { "type": "array", "items": { "$ref": "#/$defs/artifact" } },
+        "coordinate_frames": { "type": "array", "items": { "$ref": "#/$defs/coordinate_frame" } },
+        "transforms": { "type": "array", "items": { "$ref": "#/$defs/transform" } },
+        "migration_history": { "type": "array", "items": { "$ref": "#/$defs/migration_record" } }
+      }
+    },
+    "source_page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["page_id", "page_number", "artifact_id", "sha256", "pixel_width", "pixel_height", "physical_width", "physical_height", "physical_unit", "dpi", "representation"],
+      "properties": {
+        "page_id": { "$ref": "#/$defs/non_empty_string" },
+        "page_number": { "type": "integer", "minimum": 1 },
+        "artifact_id": { "$ref": "#/$defs/non_empty_string" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "pixel_width": { "type": "integer", "minimum": 1 },
+        "pixel_height": { "type": "integer", "minimum": 1 },
+        "physical_width": { "type": "number", "exclusiveMinimum": 0 },
+        "physical_height": { "type": "number", "exclusiveMinimum": 0 },
+        "physical_unit": { "enum": ["millimeter", "inch"] },
+        "dpi": { "type": "number", "exclusiveMinimum": 0 },
+        "representation": { "enum": ["native_vector", "raster", "hybrid"] }
+      }
+    },
+    "source_manifest": {
+      "allOf": [
+        { "$ref": "#/$defs/document_base" },
+        {
+          "type": "object",
+          "required": ["source_path", "file_name", "media_type", "representation", "pages"],
+          "properties": {
+            "source_path": { "$ref": "#/$defs/non_empty_string" },
+            "file_name": { "$ref": "#/$defs/non_empty_string" },
+            "media_type": { "$ref": "#/$defs/non_empty_string" },
+            "representation": { "enum": ["native_vector", "raster", "hybrid"] },
+            "pages": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/source_page" } }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "source_region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region_id", "artifact_id", "page_number", "polygon", "evidence_status"],
+      "properties": {
+        "region_id": { "$ref": "#/$defs/non_empty_string" },
+        "artifact_id": { "$ref": "#/$defs/non_empty_string" },
+        "page_number": { "type": "integer", "minimum": 1 },
+        "polygon": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/located_point_2" } },
+        "evidence_status": { "$ref": "#/$defs/evidence_status" }
+      }
+    },
+    "view_region_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["view_region_id", "source_region_id", "observation_ids", "evidence_status"],
+      "properties": {
+        "view_region_id": { "$ref": "#/$defs/non_empty_string" },
+        "source_region_id": { "$ref": "#/$defs/non_empty_string" },
+        "observation_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "evidence_status": { "$ref": "#/$defs/evidence_status" }
+      }
+    },
+    "observation_entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observation_id", "source_region_id", "kind", "raw_literal", "geometry", "evidence_status", "confidence", "candidate_properties"],
+      "properties": {
+        "observation_id": { "$ref": "#/$defs/non_empty_string" },
+        "source_region_id": { "$ref": "#/$defs/non_empty_string" },
+        "kind": { "enum": ["visible_line", "hidden_line", "center_line", "cutting_plane_line", "section_hatch", "circle", "arc", "text", "symbol", "leader", "extension_line", "dimension_line", "unknown"] },
+        "raw_literal": { "type": "string" },
+        "geometry": { "type": "array", "items": { "$ref": "#/$defs/located_point_2" } },
+        "evidence_status": { "$ref": "#/$defs/evidence_status" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "candidate_properties": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+    "dimension_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension_observation_id", "source_region_id", "raw_literal", "evidence_status", "confidence"],
+      "properties": {
+        "dimension_observation_id": { "$ref": "#/$defs/non_empty_string" },
+        "source_region_id": { "$ref": "#/$defs/non_empty_string" },
+        "raw_literal": { "$ref": "#/$defs/non_empty_string" },
+        "candidate_numeric_value": { "type": ["number", "null"] },
+        "candidate_symbol": { "type": "string" },
+        "candidate_unit": { "oneOf": [{ "$ref": "#/$defs/measurement_unit" }, { "type": "null" }] },
+        "evidence_status": { "$ref": "#/$defs/evidence_status" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "observation_document": {
+      "allOf": [
+        { "$ref": "#/$defs/document_base" },
+        {
+          "type": "object",
+          "required": ["source_regions", "view_regions", "observations", "dimension_observations"],
+          "properties": {
+            "source_regions": { "type": "array", "items": { "$ref": "#/$defs/source_region" } },
+            "view_regions": { "type": "array", "items": { "$ref": "#/$defs/view_region_observation" } },
+            "observations": { "type": "array", "items": { "$ref": "#/$defs/observation_entity" } },
+            "dimension_observations": { "type": "array", "items": { "$ref": "#/$defs/dimension_observation" } }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "quantity_value": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit", "symbol", "fact"],
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "$ref": "#/$defs/measurement_unit" },
+        "symbol": { "type": "string" },
+        "fact": { "$ref": "#/$defs/fact_provenance" }
+      }
+    },
+    "view_interpretation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["view_id", "view_region_observation_id", "view_type", "coordinate_frame_id", "evidence_status", "fact"],
+      "properties": {
+        "view_id": { "$ref": "#/$defs/non_empty_string" },
+        "view_region_observation_id": { "$ref": "#/$defs/non_empty_string" },
+        "view_type": { "enum": ["front", "top", "right", "left", "rear", "bottom", "section", "detail", "auxiliary", "isometric", "pictorial", "unknown"] },
+        "coordinate_frame_id": { "$ref": "#/$defs/non_empty_string" },
+        "evidence_status": { "$ref": "#/$defs/evidence_status" },
+        "fact": { "$ref": "#/$defs/fact_provenance" }
+      }
+    },
+    "line_interpretation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interpretation_id", "observation_id", "meaning", "evidence_status", "fact"],
+      "properties": {
+        "interpretation_id": { "$ref": "#/$defs/non_empty_string" },
+        "observation_id": { "$ref": "#/$defs/non_empty_string" },
+        "meaning": { "enum": ["visible_object", "hidden_object", "center", "cutting_plane", "section_hatch", "dimension", "extension", "leader", "border", "unknown"] },
+        "evidence_status": { "$ref": "#/$defs/evidence_status" },
+        "fact": { "$ref": "#/$defs/fact_provenance" }
+      }
+    },
+    "interpreted_feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["feature_id", "feature_type", "observation_ids", "view_ids", "topology_description", "evidence_status", "fact"],
+      "properties": {
+        "feature_id": { "$ref": "#/$defs/non_empty_string" },
+        "feature_type": { "$ref": "#/$defs/non_empty_string" },
+        "observation_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "view_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "topology_description": { "$ref": "#/$defs/non_empty_string" },
+        "evidence_status": { "$ref": "#/$defs/evidence_status" },
+        "fact": { "$ref": "#/$defs/fact_provenance" }
+      }
+    },
+    "dimension_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["binding_id", "dimension_observation_id", "source_region_id", "raw_literal", "symbol", "value", "role", "axis", "target_feature_ids", "evidence_ids", "evidence_status"],
+      "properties": {
+        "binding_id": { "$ref": "#/$defs/non_empty_string" },
+        "dimension_observation_id": { "$ref": "#/$defs/non_empty_string" },
+        "source_region_id": { "$ref": "#/$defs/non_empty_string" },
+        "raw_literal": { "$ref": "#/$defs/non_empty_string" },
+        "symbol": { "$ref": "#/$defs/non_empty_string" },
+        "value": { "$ref": "#/$defs/quantity_value" },
+        "role": { "enum": ["driving", "reference", "tolerance", "unknown"] },
+        "axis": { "$ref": "#/$defs/non_empty_string" },
+        "target_feature_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "evidence_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "evidence_status": { "$ref": "#/$defs/evidence_status" }
+      }
+    },
+    "interpretation_document": {
+      "allOf": [
+        { "$ref": "#/$defs/document_base" },
+        {
+          "type": "object",
+          "required": ["projection_convention", "projection_fact", "drawing_unit", "unit_fact", "views", "line_interpretations", "features", "dimension_bindings"],
+          "properties": {
+            "projection_convention": { "enum": ["first_angle", "third_angle", "reference_arrow", "mirrored", "unknown"] },
+            "projection_fact": { "$ref": "#/$defs/fact_provenance" },
+            "drawing_unit": { "$ref": "#/$defs/measurement_unit" },
+            "unit_fact": { "$ref": "#/$defs/fact_provenance" },
+            "views": { "type": "array", "items": { "$ref": "#/$defs/view_interpretation" } },
+            "line_interpretations": { "type": "array", "items": { "$ref": "#/$defs/line_interpretation" } },
+            "features": { "type": "array", "items": { "$ref": "#/$defs/interpreted_feature" } },
+            "dimension_bindings": { "type": "array", "items": { "$ref": "#/$defs/dimension_binding" } }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "hypothesis_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_kind", "contour_role", "closed", "evidence_ids", "fact"],
+      "properties": {
+        "profile_kind": { "enum": ["centered_rectangle", "circle", "polygon", "composite_curve", "unknown"] },
+        "contour_role": { "$ref": "#/$defs/non_empty_string" },
+        "closed": { "type": "boolean" },
+        "evidence_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true, "minItems": 1 },
+        "fact": { "$ref": "#/$defs/fact_provenance" }
+      }
+    },
+    "hypothesis_feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hypothesis_feature_id", "kind", "name", "interpretation_ids", "dimension_binding_ids", "reference_points", "cut_termination", "topology_description", "evidence_status", "fact"],
+      "properties": {
+        "hypothesis_feature_id": { "$ref": "#/$defs/non_empty_string" },
+        "kind": { "enum": ["body", "plane", "edge", "face", "hole", "bore", "pocket", "slot", "step", "boss", "rib", "opening", "unknown"] },
+        "name": { "$ref": "#/$defs/non_empty_string" },
+        "interpretation_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "dimension_binding_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "reference_points": { "type": "array", "items": { "$ref": "#/$defs/located_point_3" } },
+        "base_profile": { "$ref": "#/$defs/hypothesis_profile" },
+        "cut_termination": { "enum": ["through_all", "blind", "stepped_opening", "not_applicable", "pending_clarification"] },
+        "topology_description": { "$ref": "#/$defs/non_empty_string" },
+        "evidence_status": { "$ref": "#/$defs/evidence_status" },
+        "fact": { "$ref": "#/$defs/fact_provenance" }
+      }
+    },
+    "geometry_hypothesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hypothesis_id", "name", "status", "confidence", "explains_view_ids", "features", "contradiction_ids"],
+      "properties": {
+        "hypothesis_id": { "$ref": "#/$defs/non_empty_string" },
+        "name": { "$ref": "#/$defs/non_empty_string" },
+        "status": { "$ref": "#/$defs/document_status" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "explains_view_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "features": { "type": "array", "items": { "$ref": "#/$defs/hypothesis_feature" } },
+        "contradiction_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true }
+      }
+    },
+    "hypothesis_document": {
+      "allOf": [
+        { "$ref": "#/$defs/document_base" },
+        { "type": "object", "required": ["hypotheses"], "properties": { "hypotheses": { "type": "array", "items": { "$ref": "#/$defs/geometry_hypothesis" } } } }
+      ],
+      "unevaluatedProperties": false
+    },
+    "feature_plan_operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation_id", "operation_type", "name", "depends_on", "hypothesis_feature_ids", "status", "evidence_status", "fact"],
+      "properties": {
+        "operation_id": { "$ref": "#/$defs/non_empty_string" },
+        "operation_type": { "$ref": "#/$defs/non_empty_string" },
+        "name": { "$ref": "#/$defs/non_empty_string" },
+        "depends_on": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "hypothesis_feature_ids": { "type": "array", "items": { "$ref": "#/$defs/non_empty_string" }, "uniqueItems": true },
+        "status": { "$ref": "#/$defs/document_status" },
+        "evidence_status": { "$ref": "#/$defs/evidence_status" },
+        "fact": { "$ref": "#/$defs/fact_provenance" }
+      }
+    },
+    "feature_plan_document": {
+      "allOf": [
+        { "$ref": "#/$defs/document_base" },
+        {
+          "type": "object",
+          "required": ["selected_hypothesis_id", "operations"],
+          "properties": {
+            "selected_hypothesis_id": { "type": "string" },
+            "operations": { "type": "array", "items": { "$ref": "#/$defs/feature_plan_operation" } }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "trace_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "stage", "document_id", "entity_kind", "external_reference", "status"],
+      "properties": {
+        "node_id": { "$ref": "#/$defs/non_empty_string" },
+        "stage": { "enum": ["source_region", "observation", "dimension_observation", "interpretation", "dimension_binding", "hypothesis_feature", "feature_plan_operation", "generic_draft_operation", "modeling_ir_operation", "solidworks_feature", "reprojection_difference", "failure", "repair_patch"] },
+        "document_id": { "$ref": "#/$defs/non_empty_string" },
+        "entity_kind": { "$ref": "#/$defs/non_empty_string" },
+        "external_reference": { "type": "string" },
+        "status": { "$ref": "#/$defs/evidence_status" }
+      }
+    },
+    "trace_edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["edge_id", "edge_type", "from_id", "to_id", "producer", "status", "rationale"],
+      "properties": {
+        "edge_id": { "$ref": "#/$defs/non_empty_string" },
+        "edge_type": { "enum": ["source_region_to_observation", "observation_to_interpretation", "dimension_observation_to_dimension_binding", "interpretation_to_hypothesis_feature", "hypothesis_feature_to_feature_plan_operation", "feature_plan_operation_to_generic_draft_operation", "generic_draft_operation_to_modeling_ir_operation", "modeling_ir_operation_to_solidworks_feature", "source_or_model_entity_to_reprojection_difference", "failure_or_difference_to_repair_patch"] },
+        "from_id": { "$ref": "#/$defs/non_empty_string" },
+        "to_id": { "$ref": "#/$defs/non_empty_string" },
+        "producer": { "$ref": "#/$defs/producer_stamp" },
+        "status": { "$ref": "#/$defs/evidence_status" },
+        "rationale": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "trace_map": {
+      "allOf": [
+        { "$ref": "#/$defs/document_base" },
+        {
+          "type": "object",
+          "required": ["nodes", "edges"],
+          "properties": {
+            "nodes": { "type": "array", "items": { "$ref": "#/$defs/trace_node" } },
+            "edges": { "type": "array", "items": { "$ref": "#/$defs/trace_edge" } }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "drawing_contract_package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_manifest", "observation", "interpretation", "hypothesis", "feature_plan", "trace_map"],
+      "properties": {
+        "source_manifest": { "$ref": "#/$defs/source_manifest" },
+        "observation": { "$ref": "#/$defs/observation_document" },
+        "interpretation": { "$ref": "#/$defs/interpretation_document" },
+        "hypothesis": { "$ref": "#/$defs/hypothesis_document" },
+        "feature_plan": { "$ref": "#/$defs/feature_plan_document" },
+        "trace_map": { "$ref": "#/$defs/trace_map" }
+      }
+    }
+  }
+}

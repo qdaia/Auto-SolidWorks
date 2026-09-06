@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PdfPig" Version="0.1.16" />
+    <ProjectReference Include="..\CadModeling.Drawing.Contracts\CadModeling.Drawing.Contracts.csproj" />
+    <ProjectReference Include="..\CadModeling.Drawing.Providers.Abstractions\CadModeling.Drawing.Providers.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

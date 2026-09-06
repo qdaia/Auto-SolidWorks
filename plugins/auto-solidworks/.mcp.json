@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "auto-solidworks": {
+      "title": "Auto SolidWorks",
+      "description": "Local typed SolidWorks part/assembly modeling, drawing input, model editing and native/STEP/STL output. Default mm.",
+      "cwd": ".",
+      "command": "powershell.exe",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "./scripts/run-auto-solidworks-mcp.ps1"
+      ]
+    }
+  }
+}

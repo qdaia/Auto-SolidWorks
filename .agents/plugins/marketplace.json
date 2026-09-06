@@ -1,0 +1,20 @@
+{
+  "name": "auto-solidworks-local",
+  "interface": {
+    "displayName": "Auto Solidworks Local"
+  },
+  "plugins": [
+    {
+      "name": "auto-solidworks",
+      "source": {
+        "source": "local",
+        "path": "./plugins/auto-solidworks"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

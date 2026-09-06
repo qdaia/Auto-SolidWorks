@@ -1,0 +1,33 @@
+{
+  "name": "auto-solidworks",
+  "version": "0.5.1",
+  "description": "Local parametric SolidWorks parts and assemblies: drawing interpretation, native features, sheet metal, weldments, surfaces, model edits and STEP/STL export. Default mm.",
+  "author": {
+    "name": "csj17"
+  },
+  "keywords": [
+    "solidworks",
+    "cad",
+    "modeling",
+    "mcp",
+    "engineering-drawing"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Auto SolidWorks",
+    "shortDescription": "本地零件与装配建模，支持钣金、焊件、曲面和 STEP 导出。",
+    "longDescription": "根据工程图或尺寸创建 SolidWorks 参数化零件与装配体，支持草图约束、孔、圆角倒角、旋转、放样扫描、阵列、多实体、钣金、焊件、曲面、装配配合与干涉检查。可检查并修改已有零件副本，默认毫米，直接返回模型。",
+    "developerName": "csj17",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "根据这张工程图直接完成 SolidWorks 建模，未声明单位按 mm 处理，只返回最终模型。",
+      "根据我的尺寸描述创建零件，并保存 SLDPRT 和 STEP。"
+    ],
+    "brandColor": "#D71920"
+  }
+}

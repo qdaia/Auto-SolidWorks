@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SolidWorksInteropDir Condition="'$(SolidWorksInteropDir)' == ''">$(ProgramW6432)\SOLIDWORKS Corp\SOLIDWORKS</SolidWorksInteropDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CadModeling.Core\CadModeling.Core.csproj" />
+    <ProjectReference Include="..\CadModeling.Ir\CadModeling.Ir.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('$(SolidWorksInteropDir)\SolidWorks.Interop.sldworks.dll')">
+    <Reference Include="SolidWorks.Interop.sldworks">
+      <HintPath>$(SolidWorksInteropDir)\SolidWorks.Interop.sldworks.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="SolidWorks.Interop.swconst">
+      <HintPath>$(SolidWorksInteropDir)\SolidWorks.Interop.swconst.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+</Project>
