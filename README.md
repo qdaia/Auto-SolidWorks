@@ -10,7 +10,15 @@
 
 **PPL001M45.1-2 空心轴**：以多视图工程图为输入的复杂轴类零件建模案例，展示阶梯轴段、侧面长窗口、键槽、环槽及端面孔组等结构。
 
-![PPL001M45.1-2 空心轴的 SolidWorks 模型效果图](docs/examples/hollow-shaft/model-preview.png)
+<table>
+<tr>
+<td align="center" width="33%"><a href="docs/examples/hollow-shaft/model-preview.png"><img src="docs/examples/hollow-shaft/model-preview.png" width="240" alt="空心轴等轴视图"></a><br><sub>等轴视图</sub></td>
+<td align="center" width="33%"><a href="docs/examples/hollow-shaft/model-side.png"><img src="docs/examples/hollow-shaft/model-side.png" width="240" alt="空心轴侧向视图"></a><br><sub>侧向视图</sub></td>
+<td align="center" width="33%"><a href="docs/examples/hollow-shaft/model-end.png"><img src="docs/examples/hollow-shaft/model-end.png" width="240" alt="空心轴端面视图"></a><br><sub>端面视图</sub></td>
+</tr>
+</table>
+
+点击缩略图查看原始大图。
 
 [查看案例说明](docs/examples/hollow-shaft/README.md) · [查看原始 PDF 图纸](docs/examples/hollow-shaft/drawing.pdf)
 
