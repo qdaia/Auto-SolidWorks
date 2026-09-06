@@ -6,6 +6,25 @@
 
 [下载 Windows 插件](https://github.com/qdaia/Auto-SolidWorks/releases/latest) · [安装说明](docs/installation.md) · [从源码构建](docs/development.md) · [功能参数](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md)
 
+## 测试案例：空心轴
+
+**PPL001M45.1-2 空心轴**：以多视图工程图为输入的复杂轴类零件建模案例，展示阶梯轴段、侧面长窗口、键槽、环槽及端面孔组等结构。
+
+![PPL001M45.1-2 空心轴的 SolidWorks 模型效果图](docs/examples/hollow-shaft/model-preview.png)
+
+[查看案例说明](docs/examples/hollow-shaft/README.md) · [查看原始 PDF 图纸](docs/examples/hollow-shaft/drawing.pdf)
+
+<details>
+<summary>展开查看输入工程图</summary>
+
+![空心轴输入工程图，包含主视图、剖面、端视图及局部详图](docs/examples/hollow-shaft/drawing-preview.png)
+
+完整尺寸与技术要求请打开上方 PDF。
+
+</details>
+
+本案例展示提供的图纸与模型效果；截图不作为全部尺寸、公差和图纸等价性已通过验证的证明。
+
 ## 快速开始
 
 1. 安装并激活本机 SolidWorks，安装 **.NET 9 Windows Desktop Runtime（x64）** 和支持插件的 Codex CLI。
