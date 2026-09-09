@@ -20,3 +20,9 @@ jobs:
         run: dotnet build src/AutoSolidWorks.ModelingMcp/AutoSolidWorks.ModelingMcp.csproj --configuration Release
       - name: Validate public source structure
         run: python scripts/check-repository.py
+      - name: Focused managed regressions
+        run: |
+          dotnet run --project tests/FocusedCore/FocusedCore.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet run --project tests/DrawingRegression/DrawingRegression.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

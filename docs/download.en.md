@@ -2,18 +2,18 @@
 
 [简体中文](download.zh-CN.md) | **English** · [Back to README](../README.en.md)
 
-## Auto SolidWorks 0.5.1
+## Auto SolidWorks 0.5.4
 
 Create, inspect and modify parametric parts and assemblies in your local SolidWorks installation through Codex / MCP, using natural-language descriptions or engineering drawings as input and producing SolidWorks part models.
 This plugin relies on the LLM's ability to interpret drawings. GPT-6 Astra is recommended.
 
 ## Download and install
 
-[Download Windows plugin ZIP](https://github.com/qdaia/Auto-SolidWorks/releases/download/v0.5.1/auto-solidworks-0.5.1-windows-x64.zip) · [SHA-256 checksum](https://github.com/qdaia/Auto-SolidWorks/releases/download/v0.5.1/auto-solidworks-0.5.1-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v0.5.1)
+[Download Windows plugin ZIP](https://github.com/qdaia/Auto-SolidWorks/releases/download/v0.5.4/auto-solidworks-0.5.4-windows-x64.zip) · [SHA-256 checksum](https://github.com/qdaia/Auto-SolidWorks/releases/download/v0.5.4/auto-solidworks-0.5.4-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v0.5.4)
 
 For agent-assisted installation, send this message to your agent: Help me install https://github.com/qdaia/Auto-SolidWorks
 
-For manual installation, download `auto-solidworks-0.5.1-windows-x64.zip` using the link above, extract it, and run the following command in the extracted directory:
+For manual installation, download `auto-solidworks-0.5.4-windows-x64.zip` using the link above, extract it, and run the following command in the extracted directory:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
@@ -27,6 +27,6 @@ GitHub's automatically generated Source code archives do not contain the runtime
 
 ## Included
 
-- 8 MCP tools covering capability queries, drawing input, plan compilation, part building, model inspection, assembly building, profile discovery and connection diagnostics.
+- 9 MCP tools covering capability queries, drawing input, plan compilation, part building, model inspection, assembly building, profile discovery, connection diagnostics and SLDDRW/PDF drawing export.
 - Workflows for native features, sheet metal, weldments, surfaces, geometric references and editing copies of existing models.
 - C# source code, public synthetic tests, Chinese documentation, installation and build scripts, the MIT license and third-party notices.

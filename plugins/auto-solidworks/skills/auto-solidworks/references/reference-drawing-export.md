@@ -1,0 +1,13 @@
+# Reference drawing export
+
+Use `cad_export_drawing(inputPath, nativePath, pdfPath, templatePath?)` on a saved local `.SLDPRT`. All paths must be absolute; outputs must not exist. A dirty open source is rejected. The default template search prefers installed `gb_a3.drwdot`, then the configured native drawing template. An explicit template must exist and end in `.drwdot`.
+
+The output has two A3 sheets: Views (front, top below front, left to the right, isometric) and Parameters (source-native parameter values and their view-placement coverage). Closed sources open read-only. Source SHA-256 must remain unchanged. The saved drawing is reopened and checked for its sheet inventory, first-angle projection, A3 dimensions, four views and exact model reference. `reopened=true` records that readback, not full drawing equivalence.
+
+English and Chinese standard model view names are resolved from the actual source. Other localized installations must expose a recognized standard name; an unresolved view fails explicitly. Multi-body parts are retained. The initial exporter supports up to 44 source parameters. Existing output files are never overwritten; failed partial outputs remain for diagnosis.
+
+Inspect the PDF pages before delivery. Imported dimensions can include construction or feature dimensions that are not useful manufacturing constraints. Complex hidden-line geometry, long construction centerlines and crowded dimensions may require further native drawing editing. `source_dimensions` includes all unique source parameters, `imported_dimension_names` records those inserted into views, and `unplaced_dimension_names` records schedule-only parameters. No missing critical dimension is invented. Geometrically meaningful positions can still be absent from an underdefined source sketch even when every stored parameter is listed.
+
+For model-derived regression data, retain `drawing_origin=generated_from_reference_model`, source hashes and explicit reference authorization. These drawings are useful for extraction, units, coverage and geometry regression; they do not establish blind reconstruction accuracy on independently supplied drawings.
+
+To read the four-view page, use `cad_read_drawing` with `pageNumbers:[1]` and inspect its actual image. Read the parameter schedule separately when the task allows the reference model's data. Do not treat the schedule as geometry, or silently use it as independent source evidence. Native PDF extraction follows glyph baselines and preserves rotation; OCR conflicts remain conflicts in dimension candidates. Auxiliary dimension candidates do not certify attachment, even if their numeric value agrees with a reference.

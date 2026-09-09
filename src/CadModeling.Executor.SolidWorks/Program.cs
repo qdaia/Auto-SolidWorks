@@ -114,6 +114,7 @@ internal sealed class ExecutorPipeServer(string pipeName, IModelingExecutor exec
                 {
                     "health" => new(Health: await executor.HealthAsync(cancellationToken)),
                     "inspect" when request.Inspection is not null => new(Inspection: await executor.InspectAsync(request.Inspection, cancellationToken)),
+                    "drawing" when request.Drawing is not null => new(Drawing: await executor.ExportDrawingAsync(request.Drawing, cancellationToken)),
                     "assembly" when request.Assembly is not null => new(Assembly: await executor.BuildAssemblyAsync(request.Assembly,cancellationToken)),
                     "execute" when request.Plan is not null =>
                         new(Execution: await executor.ExecuteAsync(request.Plan, request.DryRun, cancellationToken)),
@@ -203,8 +204,17 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
         SldWorks? app = null;
         IModelDoc2? model = null;
         bool? originalInputDimension = null;
+        string? activeOperationId = null;
+        string? checkpointPath = null;
+        ModelingCheckpointManifest? checkpoint = null;
+        ModelVerificationResult? verification = null;
         try
         {
+            if(plan.Recovery.ResumeManifestPath is { } resumePath)
+            {
+                checkpoint=ModelingRecovery.ReadAndValidate(plan,resumePath);
+                checkpointPath=resumePath;
+            }
             using var startupDialog = SolidWorksStartupDialogSuppressor.Start();
             var type = Type.GetTypeFromProgID("SldWorks.Application", throwOnError: true)
                        ?? throw new InvalidOperationException("SldWorks.Application is not registered.");
@@ -217,11 +227,16 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                         : "Hid the known false .NET Framework startup dialog without acknowledging it.",
                     ("notification_audio", suppression.NotificationAudioSilenced ? "silenced-and-restored" : "not-confirmed")));
             app.Visible = true;
+            var targetName=Path.GetFileName(plan.Output.NativePath);
+            foreach(var open in (app.GetDocuments() as object[]??[]).Cast<IModelDoc2>())
+                if(Path.GetFileName(open.GetPathName()).Equals(targetName,StringComparison.OrdinalIgnoreCase)||open.GetTitle().Equals(targetName,StringComparison.OrdinalIgnoreCase))
+                    throw new CadExecutionException("OUTPUT_DOCUMENT_OPEN",ExecutionFailureCategory.Output,false,
+                        "A document with the requested output filename is already open in SolidWorks.","Use a unique output filename so the existing document remains untouched.");
             originalInputDimension=app.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swInputDimValOnCreate);
             app.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swInputDimValOnCreate,false);
             evidence.Add(Pass("connect", "Connected to SolidWorks COM.", ("revision", app.RevisionNumber() ?? "unknown")));
 
-            if (plan.SourceModelPath is { } sourceModel)
+            if ((checkpoint?.NativePath??plan.SourceModelPath) is { } sourceModel)
             {
                 var target = Path.GetFullPath(plan.Output.NativePath!);
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
@@ -229,6 +244,8 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 int openErrors=0,openWarnings=0;
                 model=(IModelDoc2?)app.OpenDoc6(target,(int)swDocumentTypes_e.swDocPART,(int)swOpenDocOptions_e.swOpenDocOptions_Silent,"",ref openErrors,ref openWarnings);
                 if(model is null) throw new IOException($"Cannot open model copy (errors={openErrors}).");
+                if(!Path.GetFullPath(model.GetPathName()).Equals(target,StringComparison.OrdinalIgnoreCase))
+                { model=null; throw new IOException("SolidWorks returned another open document instead of the edit copy. Use a unique output filename."); }
                 evidence.Add(Pass("document", "Opened a separate model copy for editing.", ("source",sourceModel),("output",target)));
             }
             else
@@ -240,9 +257,17 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
             }
 
             var operationObjects = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-            var mathUtility = (IMathUtility)app.GetMathUtility();
-            foreach (var operation in plan.Operations)
+            var completed=checkpoint?.CompletedOperationCount??0;
+            if(checkpoint is not null)
             {
+                RestoreCheckpointFeatures(model,checkpoint,operationObjects);
+                evidence.Add(Pass("checkpoint_resume","Reused the saved prefix and restored its actual feature references.",("completed_operations",completed.ToString(CultureInfo.InvariantCulture)),("manifest",checkpointPath!)));
+            }
+            var checkpointAfter=ModelingRecovery.CheckpointAfter(plan);
+            var mathUtility = (IMathUtility)app.GetMathUtility();
+            foreach (var operation in plan.Operations.Skip(completed))
+            {
+                activeOperationId=operation.Id;
                 try
                 {
                     switch (operation)
@@ -277,7 +302,23 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 {
                     throw WrapOperationFailure(operation, ex);
                 }
+                completed++;
+                if(checkpointAfter.Contains(operation.Id))
+                {
+                    try
+                    {
+                        (checkpointPath,checkpoint)=SaveCheckpoint(app,model,plan,completed,operationObjects);
+                        evidence.Add(Pass("checkpoint_saved","Saved and reopened a reusable prefix model.",("operation_id",operation.Id),("manifest",checkpointPath)));
+                    }
+                    catch(Exception checkpointError)
+                    {
+                        // Optional checkpoint failure must not fabricate a recoverable state or destroy a previous checkpoint.
+                        evidence.Add(new("checkpoint_unavailable",checkpointError.Message,true,Code:"CHECKPOINT_UNAVAILABLE",SuggestedAction:"Use the last valid checkpoint if available; otherwise rebuild."));
+                    }
+                }
             }
+
+            activeOperationId=null;
 
             var rebuildOk = Convert.ToBoolean(model.ForceRebuild3(false));
             if (!rebuildOk) throw new InvalidOperationException("ForceRebuild3 reported failure.");
@@ -297,6 +338,21 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 ("surface_area_mm2", geometry.SurfaceAreaMm2.ToString("0.###", CultureInfo.InvariantCulture)),
                 ("bounding_box_mm", FormatBounds(geometry.BoundingBoxMm))));
             VerifyGeometryQuality(geometry, plan.Acceptance, evidence);
+            if(ModelVerification.HasChecks(plan.Verification))
+            {
+                verification=VerifySourceRequirements(model,plan.Verification,geometry,out _);
+                foreach(var check in verification.Checks)
+                {
+                    var measurements=check.Measurements is null?new Dictionary<string,string>():new Dictionary<string,string>(check.Measurements);
+                    measurements["check_id"]=check.Id;
+                    var affected=plan.DrawingContext?.Features.Where(f=>f.VerificationCheckIds.Contains(check.Id)).SelectMany(f=>f.OperationIds).Distinct().ToArray()??[];
+                    measurements["affected_operation_ids"]=string.Join(",",affected);
+                    evidence.Add(new("source_requirement",check.Message,check.Passed,measurements,check.Passed?null:"SOURCE_REQUIREMENT_MISMATCH",ExecutionFailureCategory.GeometryQuality,
+                        !check.Passed,"Inspect measured feature geometry against the source requirement; do not weaken the expectation.",affected.Length==1?affected[0]:null));
+                }
+                if(!verification.Passed) throw new CadExecutionException("SOURCE_REQUIREMENT_MISMATCH",ExecutionFailureCategory.GeometryQuality,true,
+                    "The actual model does not satisfy the declared source requirements.","Correct the offending feature and rebuild from a compatible checkpoint.");
+            }
             var output = Path.GetFullPath(plan.Output.NativePath!);
             EnforceAllowedOutputRoot(output);
             Directory.CreateDirectory(Path.GetDirectoryName(output)!);
@@ -388,28 +444,38 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                     plan_fingerprint = planFingerprint,
                     assumptions = plan.Assumptions
                 },
+                source_requirement_verification = verification,
                 artifacts = new { native = output, exports = plan.Output.ExportPaths, previews = previewPaths, parameters = parametersPath }
             };
-            File.WriteAllText(reviewPath, JsonSerializer.Serialize(review,
-                new JsonSerializerOptions(ModelingIrJson.Options) { WriteIndented = true }));
-            evidence.Add(Pass("review_report", "Wrote the machine-readable postflight review report.",
-                ("path", reviewPath), ("bytes", new FileInfo(reviewPath).Length.ToString(CultureInfo.InvariantCulture))));
-
             var createdTitle = model.GetTitle();
             app.CloseDoc(createdTitle);
             ReleaseCom(model);
             model = null;
+            if(ModelVerification.HasChecks(plan.Verification))
+            {
+                var reopened=InspectOnSta(new(output,Verification:plan.Verification),app);
+                verification=reopened.Verification;
+                if(!reopened.Success || verification is not { Passed:true })
+                    throw new CadExecutionException("SAVED_REQUIREMENT_MISMATCH",ExecutionFailureCategory.GeometryQuality,true,
+                        "Saved model read-back did not pass the source requirements.","Inspect the saved result; do not deliver it as verified.");
+                evidence.Add(Pass("saved_source_requirements","Reopened the final native file and repeated the declared source requirement measurements."));
+            }
+            File.WriteAllText(reviewPath, JsonSerializer.Serialize(review,
+                new JsonSerializerOptions(ModelingIrJson.Options) { WriteIndented = true }));
+            evidence.Add(Pass("review_report", "Wrote the postflight report after saved-model verification.",
+                ("path", reviewPath), ("bytes", new FileInfo(reviewPath).Length.ToString(CultureInfo.InvariantCulture))));
             evidence.Add(Pass("save", "Saved native SolidWorks part and closed only the document created by this run.",
                 ("path", output), ("bytes", new FileInfo(output).Length.ToString(CultureInfo.InvariantCulture)),
                 ("sha256", Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(output)))),
                 ("warnings", saveWarnings.ToString(CultureInfo.InvariantCulture))));
 
             return new(true, "completed", "SolidWorks created, rebuilt, measured and saved the model.",
-                evidence, output, geometry, featureReferences, planFingerprint);
+                evidence, output, geometry, featureReferences, planFingerprint) {Verification=verification,Recovery=RecoveryState(plan,checkpointPath,checkpoint,null)};
         }
         catch (Exception ex)
         {
             var failure = ClassifyFailure(ex);
+            if(failure.OperationId is null&&activeOperationId is not null) failure=failure with {OperationId=activeOperationId};
             evidence.Add(new("failed", failure.Message, false, failure.Data, failure.Code, failure.Category,
                 failure.Retryable, failure.SuggestedAction, failure.OperationId));
             if (app is not null && model is not null)
@@ -425,7 +491,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 model = null;
             }
             return new(false, "failed", "SolidWorks execution stopped at the first failed checkpoint.", evidence,
-                plan.Output.NativePath, geometry, featureReferences, planFingerprint);
+                null, geometry, featureReferences, planFingerprint) {Verification=verification,Recovery=RecoveryState(plan,checkpointPath,checkpoint,failure.OperationId)};
         }
         finally
         {
@@ -1114,7 +1180,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
             new Dictionary<string, string>
             {
                 ["operation_type"] = operation.GetType().Name,
-                ["exception"] = exception.GetType().Name
+                ["exception"] = exception.GetType().Name,
+                ["hresult"] = $"0x{exception.HResult:X8}",
+                ["depends_on"] = string.Join(",",operation.DependsOn)
             },
             exception);
     }

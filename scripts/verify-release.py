@@ -37,7 +37,8 @@ result=subprocess.run(['powershell.exe','-NoLogo','-NoProfile','-NonInteractive'
 (work/'install.log').write_text(result.stdout+'\n'+result.stderr,encoding='utf-8')
 if result.returncode:
     raise SystemExit('Isolated install failed; see '+str(work/'install.log'))
-cache=Path(env['CODEX_HOME'])/'plugins/cache/auto-solidworks-local/auto-solidworks/0.5.1'
+version=json.loads((unpacked/'plugins/auto-solidworks/.codex-plugin/plugin.json').read_text(encoding='utf-8'))['version']
+cache=Path(env['CODEX_HOME'])/'plugins/cache/auto-solidworks-local/auto-solidworks'/version
 assert (cache/'.codex-plugin/plugin.json').is_file(),str(cache)
 expected={p.relative_to(unpacked/'plugins/auto-solidworks').as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
           for p in (unpacked/'plugins/auto-solidworks').rglob('*') if p.is_file()}

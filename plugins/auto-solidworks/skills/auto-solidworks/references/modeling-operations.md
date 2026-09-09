@@ -1,5 +1,7 @@
 # Typed geometry
 
+For drawing-based drafts, also read [source requirements and recovery](source-requirements-and-recovery.md). `drawing_context.features` links all operations and critical parameters to source evidence; `verification` carries separate expected measurements. `recovery` controls verified checkpoints and suffix replay. Text-only drafts can omit drawing context.
+
 Use the live MCP input schema for property spelling. All lengths in operations are mm and angles are degrees. Output paths are separate tool arguments.
 
 ## Coordinates and plans

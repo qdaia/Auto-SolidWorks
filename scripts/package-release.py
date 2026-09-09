@@ -16,9 +16,9 @@ for file in ('runtime/mcp/AutoSolidWorks.ModelingMcp.exe','runtime/executor/CadM
         raise SystemExit('Build the plugin before packaging: '+file)
 args.output.mkdir(parents=True, exist_ok=True)
 archive = args.output/f'auto-solidworks-{version}-windows-x64.zip'
-selected = [root/p for p in ('README.md','LICENSE','CHANGELOG.md','THIRD_PARTY_NOTICES.md','install.ps1',
+selected = [root/p for p in ('README.md','README.en.md','LICENSE','CHANGELOG.md','THIRD_PARTY_NOTICES.md','install.ps1',
     '.agents/plugins/marketplace.json','scripts/find-solidworks.ps1')]
-selected += list((root/'docs').glob('*.md'))
+selected += [p for p in (root/'docs').rglob('*') if p.is_file()]
 selected += [p for p in (root/'third-party').rglob('*') if p.is_file()]
 selected += [p for p in plugin.rglob('*') if p.is_file() and p.suffix.lower() != '.pdb'
              and not p.name.startswith('SolidWorks.Interop.')]

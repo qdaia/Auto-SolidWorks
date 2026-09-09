@@ -8,7 +8,7 @@ public enum DrawingProjection { FirstAngle, ThirdAngle, ReferenceArrow }
 [JsonConverter(typeof(JsonStringEnumConverter<ModelDrawingView>))]
 public enum ModelDrawingView { Front, Top, Left, Right, Bottom, Rear, Section, Detail, Auxiliary, Isometric }
 [JsonConverter(typeof(JsonStringEnumConverter<DrawingValueUnit>))]
-public enum DrawingValueUnit { Millimeter, Inch, Meter, Degree }
+public enum DrawingValueUnit { Millimeter, Inch, Meter, Degree, Unitless }
 
 public sealed record DrawingPlanView
 {
@@ -21,6 +21,7 @@ public sealed record DrawingPlanView
 }
 public sealed record DrawingDimensionFact
 {
+    public bool Critical { get; init; } = true;
     public required string Id { get; init; }
     public required string OperationId { get; init; }
     /// <summary>Relative snake-case field path in the typed operation; e.g. feature.radius_mm or primitives.0.diameter_mm.</summary>
@@ -35,6 +36,9 @@ public sealed record DrawingDimensionFact
 }
 public sealed record DrawingPlanContext
 {
+    public IReadOnlyList<DrawingFeatureRequirement> Features { get; init; } = [];
+    /// <summary>Every operation and declared critical parameter must belong to the source feature inventory.</summary>
+    public bool RequireCompleteBindings { get; init; } = true;
     public required string SourcePath { get; init; }
     public DrawingProjection Projection { get; init; } = DrawingProjection.FirstAngle;
     public DrawingFactStatus ProjectionStatus { get; init; } = DrawingFactStatus.Assumed;

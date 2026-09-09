@@ -26,14 +26,15 @@ public static partial class EngineeringDimensionParser
             {
                 var x=text.Geometry.Average(p=>p.X);var y=text.Geometry.Average(p=>p.Y);
                 var scale=Math.Max(12,Math.Max(text.Geometry.Max(p=>p.X)-text.Geometry.Min(p=>p.X),text.Geometry.Max(p=>p.Y)-text.Geometry.Min(p=>p.Y)));
-                nearby=observations.Where(o=>o.Kind!=ObservationKind.Text && o.Geometry.Count>0)
+                nearby=observations.Where(o=>o.Kind!=ObservationKind.Text && o.Geometry.Count>0 &&
+                        o.Geometry[0].CoordinateFrameId==text.Geometry[0].CoordinateFrameId)
                     .Select(o=>new { o.ObservationId,Distance=o.Geometry.Min(p=>Math.Sqrt((p.X-x)*(p.X-x)+(p.Y-y)*(p.Y-y))) })
                     .Where(o=>o.Distance<=scale*4).OrderBy(o=>o.Distance).Take(4).Select(o=>o.ObservationId).ToArray();
             }
             result.Add(new() { DimensionObservationId="dimension-"+text.ObservationId,SourceObservationId=text.ObservationId,
                 SourceRegionId=text.SourceRegionId,RawLiteral=text.RawLiteral,CandidateNumericValue=value,CandidateSymbol=symbol,
                 DimensionKind=kind,Count=count,SecondaryValue=secondary,NearbyGeometryObservationIds=nearby,
-                Confidence=Math.Min(text.Confidence,0.85),EvidenceStatus=EvidenceStatus.Candidate });
+                Confidence=Math.Min(text.Confidence,0.85),EvidenceStatus=text.EvidenceStatus==EvidenceStatus.Conflict?EvidenceStatus.Conflict:EvidenceStatus.Candidate });
         }
         return result;
     }

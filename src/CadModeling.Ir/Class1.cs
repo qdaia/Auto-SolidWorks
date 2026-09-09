@@ -30,6 +30,10 @@ public enum ExtrudeEndCondition { Blind, MidPlane, UpToSurface, ThroughAll, UpTo
 
 public sealed record ModelingPlan
 {
+    public ModelVerificationSpec Verification { get; init; } = new();
+    public ModelingRecoveryOptions Recovery { get; init; } = new();
+    public string? DrawingBindingDigest { get; init; }
+    public string? DrawingSourceSha256 { get; init; }
     public DrawingPlanContext? DrawingContext { get; init; }
     public string SchemaVersion { get; init; } = ModelingIrSchema.CurrentVersion;
     public required string PlanId { get; init; }

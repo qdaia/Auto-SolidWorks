@@ -4,7 +4,7 @@
 
 在本机 SolidWorks 中，通过自然语言或工程图创建和修改参数化零件、装配体，并保存原生模型与 STEP/STL。
 
-**Windows · 本机 SolidWorks · 默认 mm · 8 个 MCP 工具**
+**Windows · 本机 SolidWorks · 默认 mm · 9 个 MCP 工具**
 
 [下载 Windows 插件](docs/download.zh-CN.md) · [安装说明](docs/installation.md) · [从源码构建](docs/development.md) · [功能参数](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md)
 
@@ -38,7 +38,7 @@
 ## 快速开始
 
 1. 安装并激活本机 SolidWorks，安装 **.NET 9 Windows Desktop Runtime（x64）** 和支持插件的 Codex CLI。
-2. 从[下载页面](docs/download.zh-CN.md)下载 `auto-solidworks-0.5.1-windows-x64.zip`，解压到一个长期保留的目录。
+2. 从[下载页面](docs/download.zh-CN.md)下载 `auto-solidworks-0.5.4-windows-x64.zip`，解压到一个长期保留的目录。
 3. 在解压目录打开 PowerShell，运行：
 
    ```powershell
@@ -64,18 +64,22 @@ GitHub 自动提供的 **Source code (zip)** 是源码，未包含编译后的�
 | 装配 | 插入零部件、配置与位姿、几何配合、干涉检查 |
 | 检查与修改 | 特征、尺寸、配置、实体几何、原生零件副本修改、STEP 导入检查 |
 | 图纸输入 | 本地图片与 PDF、OCR 候选、分区/旋转提示、尺寸绑定检查 |
-| 文件输出 | SLDPRT、SLDASM、STEP/STP、STL |
+| 文件输出 | SLDPRT、SLDASM、STEP/STP、STL、SLDDRW、PDF |
 
 工具流程：`cad_get_capabilities → cad_read_drawing（有图时）→ cad_create_model_plan → cad_build_model → cad_inspect_model`。
 
 装配、型材与连接诊断分别使用 `cad_build_assembly`、`cad_list_weldment_profiles`、`cad_executor_health`。计划直接传递 typed draft / IR；`dryRun` 可选，默认建模执行。不会通过任意 shell 或脚本执行接口操作 CAD。
+
+`cad_export_drawing` 可从已保存零件导出第一角法 A3 原生工程图和 PDF，包含四视图、原生尺寸与参数表。导出后重新打开检查纸页与模型引用，并核对源模型哈希。当前最多支持 44 个源参数；复杂图纸可能仍需人工整理标注。
+
+0.5.4 同时包含来源尺寸绑定、局部几何检查、检查点恢复与倒角参数修复。详见[版本验证](docs/validation.md)。
 
 ## 运行方式与范围
 
 - CAD 执行、图纸预处理与文件保存在本机进行。Codex 或其他 AI 客户端如何处理提示、图纸和模型提供商请求，取决于该客户端及其设置；本项目不把云端 AI 会话描述为完全离线。
 - 未声明单位时使用 mm。关键尺寸缺失或冲突时需要澄清；OCR 数字需要结合原图判断。
 - `cad_executor_health` 和实际建模可能启动 SolidWorks。默认创建新文件，不覆盖已有模型。
-- 当前版本未生成物理螺旋螺纹、原生工程图纸页，也不完整解释任意 GD&T。Tapped 孔使用底孔和原生装饰螺纹。
+- 当前版本未生成物理螺旋螺纹，也不完整解释任意 GD&T。Tapped 孔使用底孔和原生装饰螺纹。
 - 功能族不代表支持其中每一种 SolidWorks 选项。几何创建、重建和测量成功不能自动证明与任意工程图等价。
 - 本机开发验证使用 SolidWorks 2025；其他版本需要自行验证。此次公开发布的检查范围见[发布验证](docs/validation.md)。
 

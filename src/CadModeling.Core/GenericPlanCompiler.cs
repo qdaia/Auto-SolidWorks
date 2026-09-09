@@ -40,6 +40,8 @@ public enum GenericCurveKind
 /// </summary>
 public sealed record GenericModelDraft
 {
+    public ModelVerificationSpec Verification { get; init; } = new();
+    public ModelingRecoveryOptions Recovery { get; init; } = new();
     public DrawingPlanContext? DrawingContext { get; init; }
     public string? SourceModelPath { get; init; }
     public required string Name { get; init; }
@@ -152,6 +154,8 @@ public sealed partial class GenericPlanCompiler
             SourceText = draft.SourceText.Trim(),
             SourceModelPath = draft.SourceModelPath,
             DrawingContext = draft.DrawingContext,
+            Verification = draft.Verification,
+            Recovery = draft.Recovery,
             Assumptions = draft.Assumptions,
             Operations = operations,
             Output = new()
@@ -180,6 +184,11 @@ public sealed partial class GenericPlanCompiler
             }
         };
 
+        if(plan.DrawingContext is { } context)
+        {
+            plan = plan with { DrawingSourceSha256 = DrawingPlanValidation.FileHash(context.SourcePath) };
+            plan = plan with { DrawingBindingDigest = DrawingPlanValidation.Digest(plan) };
+        }
         var validation = new ModelingIrValidator().Validate(plan, forExecution: false);
         diagnostics.AddRange(validation.Diagnostics);
         if (diagnostics.All(item => item.Severity != DiagnosticSeverity.Error))

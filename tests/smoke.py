@@ -75,8 +75,8 @@ try:
     listed = rpc('tools/list')['tools']
     report['tools'] = listed
     names = {t['name'] for t in listed}
-    assert names == {'cad_get_capabilities','cad_read_drawing','cad_create_model_plan','cad_build_model','cad_executor_health','cad_inspect_model','cad_build_assembly','cad_list_weldment_profiles'}
-    report['checks']['eight_modeling_tools'] = True
+    assert names == {'cad_get_capabilities','cad_read_drawing','cad_create_model_plan','cad_build_model','cad_executor_health','cad_inspect_model','cad_build_assembly','cad_list_weldment_profiles','cad_export_drawing'}
+    report['checks']['nine_modeling_tools'] = True
     report['capabilities'] = call('cad_get_capabilities')
     assert report['capabilities']['mode'] == 'modeling_only'
     native = str(args.report.parent / 'model-check.SLDPRT')

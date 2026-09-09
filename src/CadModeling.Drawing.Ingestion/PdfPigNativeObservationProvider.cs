@@ -6,13 +6,14 @@ using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.Core;
 using UglyToad.PdfPig.Graphics;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 
 namespace CadModeling.Drawing.Ingestion;
 
 public sealed class PdfPigNativeObservationProvider : IPdfNativeObservationProvider
 {
     public const string ProviderName = "pdfpig-native";
-    public const string ProviderVersion = "0.1.16";
+    public const string ProviderVersion = "0.1.16-rotation-aware-v1";
 
     public Task<int> GetPageCountAsync(string pdfPath, CancellationToken cancellationToken = default)
     {
@@ -34,16 +35,22 @@ public sealed class PdfPigNativeObservationProvider : IPdfNativeObservationProvi
             binarySha: string.IsNullOrWhiteSpace(pdfPigAssembly) || !File.Exists(pdfPigAssembly) ? null : IngestionUtilities.Sha256File(pdfPigAssembly));
 
         var wordIndex = 0;
-        foreach (var word in page.GetWords().OrderByDescending(word => word.BoundingBox.Top).ThenBy(word => word.BoundingBox.Left))
+        // The default extractor splits vertical/slanted engineering dimensions into individual digits.
+        // Nearest-neighbour extraction follows glyph baselines without guessing missing values.
+        foreach (var word in page.GetWords(NearestNeighbourWordExtractor.Instance).OrderByDescending(word => word.BoundingBox.Top).ThenBy(word => word.BoundingBox.Left))
         {
             cancellationToken.ThrowIfCancellationRequested();
             var letters = word.Letters.ToArray();
             if (letters.Length == 0) continue;
             var literal = word.Text;
-            var left = word.BoundingBox.Left;
-            var right = word.BoundingBox.Right;
-            var bottom = word.BoundingBox.Bottom;
-            var top = word.BoundingBox.Top;
+            if(string.IsNullOrWhiteSpace(literal)) continue;
+            var corners=new[]{word.BoundingBox.BottomLeft,word.BoundingBox.BottomRight,word.BoundingBox.TopLeft,word.BoundingBox.TopRight};
+            var left = corners.Min(p=>p.X);
+            var right = corners.Max(p=>p.X);
+            var bottom = corners.Min(p=>p.Y);
+            var top = corners.Max(p=>p.Y);
+            var rotation=Math.Atan2(letters[0].EndBaseLine.Y-letters[0].StartBaseLine.Y,
+                letters[0].EndBaseLine.X-letters[0].StartBaseLine.X)*180/Math.PI;
             var id = IngestionUtilities.StableId("obs-native-text", context.SourceSha256, context.PageNumber, wordIndex, literal, left, bottom);
             observations.Add(new()
             {
@@ -60,6 +67,8 @@ public sealed class PdfPigNativeObservationProvider : IPdfNativeObservationProvi
                     ("coordinate_unit", "pdf_user_space_point"),
                     ("font_name", letters[0].FontName ?? string.Empty),
                     ("font_size", letters[0].PointSize.ToString("R", CultureInfo.InvariantCulture)),
+                    ("text_rotation_degrees",rotation.ToString("R",CultureInfo.InvariantCulture)),
+                    ("word_extractor","nearest_neighbour"),
                     ("word_index", wordIndex.ToString(CultureInfo.InvariantCulture)),
                     ("fusion_bbox", FusionBox(left, bottom, right, top, page.Height, context.RenderDpi)))
             });

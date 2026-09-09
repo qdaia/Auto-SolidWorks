@@ -3,12 +3,15 @@ from cases import sketch, boss, rect, draft
 
 def check_contracts(call,root,output):
     source=output/'synthetic-contract-source.png'
-    # A generated 1x1 PNG provides a real source path; this suite checks bindings, not OCR.
     import base64
     source.write_bytes(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII='))
     base=draft('binding_case',[sketch('profile',[rect(25.4,20)]),boss('body','profile',10)],
         drawing_context=dict(source_path=str(source),views=[dict(id='front',kind='Front')],dimensions=[
             dict(id='width',operation_id='profile',parameter_path='primitives.0.width_mm',value=1,unit='Inch',status='Stated',source_literal='1 inch',view_ids=['front'])]))
+    base['drawing_context']['features']=[dict(id='plate',source_literal='Contract fixture width 1 inch',view_ids=['front'],operation_ids=['profile','body'],
+        critical_parameters=[dict(operation_id='profile',parameter_path='primitives.0.width_mm',dimension_id='width')],verification_check_ids=['width_check'])]
+    base['verification']=dict(bounds=[dict(id='width_check',source_literal='Contract fixture 25.4 x 20 x 10 mm',source_dimension_ids=['width'],size_mm=dict(x=25.4,y=20,z=10))],
+        bindings=[dict(dimension_id='width',check_id='width_check',parameter_path='size_mm.x')])
     def compile(d):return call('cad_create_model_plan',{'nativeOutputPath':str(output/'contract.SLDPRT'),'draft':d})
     checks={}
     result=compile(base);assert result['success'],result

@@ -95,7 +95,11 @@ public sealed record ExecutionResult(
     string? NativePath = null,
     GeometrySnapshot? Geometry = null,
     IReadOnlyList<StableFeatureReference>? FeatureReferences = null,
-    string? PlanFingerprint = null);
+    string? PlanFingerprint = null)
+{
+    public ModelVerificationResult? Verification { get; init; }
+    public ModelingRecoveryState? Recovery { get; init; }
+}
 
 public sealed record ModelingCapabilities(
     string SchemaVersion,
@@ -137,7 +141,7 @@ public static class ModelingCapabilityCatalog
         ["All dimensions default to mm; typed rotations and angles use degrees.",
          "Drawing OCR returns candidates. The agent interprets view geometry and binds dimensions before planning; low-resolution OCR may be wrong.",
          "Tapped holes use a drilled hole and cosmetic thread annotation; physical helical threads are not generated.",
-         "Native SLDPRT and SLDASM creation is supported; native drawing-sheet generation is not implemented.",
+         "Native SLDPRT, SLDASM and model-derived first-angle SLDDRW/PDF export are supported. Imported dimensions do not certify a complete manufacturing drawing.",
          "Free-form surfacing uses supplied profiles/paths, not arbitrary automatic shape reconstruction.",
          "Creation success does not certify equivalence to a source drawing. Individual variants require valid SolidWorks geometry."],
         ["Native rebuild and feature creation", "Body counts, volume, area, centroid and bounding box",
@@ -162,6 +166,8 @@ public static class ModelingCapabilityCatalog
 
 public interface IModelingExecutor
 {
+    Task<DrawingExportResult> ExportDrawingAsync(DrawingExportRequest request,CancellationToken cancellationToken=default) =>
+        Task.FromResult(new DrawingExportResult(false,"This executor does not support drawing export."));
     Task<AssemblyResult> BuildAssemblyAsync(AssemblyPlan plan,CancellationToken cancellationToken=default) =>
         Task.FromResult(new AssemblyResult(false,"This executor does not support assemblies."));
     Task<ModelInspection> InspectAsync(ModelInspectionRequest request, CancellationToken cancellationToken = default) =>
@@ -175,6 +181,9 @@ public sealed class ModelingIrValidator
     public ValidationReport Validate(ModelingPlan plan, bool forExecution = false)
     {
         var diagnostics = new List<ModelingDiagnostic>();
+        diagnostics.AddRange(DrawingPlanValidation.ValidateCompiled(plan));
+        diagnostics.AddRange(ModelVerification.Validate(plan.Verification, plan.DrawingContext));
+        diagnostics.AddRange(ModelingRecovery.Validate(plan));
         ErrorIf(!ModelingIrSchema.IsSupported(plan.SchemaVersion), "IR001",
             $"Unsupported schema_version '{plan.SchemaVersion}'. Supported versions: {string.Join(", ", ModelingIrSchema.SupportedVersions)}.", "schema_version");
         ErrorIf(string.IsNullOrWhiteSpace(plan.PlanId), "IR002", "plan_id is required.", "plan_id");
@@ -1114,13 +1123,18 @@ public static class ModelingPlanIdentity
     }
 }
 
-public sealed record ExecutorServiceRequest(string Action, ModelingPlan? Plan = null, bool DryRun = false, ModelInspectionRequest? Inspection = null,AssemblyPlan? Assembly = null);
-public sealed record ExecutorServiceResponse(ExecutorHealth? Health = null, ExecutionResult? Execution = null, string? Error = null, ModelInspection? Inspection = null,AssemblyResult? Assembly = null);
+public sealed record ExecutorServiceRequest(string Action, ModelingPlan? Plan = null, bool DryRun = false, ModelInspectionRequest? Inspection = null,AssemblyPlan? Assembly = null,DrawingExportRequest? Drawing = null);
+public sealed record ExecutorServiceResponse(ExecutorHealth? Health = null, ExecutionResult? Execution = null, string? Error = null, ModelInspection? Inspection = null,AssemblyResult? Assembly = null,DrawingExportResult? Drawing = null);
 
 public sealed class NamedPipeModelingExecutor(
     string pipeName = "cad-modeling-solidworks",
     int connectTimeoutMilliseconds = 5000) : IModelingExecutor
 {
+    public async Task<DrawingExportResult> ExportDrawingAsync(DrawingExportRequest request,CancellationToken cancellationToken=default)
+    {
+        var response=await SendAsync(new("drawing",Drawing:request),cancellationToken);
+        return response.Drawing??new(false,response.Error??"No drawing response.");
+    }
     public async Task<AssemblyResult> BuildAssemblyAsync(AssemblyPlan plan,CancellationToken cancellationToken=default)
     {
         var response=await SendAsync(new("assembly",Assembly:plan),cancellationToken);
@@ -1178,6 +1192,11 @@ public sealed record LocalExecutorLaunchOptions
 
 public sealed class AutoStartingNamedPipeModelingExecutor : IModelingExecutor, IDisposable
 {
+    public async Task<DrawingExportResult> ExportDrawingAsync(DrawingExportRequest request,CancellationToken cancellationToken=default)
+    {
+        var health=await HealthAsync(cancellationToken);
+        return health.Available?await _client.ExportDrawingAsync(request,cancellationToken):new(false,health.Message);
+    }
     public async Task<AssemblyResult> BuildAssemblyAsync(AssemblyPlan plan,CancellationToken cancellationToken=default)
     {
         var health=await HealthAsync(cancellationToken);

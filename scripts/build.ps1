@@ -2,6 +2,8 @@ param([string]$SolidWorksInteropDir)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $interop = & (Join-Path $PSScriptRoot 'find-solidworks.ps1') -SolidWorksInteropDir $SolidWorksInteropDir
+# A trailing backslash can escape the closing native-command quote in Windows PowerShell.
+$interop = $interop.TrimEnd([char]'\', [char]'/')
 $runtime = Join-Path $root 'plugins\auto-solidworks\runtime'
 $projects = @(
     @{File='src\AutoSolidWorks.ModelingMcp\AutoSolidWorks.ModelingMcp.csproj'; Output='mcp'},

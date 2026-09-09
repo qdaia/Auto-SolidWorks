@@ -2,6 +2,8 @@
 
 Use for multi-view parts with repeated holes or several feature families. Keep the public journey: capabilities → read drawing → compile typed draft → build. Keep intermediate plans internal unless requested.
 
+Use the runtime [source requirements and recovery contract](source-requirements-and-recovery.md) to preserve this interpretation: populate the source feature inventory, independent measurements and checkpoint directory in the typed draft. A feature failure returns the reusable prefix and pending suffix; recompile the corrected full draft to resume without rebuilding the prefix.
+
 ## Read and retain the source
 
 - Interpret actual page images and useful crops yourself. OCR is a candidate list, not authoritative dimensions.

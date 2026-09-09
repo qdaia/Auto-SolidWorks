@@ -208,8 +208,16 @@ internal sealed partial class SolidWorksComExecutor
                 result=model.IFeatureByPositionReverse(0); break;
             case NativeFeatureKind.Chamfer:
                 SelectQueries(model,objects,o.Selections);
-                var mode=o.ChamferMode switch { ChamferMode.DistanceAngle=>1, ChamferMode.TwoDistances=>2, _=>16 };
-                result=fm.InsertFeatureChamfer(o.TangentPropagation ? 1 : 0,mode,Mm(o.DistanceMm),Radians(o.AngleDegrees),Mm(o.SecondDistanceMm),0,0,0); break;
+                // EqualDistance is a modifier of DistanceDistance, not a standalone chamfer type.
+                var mode=o.ChamferMode switch {
+                    ChamferMode.DistanceAngle=>(int)swChamferType_e.swChamferAngleDistance,
+                    ChamferMode.TwoDistances=>(int)swChamferType_e.swChamferDistanceDistance,
+                    _=>(int)swChamferType_e.swChamferDistanceDistance|(int)swChamferType_e.swChamferEqualDistance };
+                var chamferOptions=(o.TangentPropagation?(int)swFeatureChamferOption_e.swFeatureChamferTangentPropagation:0)|
+                    (o.Reverse?(int)swFeatureChamferOption_e.swFeatureChamferFlipDirection:0);
+                result=fm.InsertFeatureChamfer(chamferOptions,mode,Mm(o.DistanceMm),
+                    o.ChamferMode==ChamferMode.DistanceAngle?Radians(o.AngleDegrees):0,
+                    Mm(o.ChamferMode==ChamferMode.EqualDistance?o.DistanceMm:o.SecondDistanceMm),0,0,0); break;
             case NativeFeatureKind.Fillet:
                 SelectQueries(model,objects,o.Selections);
                 var faceMode=o.Selections.Any(s=>s.Kind==EntityKind.Face);

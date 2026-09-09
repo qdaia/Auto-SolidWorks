@@ -4,7 +4,7 @@
 
 Create and modify parametric parts and assemblies in your local SolidWorks installation from natural-language descriptions or engineering drawings, and save native models and STEP/STL exports.
 
-**Windows · Local SolidWorks · mm by default · 8 MCP tools**
+**Windows · Local SolidWorks · mm by default · 9 MCP tools**
 
 [Download Windows plugin](docs/download.en.md) · [Installation (Chinese)](docs/installation.md) · [Build from source (Chinese)](docs/development.md) · [Operation reference](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md)
 
@@ -38,7 +38,7 @@ This example presents the supplied drawing and model images. The screenshots do 
 ## Quick start
 
 1. Install and activate SolidWorks locally, then install the **.NET 9 Windows Desktop Runtime (x64)** and a Codex CLI version with plugin support.
-2. Download `auto-solidworks-0.5.1-windows-x64.zip` from the [download page](docs/download.en.md) and extract it to a directory you will keep for ongoing use.
+2. Download `auto-solidworks-0.5.4-windows-x64.zip` from the [download page](docs/download.en.md) and extract it to a directory you will keep for ongoing use.
 3. Open PowerShell in the extracted directory and run:
 
    ```powershell
@@ -64,18 +64,22 @@ GitHub's automatically generated **Source code (zip)** contains source files wit
 | Assemblies | Component insertion, configurations and placement, geometric mates and interference checks |
 | Inspection and editing | Features, dimensions, configurations, body geometry, editing copies of native parts and STEP import inspection |
 | Drawing input | Local images and PDFs, OCR candidates, region/rotation hints and dimension-binding checks |
-| File output | SLDPRT, SLDASM, STEP/STP and STL |
+| File output | SLDPRT, SLDASM, STEP/STP, STL, SLDDRW and PDF |
 
 Tool workflow: `cad_get_capabilities → cad_read_drawing (if a drawing is provided) → cad_create_model_plan → cad_build_model → cad_inspect_model`.
 
 Assembly building, profile discovery and connection diagnostics use `cad_build_assembly`, `cad_list_weldment_profiles` and `cad_executor_health`, respectively. Plans pass typed drafts / IR directly; `dryRun` is optional, and modeling executes by default. CAD is not controlled through an arbitrary shell or script execution interface.
+
+`cad_export_drawing` exports a saved part to first-angle A3 native SLDDRW and PDF files with four views, native dimensions and a parameter schedule. It reopens the drawing to check sheets and model references and checks that the source hash is unchanged. The initial limit is 44 source parameters; complex annotations may need manual layout editing.
+
+Version 0.5.4 also includes source-dimension binding, local geometry checks, checkpoint recovery and corrected chamfer parameter routing. See [validation details](docs/validation.md).
 
 ## Runtime and limitations
 
 - CAD execution, drawing preprocessing and file storage run locally. How Codex or another AI client handles prompts, drawings and requests to model providers depends on that client and its settings; this project does not describe cloud AI sessions as fully offline.
 - Dimensions default to mm when no unit is specified. Missing or conflicting critical dimensions require clarification; OCR numbers must be checked against the original drawing.
 - `cad_executor_health` and actual modeling may start SolidWorks. New files are created by default, without overwriting existing models.
-- The current version does not generate physical helical threads or native drawing sheets, and does not fully interpret arbitrary GD&T. Tapped holes use tap-drill holes and native cosmetic threads.
+- The current version does not generate physical helical threads, and does not fully interpret arbitrary GD&T. Tapped holes use tap-drill holes and native cosmetic threads.
 - Support for a feature family does not imply support for every SolidWorks option within it. Successful geometry creation, rebuilding and measurement do not automatically establish equivalence to an arbitrary engineering drawing.
 - Local development validation used SolidWorks 2025; other versions require separate verification. See [release validation (Chinese)](docs/validation.md) for the checks performed for this public release.
 

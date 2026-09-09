@@ -38,6 +38,10 @@ await builder.Build().RunAsync();
 [McpServerToolType]
 public sealed class ModelingTools
 {
+    [McpServerTool(Name="cad_export_drawing",ReadOnly=false,Destructive=false,Idempotent=false,OpenWorld=false,UseStructuredContent=true)]
+    [Description("Export an existing native part to a first-angle A3 engineering drawing and PDF with front/top/left/isometric views and imported native dimensions. Source file is preserved. Outputs must not already exist. Returns dimension placement gaps; a model-derived drawing is not an independent drawing benchmark or a complete manufacturing definition.")]
+    public static Task<DrawingExportResult> ExportDrawing(IModelingExecutor executor,string inputPath,string nativePath,string pdfPath,string? templatePath=null,CancellationToken cancellationToken=default) =>
+        executor.ExportDrawingAsync(new(inputPath,nativePath,pdfPath,templatePath),cancellationToken);
     [McpServerTool(Name="cad_list_weldment_profiles",ReadOnly=true,Destructive=false,Idempotent=true,OpenWorld=false,UseStructuredContent=true)]
     [Description("Find local native SLDLFP weldment profiles. Default search is ProgramData/SOLIDWORKS. Use cad_inspect_model on a returned profile to read available configurations before creating a structural member.")]
     public static object WeldmentProfiles(string? directory=null)
@@ -56,10 +60,16 @@ public sealed class ModelingTools
     }
     [McpServerTool(Name = "cad_inspect_model", ReadOnly = true, Destructive = false,
         Idempotent = true, OpenWorld = false, UseStructuredContent = true)]
-    [Description("Read a local model's features, native dimensions, geometry and optional face/edge queries. Opens closed native files read-only; imports STEP/STP through an isolated working copy for geometry checks without saving source files. May start SolidWorks.")]
+    [Description("Read a local model's features, native dimensions, geometry and optional face/edge queries. Optional verification checks source-declared cylindrical walls, count, axis locations, depths, bounding boxes, native dimensions and source-derived local trimmed-surface/clearance samples. Opens closed native files read-only; imports STEP/STP through an isolated working copy. May start SolidWorks.")]
     public static Task<ModelInspection> InspectModel(IModelingExecutor executor,string inputPath,
-        EntityQuery[]? queries=null,CancellationToken cancellationToken=default) =>
-        executor.InspectAsync(new(Path.GetFullPath(inputPath),queries),cancellationToken);
+        EntityQuery[]? queries=null,ModelVerificationSpec? verification=null,CancellationToken cancellationToken=default)
+    {
+        var errors=ModelVerification.Validate((verification??new()) with { Bindings=[] },null).ToArray();
+        // Standalone inspection reuses expected measurements; source binding was checked during compilation.
+        if(errors.Length>0)
+            throw new ArgumentException(string.Join(" ",errors.Select(e=>e.Message)));
+        return executor.InspectAsync(new(Path.GetFullPath(inputPath),queries,verification),cancellationToken);
+    }
 
     [McpServerTool(Name = "cad_get_capabilities", ReadOnly = true, Destructive = false,
         Idempotent = true, OpenWorld = false, UseStructuredContent = true)]
@@ -70,12 +80,17 @@ public sealed class ModelingTools
         mode = "modeling_only",
         default_unit = "mm",
         input_formats = new[] { "text", "pdf", "png", "jpg", "jpeg", "tif", "tiff" },
-        output_formats = new[] { "sldprt", "sldasm", "step", "stp", "stl" },
+        output_formats = new[] { "sldprt", "sldasm", "step", "stp", "stl", "slddrw", "pdf" },
+        drawing_export = new { projection="FirstAngle",sheet="A3",source="native_part",views=new[]{"Front","Top","Left","Isometric"},dimension_placement_coverage=true,complete_manufacturing_definition=false },
         schema_version=ModelingIrSchema.CurrentVersion,
         operations = ModelingCapabilityCatalog.Current.Operations,
         native_feature_kinds=Enum.GetNames<NativeFeatureKind>(),
         sketch_primitive_kinds=Enum.GetNames<GenericPrimitiveKind>(),
         assembly_mate_kinds=Enum.GetNames<AssemblyMateKind>(),
+        source_requirements = new { primary_interpreter="agent_vision",ocr="auxiliary_candidates",drawing_feature_coverage=true,critical_dimension_binding=true,compiled_binding_integrity=true },
+        measured_verification = new[] { "cylinder_diameter_axis_position_axial_extent_count", "interior_vs_exterior_cylinder", "native_dimensions", "model_bounding_box", "saved_native_readback", "trimmed_plane_cylinder_cone_samples", "outward_normal_and_cone_half_angle", "boundary_clearance_samples", "unique_sampled_face_area" },
+        local_geometry = new { maximum_sample_points=512, surface_kinds=new[]{"Plane","Cylinder","Cone"}, optional_unique_face_area=true, scope="Declared finite samples and touched-face area; no exact topology, material/void classification or thread certification." },
+        local_recovery = new { enabled_by_default=true,mode="verified_prefix_and_suffix_replay",checkpoint_file_hash=true,source_requirements_preserved=true },
         natural_language_examples = ModelingCapabilityCatalog.Current.NaturalLanguageExamples.Skip(1).ToArray(),
         workflow = "Read the drawing if supplied, create a typed model plan, then build and save it.",
         limitations = ModelingCapabilityCatalog.Current.Limitations
