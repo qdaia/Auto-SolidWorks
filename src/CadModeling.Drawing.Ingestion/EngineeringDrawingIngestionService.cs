@@ -41,6 +41,7 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
 
     public async Task<DrawingIngestionResponse> IngestAsync(DrawingIngestionRequest request, CancellationToken cancellationToken = default)
     {
+        using var timing = CadModeling.Ir.PerformanceTrace.Begin("drawing.ingest");
         try
         {
             ValidateRequest(request);
@@ -77,6 +78,7 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
             var sourcePages = new List<SourcePage>();
             var globalDiagnostics = new List<IngestionDiagnostic>();
             var representations = new List<SourceRepresentation>();
+            var omission = new DrawingOmissionInventoryBuilder();
 
             foreach (var pageNumber in pageNumbers)
             {
@@ -172,6 +174,7 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
                 };
                 var observationPath = Path.Combine(pageDirectory, "observation.json");
                 WriteJsonNew(observationPath, observation);
+                omission.AddPage(observation, observationPath, processed, pageDirectory, token);
                 artifacts.Add(Artifact("observation-json", ArtifactKind.JsonDocument, observationPath, "application/json", pageNumber));
                 var providers = batches.Select(batch => batch.Provenance).Append(processed.Provenance)
                     .Concat(InputProviderProvenance(inputKind, request.ProviderProfile, request.DeterministicSeed))
@@ -213,6 +216,7 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
 
             var sourceRepresentation = representations.All(value => value == SourceRepresentation.Raster)
                 ? SourceRepresentation.Raster : SourceRepresentation.Hybrid;
+            var omissionArtifact = omission.Save(inputPath, sourceSha, pageCount, outputDirectory);
             var sourceManifest = new DrawingSourceManifest
             {
                 DocumentId = "drawing-source-manifest",
@@ -231,6 +235,10 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
                 Pages = sourcePages
             };
             WriteJsonNew(Path.Combine(outputDirectory, "source-manifest.json"), sourceManifest);
+            var sourceFacts = SourceFactAssembler.Assemble(sourceSha, results.Select(item => item.Observation).ToArray(),
+                ServiceName, ServiceVersion, configurationHash, createdAt);
+            var sourceFactsPath = Path.Combine(outputDirectory, "source-facts.json");
+            WriteJsonNew(sourceFactsPath, sourceFacts);
             EnforceArtifactLimit(outputDirectory, request.Limits.MaximumArtifactBytes);
             return new()
             {
@@ -238,6 +246,14 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
                     ? IngestionOutcome.SucceededWithWarnings : IngestionOutcome.Succeeded,
                 RunId = runId,
                 OutputDirectory = outputDirectory,
+                SourceFacts = sourceFacts,
+                SourceFactsPath = sourceFactsPath,
+                SourceFactsRevisionId = sourceFacts.RevisionId,
+                OmissionInventoryPath = omissionArtifact.Path,
+                OmissionInventorySha256 = omissionArtifact.Sha256,
+                OmissionStatus = "requires_visual_review",
+                OmissionCandidateCount = omissionArtifact.CandidateCount,
+                RequiredReviewRegionCount = omissionArtifact.RegionCount,
                 SourceManifest = sourceManifest,
                 Pages = results,
                 Diagnostics = globalDiagnostics

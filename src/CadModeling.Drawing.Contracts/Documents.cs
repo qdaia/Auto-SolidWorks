@@ -128,6 +128,12 @@ public sealed record InterpretedFeature
 public sealed record DimensionBinding
 {
     public string BindingId { get; init; } = string.Empty;
+    /// <summary>Independent source fact. Optional for legacy documents that predate source-fact separation.</summary>
+    public string SourceFactId { get; init; } = string.Empty;
+    /// <summary>Exact source-facts revision against which this attachment decision was made.</summary>
+    public string SourceRevisionId { get; init; } = string.Empty;
+    /// <summary>Fingerprint of the source fact's value, view, region and evidence identity at binding time.</summary>
+    public string SourceFactFingerprint { get; init; } = string.Empty;
     public string DimensionObservationId { get; init; } = string.Empty;
     public string SourceRegionId { get; init; } = string.Empty;
     public string RawLiteral { get; init; } = string.Empty;
@@ -138,6 +144,13 @@ public sealed record DimensionBinding
     public IReadOnlyList<string> TargetFeatureIds { get; init; } = [];
     public IReadOnlyList<string> EvidenceIds { get; init; } = [];
     public EvidenceStatus EvidenceStatus { get; init; } = EvidenceStatus.Candidate;
+    public DimensionBindingDecision Decision { get; init; } = DimensionBindingDecision.Candidate;
+    public IReadOnlyList<DimensionBindingCandidate> Candidates { get; init; } = [];
+    public string OperationId { get; init; } = string.Empty;
+    public string ParameterPath { get; init; } = string.Empty;
+    public string BindingBasis { get; init; } = string.Empty;
+    public string Formula { get; init; } = string.Empty;
+    public IReadOnlyList<string> ConflictFactIds { get; init; } = [];
 }
 
 public sealed record DrawingHypothesisDocument : DrawingDocumentBase
@@ -327,6 +340,8 @@ public sealed record TraceEdge
 public sealed record DrawingContractPackage
 {
     public DrawingSourceManifest SourceManifest { get; init; } = new();
+    public SourceFactsDocument? SourceFacts { get; init; }
+    public DrawingViewMapDocument? ViewMap { get; init; }
     public DrawingObservationDocument Observation { get; init; } = new();
     public DrawingInterpretationDocument Interpretation { get; init; } = new();
     public DrawingHypothesisDocument Hypothesis { get; init; } = new();

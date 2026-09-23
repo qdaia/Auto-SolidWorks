@@ -1,7 +1,7 @@
 {
   "name": "auto-solidworks",
-  "version": "0.5.4",
-  "description": "Local SolidWorks modeling, model inspection, rotation-aware drawing ingestion and first-angle native SLDDRW/PDF export.",
+  "version": "0.5.5-rc4",
+  "description": "Local typed SolidWorks modeling with drawing coverage review, native projection/section capture, bounded family verification and constrained repair checks.",
   "author": {
     "name": "csj17"
   },
@@ -16,7 +16,7 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Auto SolidWorks",
-    "shortDescription": "本地参数化建模、工程图导出与尺寸核验。",
+    "shortDescription": "本地参数化建模、图纸覆盖复查与原生几何验证。",
     "longDescription": "根据工程图或尺寸创建 SolidWorks 参数化零件与装配体，支持草图约束、孔、圆角倒角、旋转、放样扫描、阵列、多实体、钣金、焊件、曲面、装配配合与干涉检查。可检查并修改已有零件副本，默认毫米，直接返回模型。",
     "developerName": "csj17",
     "category": "Developer Tools",

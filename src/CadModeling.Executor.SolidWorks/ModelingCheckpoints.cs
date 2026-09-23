@@ -9,7 +9,8 @@ internal sealed partial class SolidWorksComExecutor
     private static (string Path,ModelingCheckpointManifest Manifest) SaveCheckpoint(SldWorks app,IModelDoc2 model,ModelingPlan plan,
         int completed,IReadOnlyDictionary<string,object> objects)
     {
-        if(model.SketchManager.ActiveSketch is not null || !model.ForceRebuild3(false))
+        using var timing = CadModeling.Ir.PerformanceTrace.Begin("native.checkpoint");
+        if(model.SketchManager.ActiveSketch is not null || !PerformanceTrace.Measure("native.rebuild", () => model.ForceRebuild3(false)))
             throw new InvalidOperationException("Cannot checkpoint an active sketch or a failed rebuild.");
         var geometry=MeasureGeometry(model);
         if(geometry.SolidBodyCount<1||!double.IsFinite(geometry.VolumeMm3)||geometry.VolumeMm3<=0||geometry.FaceCount<1)
@@ -22,7 +23,7 @@ internal sealed partial class SolidWorksComExecutor
         EnforceAllowedOutputRoot(path);
         Directory.CreateDirectory(directory);
         var errors=0;var warnings=0;
-        if(!model.Extension.SaveAs(path,0,(int)(swSaveAsOptions_e.swSaveAsOptions_Silent|swSaveAsOptions_e.swSaveAsOptions_Copy),null,ref errors,ref warnings)||errors!=0||!File.Exists(path))
+        if(!PerformanceTrace.Measure("native.save", () => model.Extension.SaveAs(path,0,(int)(swSaveAsOptions_e.swSaveAsOptions_Silent|swSaveAsOptions_e.swSaveAsOptions_Copy),null,ref errors,ref warnings))||errors!=0||!File.Exists(path))
             throw new IOException($"Checkpoint copy save failed (errors={errors}, warnings={warnings}).");
         var inspection=InspectOnSta(new(path),app);
         if(!inspection.Success||inspection.Geometry is not { } saved||saved.SolidBodyCount!=geometry.SolidBodyCount||
@@ -31,10 +32,26 @@ internal sealed partial class SolidWorksComExecutor
         var manifest=new ModelingCheckpointManifest {
             NativePath=path,NativeSha256=DrawingPlanValidation.FileHash(path),OriginalPlan=plan,
             SourceModelSha256=plan.SourceModelPath is { } source?DrawingPlanValidation.FileHash(source):null,
-            CompletedOperationCount=completed,FeatureReferences=references,Geometry=saved
+            SourceSha256=plan.DrawingSourceSha256,SourceRevisionId=plan.Recovery.SourceRevisionId,
+            TypedPlanFingerprint=ModelingRecovery.TypedPlanFingerprint(plan),
+            CompletedPrefixFingerprint=ModelingRecovery.PrefixFingerprint(plan,completed),
+            CompletedOperationCount=completed,CompletedOperationIds=plan.Operations.Take(completed).Select(o=>o.Id).ToArray(),
+            FeatureReferences=references,Geometry=saved,ModelReopened=true,WriteState=CheckpointWriteState.Complete,
+            Environment=new()
+            {
+                CompilerVersion=ComponentContentIdentity.ForType(typeof(GenericPlanCompiler),"generic-plan-compiler/v1"),
+                ExecutorVersion=ComponentContentIdentity.ForType(typeof(SolidWorksComExecutor),"solidworks-executor/v1"),
+                VerifierVersion=ComponentContentIdentity.ForType(typeof(ModelVerification),"model-verification/v1"),
+                RulesFingerprint=ComponentContentIdentity.Rules(ModelingCheckpointManifest.CurrentFormatVersion.ToString(),"resume-native-prefix-v2","saved-model-reopen-v1"),
+                SolidWorksRevision=app.RevisionNumber()
+            }
         };
+        if(plan.DrawingSourceSha256 is not null&&string.IsNullOrWhiteSpace(manifest.SourceRevisionId))
+            throw new InvalidOperationException("Drawing-backed checkpoints require recovery.source_revision_id so stale source facts cannot be resumed.");
         var manifestPath=Path.Combine(directory,"checkpoint.json");
-        File.WriteAllText(manifestPath,JsonSerializer.Serialize(manifest,new JsonSerializerOptions(ModelingIrJson.Options){WriteIndented=true}));
+        var tempManifestPath=manifestPath+".writing";
+        File.WriteAllText(tempManifestPath,JsonSerializer.Serialize(manifest,new JsonSerializerOptions(ModelingIrJson.Options){WriteIndented=true}));
+        File.Move(tempManifestPath,manifestPath,true);
         return (manifestPath,manifest);
     }
 

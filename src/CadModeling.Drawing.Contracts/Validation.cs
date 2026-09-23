@@ -15,6 +15,8 @@ public sealed class DrawingContractValidator
     {
         var diagnostics = new List<ContractDiagnostic>();
         ValidateDocument(package.SourceManifest, diagnostics);
+        if (package.SourceFacts is not null) ValidateDocument(package.SourceFacts, diagnostics);
+        if (package.ViewMap is not null) ValidateDocument(package.ViewMap, diagnostics);
         ValidateDocument(package.Observation, diagnostics);
         ValidateDocument(package.Interpretation, diagnostics);
         ValidateDocument(package.Hypothesis, diagnostics);
@@ -29,6 +31,8 @@ public sealed class DrawingContractValidator
         }
 
         ValidateSourceManifest(package.SourceManifest, diagnostics);
+        if (package.SourceFacts is not null) ValidateSourceFacts(package.SourceFacts, diagnostics);
+        if (package.ViewMap is not null) ValidateViewMap(package.ViewMap, diagnostics);
         ValidateObservation(package.Observation, diagnostics);
         ValidateInterpretation(package.Observation, package.Interpretation, diagnostics);
         ValidateHypothesis(package.Interpretation, package.Hypothesis, diagnostics);
@@ -45,6 +49,12 @@ public sealed class DrawingContractValidator
         {
             case DrawingSourceManifest manifest:
                 ValidateSourceManifest(manifest, diagnostics);
+                break;
+            case SourceFactsDocument sourceFacts:
+                ValidateSourceFacts(sourceFacts, diagnostics);
+                break;
+            case DrawingViewMapDocument viewMap:
+                ValidateViewMap(viewMap, diagnostics);
                 break;
             case DrawingObservationDocument observation:
                 ValidateObservation(observation, diagnostics);
@@ -95,11 +105,96 @@ public sealed class DrawingContractValidator
     private static IEnumerable<DrawingDocumentBase> EnumerateDocuments(DrawingContractPackage package)
     {
         yield return package.SourceManifest;
+        if (package.SourceFacts is not null) yield return package.SourceFacts;
+        if (package.ViewMap is not null) yield return package.ViewMap;
         yield return package.Observation;
         yield return package.Interpretation;
         yield return package.Hypothesis;
         yield return package.FeaturePlan;
         yield return package.TraceMap;
+    }
+
+    private static void ValidateSourceFacts(SourceFactsDocument document, List<ContractDiagnostic> diagnostics)
+    {
+        foreach (var issue in SourceFactRevisions.ValidateShape(document))
+        {
+            diagnostics.Add(new()
+            {
+                Id = $"{document.DocumentId}:{issue.Code}:{diagnostics.Count + 1}",
+                Code = issue.Code,
+                Severity = ContractDiagnosticSeverity.Error,
+                Blocking = true,
+                Message = issue.Message,
+                DocumentId = document.DocumentId,
+                FieldPath = "facts",
+                AffectedIds = issue.FactIds
+            });
+        }
+        AddIf(string.IsNullOrWhiteSpace(document.RevisionId) || document.RevisionId != SourceFactRevisions.RevisionId(document),
+            diagnostics, document, "SRC_REVISION_HASH",
+            "revision_id must match the deterministic source-facts content fingerprint.", "revision_id", true);
+    }
+
+    private static void ValidateViewMap(DrawingViewMapDocument document, List<ContractDiagnostic> diagnostics)
+    {
+        EnsureUnique(document.Views.Select(item => item.ViewId), diagnostics, document,
+            "VIEW_DUPLICATE", "views", "view_id");
+        AddIf(document.DrawingUnit != MeasurementUnit.Millimeter, diagnostics, document,
+            "VIEW_UNIT", "Stage-1 view-map drawing_unit must be millimeter.", "drawing_unit", true);
+        AddIf(document.Status == DocumentStatus.Valid && document.ProjectionConvention == ProjectionConvention.Unknown,
+            diagnostics, document, "VIEW_PROJECTION_UNKNOWN",
+            "A valid view map cannot have an unknown projection convention.", "projection_convention", true);
+        AddIf(document.ProjectionConvention == ProjectionConvention.Mirrored && document.Status != DocumentStatus.Conflict,
+            diagnostics, document, "VIEW_MIRROR_STATE",
+            "Mirrored projection evidence must remain a conflict, not a valid projection convention.", "projection_convention", true);
+
+        foreach (var view in document.Views)
+        {
+            var field = $"views[{view.ViewId}]";
+            var sourceFrame = document.CoordinateFrames.FirstOrDefault(item => item.FrameId == view.SourceFrameId);
+            var localFrame = document.CoordinateFrames.FirstOrDefault(item => item.FrameId == view.ViewMillimeterFrameId);
+            var modelFrame = document.CoordinateFrames.FirstOrDefault(item => item.FrameId == view.ModelFrameId);
+            var sourceToView = document.Transforms.FirstOrDefault(item => item.TransformId == view.SourceToViewTransformId);
+            var viewToModel = document.Transforms.FirstOrDefault(item => item.TransformId == view.ViewToModelTransformId);
+
+            AddIf(string.IsNullOrWhiteSpace(view.ViewId) || view.PageNumber < 1 || string.IsNullOrWhiteSpace(view.SourceRegionId),
+                diagnostics, document, "VIEW_SOURCE", "View requires id, positive page, and source region.", field, true);
+            AddIf(sourceFrame is null, diagnostics, document, "VIEW_FRAME",
+                "View source frame does not exist.", field + ".source_frame_id", true);
+            AddIf(localFrame is null, diagnostics, document, "VIEW_FRAME",
+                "View millimeter frame does not exist.", field + ".view_millimeter_frame_id", true);
+            AddIf(modelFrame is null, diagnostics, document, "VIEW_FRAME",
+                "Model frame does not exist.", field + ".model_frame_id", true);
+            if (localFrame is not null)
+                AddIf(localFrame.Space != CoordinateSpace.ViewLocal || localFrame.Unit != MeasurementUnit.Millimeter,
+                    diagnostics, document, "VIEW_UNIT", "View-local frame must use millimeters.", field + ".view_millimeter_frame_id", true);
+            if (modelFrame is not null)
+                AddIf(modelFrame.Space != CoordinateSpace.SolidworksModel || modelFrame.Unit != MeasurementUnit.Millimeter,
+                    diagnostics, document, "VIEW_UNIT", "Model frame must be SolidWorks millimeters.", field + ".model_frame_id", true);
+            AddIf(sourceToView is null || sourceToView.FromFrameId != view.SourceFrameId || sourceToView.ToFrameId != view.ViewMillimeterFrameId,
+                diagnostics, document, "VIEW_SOURCE_TRANSFORM",
+                "Source-to-view transform is missing or connects the wrong frames.", field + ".source_to_view_transform_id", true);
+            AddIf(viewToModel is null || viewToModel.FromFrameId != view.ViewMillimeterFrameId || viewToModel.ToFrameId != view.ModelFrameId,
+                diagnostics, document, "VIEW_MODEL_TRANSFORM",
+                "View-to-model transform is missing or connects the wrong frames.", field + ".view_to_model_transform_id", true);
+            AddIf(!double.IsFinite(view.PositionUncertaintyMm) || view.PositionUncertaintyMm < 0,
+                diagnostics, document, "VIEW_UNCERTAINTY",
+                "View position uncertainty must be finite and non-negative.", field + ".position_uncertainty_mm", true);
+            if (view.Status == ViewMapStatus.Resolved)
+            {
+                var hasScale = sourceToView is not null &&
+                    sourceToView.Parameters.TryGetValue("model_mm_per_sheet_mm", out var scale) &&
+                    double.IsFinite(scale) && scale > 0;
+                AddIf(!hasScale, diagnostics, document, "VIEW_SCALE_UNRESOLVED",
+                    "A resolved view must carry a finite positive explicit drawing-scale calibration.", field + ".source_to_view_transform_id", true);
+                AddIf(view.Fact.Status is not (FactStatus.Stated or FactStatus.Derived) || view.Fact.SourceIds.Count < 2,
+                    diagnostics, document, "VIEW_CALIBRATION_EVIDENCE",
+                    "A resolved view must retain independent scale and model-anchor evidence.", field + ".fact", true);
+            }
+            else if (document.Status == DocumentStatus.Valid)
+                AddIf(true, diagnostics, document, "VIEW_VALID_UNRESOLVED",
+                    "A valid view-map document cannot contain candidate, conflict, or unverifiable views.", field + ".status", true);
+        }
     }
 
     private static void ValidateDocument(DrawingDocumentBase document, List<ContractDiagnostic> diagnostics)
@@ -292,6 +387,17 @@ public sealed class DrawingContractValidator
             AddIf(binding.Role == DimensionRole.Driving && binding.EvidenceIds.Count == 0, diagnostics, document,
                 "DIM007", "Driving dimension must include evidence_ids.", $"{path}.evidence_ids", true, binding.BindingId);
             AddIf(binding.TargetFeatureIds.Any(id => !features.Contains(id)), diagnostics, document, "DIM008", "Dimension binding targets a missing feature.", $"{path}.target_feature_ids", true, binding.BindingId);
+            if (!string.IsNullOrWhiteSpace(binding.SourceFactId) && binding.Decision == DimensionBindingDecision.Bound)
+            {
+                AddIf(string.IsNullOrWhiteSpace(binding.SourceRevisionId), diagnostics, document, "DIM012",
+                    "A bound source fact must retain the source-facts revision used for attachment.", $"{path}.source_revision_id", true, binding.BindingId);
+                AddIf(!Sha256Pattern.IsMatch(binding.SourceFactFingerprint), diagnostics, document, "DIM013",
+                    "A bound source fact must retain a SHA-256 attachment fingerprint.", $"{path}.source_fact_fingerprint", true, binding.BindingId);
+                AddIf(string.IsNullOrWhiteSpace(binding.OperationId) || string.IsNullOrWhiteSpace(binding.ParameterPath), diagnostics, document, "DIM014",
+                    "A bound source fact requires an explicit typed-plan operation and parameter path.", path, true, binding.BindingId);
+                AddIf(!binding.Candidates.Any(candidate => candidate.HasAttachmentEvidence && candidate.OperationId == binding.OperationId && candidate.ParameterPath == binding.ParameterPath),
+                    diagnostics, document, "DIM015", "A bound source fact must be backed by a candidate with real attachment evidence.", $"{path}.candidates", true, binding.BindingId);
+            }
             if (found && observed is not null)
             {
                 AddIf(binding.SourceRegionId != observed.SourceRegionId, diagnostics, document, "DIM009", "Binding source region differs from its observation.", $"{path}.source_region_id", true, binding.BindingId, observed.DimensionObservationId);

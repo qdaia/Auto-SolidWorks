@@ -89,6 +89,8 @@ public sealed record NativeFeatureOptions
     public double DepthMm { get; init; }
     public bool ThroughAll { get; init; } = true;
     public IReadOnlyList<ProfilePoint> HoleCenters { get; init; } = [];
+    /// <summary>Derived binding target for source hole multiplicity; cannot drift from the executed center list.</summary>
+    public int HoleCenterCount => HoleCenters.Count;
     public string? ThreadDesignation { get; init; }
     public string? ProfilePath { get; init; }
     public string? ProfileConfiguration { get; init; }

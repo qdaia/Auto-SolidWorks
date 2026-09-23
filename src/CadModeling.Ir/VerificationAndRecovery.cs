@@ -92,6 +92,11 @@ public sealed record ModelingRecoveryOptions
     public bool Enabled { get; init; } = true;
     public string? Directory { get; init; }
     public IReadOnlyList<string> AfterOperationIds { get; init; } = [];
+    /// <summary>
+    /// Frozen source-facts revision used by checkpoint/cache identity. A drawing-backed checkpoint
+    /// is not evidence-reusable unless this value is present and unchanged.
+    /// </summary>
+    public string? SourceRevisionId { get; init; }
     /// <summary>Executor-issued checkpoint manifest. Keep the full corrected operation list.</summary>
     public string? ResumeManifestPath { get; init; }
 }

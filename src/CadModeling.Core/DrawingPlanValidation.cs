@@ -9,6 +9,7 @@ public static class DrawingPlanValidation
     {
         if(draft.DrawingContext is not { } context) return [];
         var errors=new List<ModelingDiagnostic>();
+        errors.AddRange(DrawingOmissionValidation.Diagnostics(context));
         void Error(string text,string path) => errors.Add(new("DRAWING_BINDING",DiagnosticSeverity.Error,text,path));
         if(!Path.IsPathFullyQualified(context.SourcePath) || !File.Exists(context.SourcePath)) Error("Drawing source must be an existing absolute path.","drawing_context.source_path");
         var views=context.Views.Select(v=>v.Id).ToHashSet(StringComparer.Ordinal);
@@ -28,7 +29,7 @@ public static class DrawingPlanValidation
             var isAngle=fields.Any(f=>f.EndsWith("_degrees",StringComparison.Ordinal)) ||
                 (fields[^1]=="dimension_value" && operation.Feature?.DimensionIsAngle==true);
             var isLength=fields.Any(f=>f.EndsWith("_mm",StringComparison.Ordinal) || f is "xmm" or "ymm");
-            if ((isAngle && fact.Unit!=DrawingValueUnit.Degree) || (isLength && fact.Unit is DrawingValueUnit.Degree or DrawingValueUnit.Unitless) || (fields[^1]=="count"&&fact.Unit!=DrawingValueUnit.Unitless))
+            if ((isAngle && fact.Unit!=DrawingValueUnit.Degree) || (isLength && fact.Unit is DrawingValueUnit.Degree or DrawingValueUnit.Unitless) || ((fields[^1]=="count"||fields[^1].EndsWith("_count",StringComparison.Ordinal))&&fact.Unit!=DrawingValueUnit.Unitless))
                 Error("Angle and length dimensions cannot be bound to each other's parameter fields.",path);
             var element=JsonSerializer.SerializeToElement(operation,ModelingIrJson.Options);
             var found=true;
@@ -115,7 +116,12 @@ public static class DrawingPlanValidation
             if(!File.Exists(context.SourcePath) || plan.DrawingSourceSha256!=FileHash(context.SourcePath))
                 yield return new("DRAWING_SOURCE_CHANGED",DiagnosticSeverity.Error,"Source drawing changed or disappeared after compilation. Read the current source and recompile.","drawing_context.source_path");
             foreach(var error in ValidateCoverage(context,plan.Operations.Select(o=>o.Id).ToArray(),plan.Verification)) yield return error;
+            foreach(var error in DrawingOmissionValidation.Diagnostics(context)) yield return error;
         }
     }
-    public static string FileHash(string path) => Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)));
+    public static string FileHash(string path)
+    {
+        using var stream=File.OpenRead(path);
+        return Convert.ToHexString(SHA256.HashData(stream));
+    }
 }

@@ -1,6 +1,6 @@
 # Source requirements, measured checks and local recovery
 
-Keep this data internal. The agent is the primary visual interpreter; OCR is auxiliary. The runtime does not decide whether every feature in an image has been noticed. It checks the completeness of the declared inventory and its consistency with the executed plan, then measures the real model independently.
+Keep this data internal. The agent is the primary visual interpreter; OCR is auxiliary. The runtime now checks a separate ingestion-generated candidate inventory and declared overview/detail review before checking the feature inventory and executed plan. It still cannot certify detector recall or whether every feature was understood. Read [drawing omission review](drawing-omission-review.md); its source artifacts and review records are mandatory for complete drawing plans.
 
 ## Establish requirements before authoring operations
 
@@ -9,12 +9,15 @@ Inspect the source image and retain every identified feature, its source views/l
 For an image/PDF draft, `drawing_context` includes:
 
 - `source_path`: existing absolute drawing path; the compiler records its SHA-256.
+- `omission_review`: returned inventory path/hash, candidate explanations, raw-region findings, cross-view checks and additional visual findings. The compiler and build validator recheck source, observation and raw-image hashes. Keep the original inventory; change review decisions, never its source candidates.
 - `views`: existing view records and source labels; default first-angle projection is Assumed.
 - `dimensions`: ID, operation ID, parameter path, source value/unit/literal, view IDs and status. Derived values require `derivation`. `critical` defaults true. Counts explicitly use `Unitless`; length defaults remain mm.
 - `features`: ID, source literal, view IDs, operation IDs, status and `critical` (default true). Every operation must appear in this inventory. Critical features require `critical_parameters` and `verification_check_ids`.
 - Each critical parameter records `{operation_id, parameter_path, dimension_id}`. Every declared critical dimension must be covered. Critical facts/features cannot be Unknown or Assumed. Noncritical choices must remain explicitly marked, not silently promoted to source facts.
 
 `require_complete_bindings` defaults true. Keep it true for drawing modeling; false exists for explicitly partial legacy contracts, not as an escape from a failed check. Construction-only operations can be assigned to a noncritical source feature, with an explicit source relationship and rationale.
+
+Complete pre-0.5.5 drawing drafts must be reread and receive an omission review before recompilation. An explicitly partial legacy draft (`require_complete_bindings=false`) may omit the review but returns `DRAWING_OMISSION_PARTIAL` and `drawing_review_status=partial_unreviewed`. Do not use that route to satisfy a complete drawing request. Text-only drafts and standalone existing-model inspection remain available.
 
 The compiler checks source dimensions against operation fields and separate measured expectations. Compiled operations, source bindings and expected checks are protected against accidental IR edits: revise the typed draft and recompile. This adds no user approval step.
 

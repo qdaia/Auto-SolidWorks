@@ -126,6 +126,7 @@ public sealed partial class GenericPlanCompiler
         IReadOnlyList<string>? exportPaths = null,
         bool overwriteAllowed = false)
     {
+        using var timing = CadModeling.Ir.PerformanceTrace.Begin("plan.compile");
         var diagnostics = new List<ModelingDiagnostic>();
         diagnostics.AddRange(DrawingPlanValidation.Validate(draft));
         if (string.IsNullOrWhiteSpace(draft.Name))

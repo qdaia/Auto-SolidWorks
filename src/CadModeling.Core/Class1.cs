@@ -166,6 +166,13 @@ public static class ModelingCapabilityCatalog
 
 public interface IModelingExecutor
 {
+    Task<ProjectionCaptureResult> CaptureProjectionAsync(ProjectionCaptureRequest request,CancellationToken cancellationToken=default) =>
+        Task.FromResult(new ProjectionCaptureResult(false,"This executor does not support projection capture."));
+    Task<SectionCaptureResult> CaptureSectionAsync(SectionCaptureRequest request,CancellationToken cancellationToken=default) =>
+        Task.FromResult(new SectionCaptureResult(false,"This executor does not support section capture."));
+    Task<ObservationRenderArtifact> CaptureObservationAsync(ObservationCaptureRequest request,CancellationToken cancellationToken=default) =>
+        Task.FromResult(new ObservationRenderArtifact{Success=false,ActualView=request.Observation.RequestedView,
+            Message="This executor does not support active observation capture."});
     Task<DrawingExportResult> ExportDrawingAsync(DrawingExportRequest request,CancellationToken cancellationToken=default) =>
         Task.FromResult(new DrawingExportResult(false,"This executor does not support drawing export."));
     Task<AssemblyResult> BuildAssemblyAsync(AssemblyPlan plan,CancellationToken cancellationToken=default) =>
@@ -1116,20 +1123,52 @@ public sealed class MockModelingExecutor : IModelingExecutor
 
 public static class ModelingPlanIdentity
 {
+    private static readonly JsonSerializerOptions CanonicalOptions=CreateCanonicalOptions();
+
     public static string Fingerprint(ModelingPlan plan)
     {
-        var canonical = ModelingIrJson.Serialize(plan, indented: false);
+        // JSON clients can represent an integral -0 as 0. They are the same
+        // geometric value; source strings and all nonzero values stay exact.
+        var canonical = JsonSerializer.Serialize(plan,CanonicalOptions);
         return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
+    }
+
+    private static JsonSerializerOptions CreateCanonicalOptions()
+    {
+        var options=new JsonSerializerOptions(ModelingIrJson.Options){WriteIndented=false};
+        options.Converters.Add(new CanonicalDoubleConverter());
+        return options;
+    }
+
+    private sealed class CanonicalDoubleConverter:JsonConverter<double>
+    {
+        public override double Read(ref Utf8JsonReader reader,Type typeToConvert,JsonSerializerOptions options)=>reader.GetDouble();
+        public override void Write(Utf8JsonWriter writer,double value,JsonSerializerOptions options)=>writer.WriteNumberValue(value==0d?0d:value);
     }
 }
 
-public sealed record ExecutorServiceRequest(string Action, ModelingPlan? Plan = null, bool DryRun = false, ModelInspectionRequest? Inspection = null,AssemblyPlan? Assembly = null,DrawingExportRequest? Drawing = null);
-public sealed record ExecutorServiceResponse(ExecutorHealth? Health = null, ExecutionResult? Execution = null, string? Error = null, ModelInspection? Inspection = null,AssemblyResult? Assembly = null,DrawingExportResult? Drawing = null);
+public sealed record ExecutorServiceRequest(string Action, ModelingPlan? Plan = null, bool DryRun = false, ModelInspectionRequest? Inspection = null,AssemblyPlan? Assembly = null,DrawingExportRequest? Drawing = null,ObservationCaptureRequest? Observation = null,string? RequestId = null,ProjectionCaptureRequest? Projection = null,SectionCaptureRequest? Section = null);
+public sealed record ExecutorServiceResponse(ExecutorHealth? Health = null, ExecutionResult? Execution = null, string? Error = null, ModelInspection? Inspection = null,AssemblyResult? Assembly = null,DrawingExportResult? Drawing = null,ObservationRenderArtifact? Observation = null,string? RequestId = null,bool Pending = false,bool PauseAccepted = false,ProjectionCaptureResult? Projection = null,SectionCaptureResult? Section = null);
 
 public sealed class NamedPipeModelingExecutor(
     string pipeName = "cad-modeling-solidworks",
     int connectTimeoutMilliseconds = 5000) : IModelingExecutor
 {
+    public async Task<ProjectionCaptureResult> CaptureProjectionAsync(ProjectionCaptureRequest request,CancellationToken cancellationToken=default)
+    {
+        var response=await SendAsync(new("projection",Projection:request),cancellationToken);
+        return response.Projection??new(false,response.Error??"No projection response.");
+    }
+    public async Task<SectionCaptureResult> CaptureSectionAsync(SectionCaptureRequest request,CancellationToken cancellationToken=default)
+    {
+        var response=await SendAsync(new("section",Section:request),cancellationToken);
+        return response.Section??new(false,response.Error??"No section response.");
+    }
+    public async Task<ObservationRenderArtifact> CaptureObservationAsync(ObservationCaptureRequest request,CancellationToken cancellationToken=default)
+    {
+        var response=await SendAsync(new("observe",Observation:request),cancellationToken);
+        return response.Observation??new ObservationRenderArtifact{Success=false,ActualView=request.Observation.RequestedView,Message=response.Error??"No observation response."};
+    }
     public async Task<DrawingExportResult> ExportDrawingAsync(DrawingExportRequest request,CancellationToken cancellationToken=default)
     {
         var response=await SendAsync(new("drawing",Drawing:request),cancellationToken);
@@ -1153,8 +1192,50 @@ public sealed class NamedPipeModelingExecutor(
 
     public async Task<ExecutionResult> ExecuteAsync(ModelingPlan plan, bool dryRun, CancellationToken cancellationToken = default)
     {
-        var response = await SendAsync(new("execute", plan, dryRun), cancellationToken);
-        return response.Execution ?? new(false, "failed", response.Error ?? "Executor returned no execution result.", []);
+        var requestId=Guid.NewGuid().ToString("N");
+        var pending=SendAsync(new("execute",plan,dryRun,RequestId:requestId),CancellationToken.None);
+        if(!cancellationToken.CanBeCanceled)
+        {
+            var response=await pending;
+            return response.Execution??new(false,"failed",response.Error??"Executor returned no execution result.",[]);
+        }
+        var cancelled=Task.Delay(Timeout.Infinite,cancellationToken);
+        var completed=await Task.WhenAny(pending,cancelled);
+        if(completed==pending)
+        {
+            var response=await pending;
+            return response.Execution??new(false,"failed",response.Error??"Executor returned no execution result.",[]);
+        }
+
+        var pause=await PauseExecutionAsync(requestId,CancellationToken.None);
+        _=pending.ContinueWith(static task=>{ _=task.Exception; },TaskContinuationOptions.OnlyOnFaulted);
+        var message=pause.PauseAccepted
+            ? "Pause request was delivered to the executor. The in-flight COM call will finish at a safe boundary; query this request id for the persisted result."
+            : pause.Error??"Client cancelled before the executor could confirm a pause request.";
+        return new(false,pause.PauseAccepted?"pause_requested":"failed",message,
+            [new("pause_request",message,pause.PauseAccepted,new Dictionary<string,string>{{"request_id",requestId}},
+                pause.PauseAccepted?"EXECUTION_PAUSE_REQUESTED":"EXECUTION_PAUSE_NOT_CONFIRMED")]);
+    }
+
+    public async Task<ExecutorServiceResponse> PauseExecutionAsync(string requestId,CancellationToken cancellationToken=default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
+        // The execute connection may still be completing registration; retry briefly on a separate
+        // control connection rather than treating an early race as a successful pause.
+        ExecutorServiceResponse? last=null;
+        for(var attempt=0;attempt<10;attempt++)
+        {
+            last=await SendAsync(new("pause",RequestId:requestId),cancellationToken);
+            if(last.PauseAccepted||last.Execution is not null)return last;
+            if(attempt<9)await Task.Delay(25,cancellationToken);
+        }
+        return last??new(Error:"Pause control request returned no response.",RequestId:requestId);
+    }
+
+    public Task<ExecutorServiceResponse> GetExecutionStatusAsync(string requestId,CancellationToken cancellationToken=default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
+        return SendAsync(new("execution_status",RequestId:requestId),cancellationToken);
     }
 
     private async Task<ExecutorServiceResponse> SendAsync(ExecutorServiceRequest request, CancellationToken cancellationToken)
@@ -1192,6 +1273,21 @@ public sealed record LocalExecutorLaunchOptions
 
 public sealed class AutoStartingNamedPipeModelingExecutor : IModelingExecutor, IDisposable
 {
+    public async Task<ProjectionCaptureResult> CaptureProjectionAsync(ProjectionCaptureRequest request,CancellationToken cancellationToken=default)
+    {
+        var health=await HealthAsync(cancellationToken);
+        return health.Available?await _client.CaptureProjectionAsync(request,cancellationToken):new(false,health.Message);
+    }
+    public async Task<SectionCaptureResult> CaptureSectionAsync(SectionCaptureRequest request,CancellationToken cancellationToken=default)
+    {
+        var health=await HealthAsync(cancellationToken);
+        return health.Available?await _client.CaptureSectionAsync(request,cancellationToken):new(false,health.Message);
+    }
+    public async Task<ObservationRenderArtifact> CaptureObservationAsync(ObservationCaptureRequest request,CancellationToken cancellationToken=default)
+    {
+        var health=await HealthAsync(cancellationToken);
+        return health.Available?await _client.CaptureObservationAsync(request,cancellationToken):new ObservationRenderArtifact{Success=false,ActualView=request.Observation.RequestedView,Message=health.Message};
+    }
     public async Task<DrawingExportResult> ExportDrawingAsync(DrawingExportRequest request,CancellationToken cancellationToken=default)
     {
         var health=await HealthAsync(cancellationToken);

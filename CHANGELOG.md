@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.5-rc4 — Drawing review, native verification and constrained recovery (prerelease)
+
+- Expand public tools from 9 to 15 with drawing coverage review, native projection/section capture and revolved/hole/edge family gates.
+- Add source facts and review coverage, identity-bound geometry references, directional measurements, bounded connectivity and constrained repair/difference checks.
+- Strengthen native recovery and signed-zero plan identity handling; preserve existing modeling and export functionality.
+- Add optional internal timing with unchanged operation semantics; publish measured scope without a speedup claim.
+- Publish the validated rc4 runtime and updated regressions, with separate Chinese/English release notes. Independent drawing acceptance, complete performance coverage and optional OCR/viewer work remain pending.
+
+[中文更新公告](docs/release-0.5.5-rc4.zh-CN.md) · [English release notes](docs/release-0.5.5-rc4.en.md)
+
 ## 0.5.4 — Native drawing export and measured verification
 
 - Add the ninth MCP tool, `cad_export_drawing`, for first-angle A3 SLDDRW/PDF export, four views, a parameter schedule, source hash preservation and native reopen checks.

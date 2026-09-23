@@ -1,10 +1,12 @@
 # Auto SolidWorks
 
+**Current version: prerelease.** [Release notes](docs/release-0.5.5-rc4.en.md) · [v0.5.4 stable](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v0.5.4). Adds drawing coverage review, native projection/section capture and bounded family verification. Independent drawing acceptance remains incomplete.
+
 [简体中文](README.md) | **English**
 
 Create and modify parametric parts and assemblies in your local SolidWorks installation from natural-language descriptions or engineering drawings, and save native models and STEP/STL exports.
 
-**Windows · Local SolidWorks · mm by default · 9 MCP tools**
+**Windows · Local SolidWorks · mm by default · 15 MCP tools**
 
 [Download Windows plugin](docs/download.en.md) · [Installation (Chinese)](docs/installation.md) · [Build from source (Chinese)](docs/development.md) · [Operation reference](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md)
 
@@ -38,7 +40,7 @@ This example presents the supplied drawing and model images. The screenshots do 
 ## Quick start
 
 1. Install and activate SolidWorks locally, then install the **.NET 9 Windows Desktop Runtime (x64)** and a Codex CLI version with plugin support.
-2. Download `auto-solidworks-0.5.4-windows-x64.zip` from the [download page](docs/download.en.md) and extract it to a directory you will keep for ongoing use.
+2. Download `auto-solidworks-0.5.5-rc4-windows-x64.zip` from the [download page](docs/download.en.md) and extract it to a directory you will keep for ongoing use.
 3. Open PowerShell in the extracted directory and run:
 
    ```powershell
@@ -72,7 +74,7 @@ Assembly building, profile discovery and connection diagnostics use `cad_build_a
 
 `cad_export_drawing` exports a saved part to first-angle A3 native SLDDRW and PDF files with four views, native dimensions and a parameter schedule. It reopens the drawing to check sheets and model references and checks that the source hash is unchanged. The initial limit is 44 source parameters; complex annotations may need manual layout editing.
 
-Version 0.5.4 also includes source-dimension binding, local geometry checks, checkpoint recovery and corrected chamfer parameter routing. See [validation details](docs/validation.md).
+Version 0.5.5-rc4 also includes source-dimension binding, local geometry checks, checkpoint recovery and corrected chamfer parameter routing. See [validation details](docs/validation.md).
 
 ## Runtime and limitations
 

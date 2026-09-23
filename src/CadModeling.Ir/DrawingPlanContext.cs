@@ -36,6 +36,8 @@ public sealed record DrawingDimensionFact
 }
 public sealed record DrawingPlanContext
 {
+    /// <summary>Independent source inventory and explicit visual review. Required for complete drawing plans.</summary>
+    public DrawingOmissionReview? OmissionReview { get; init; }
     public IReadOnlyList<DrawingFeatureRequirement> Features { get; init; } = [];
     /// <summary>Every operation and declared critical parameter must belong to the source feature inventory.</summary>
     public bool RequireCompleteBindings { get; init; } = true;

@@ -31,6 +31,7 @@ env=os.environ.copy()
 env['CODEX_HOME']=str(work/'codex-home')
 env['PYTHONUTF8']='1'
 Path(env['CODEX_HOME']).mkdir()
+(Path(env['CODEX_HOME'])/'config.toml').write_text('[features]\ncontext_management = false\n',encoding='utf-8')
 result=subprocess.run(['powershell.exe','-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass',
                        '-File',str(unpacked/'install.ps1')],cwd=unpacked,env=env,
                       capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=120)

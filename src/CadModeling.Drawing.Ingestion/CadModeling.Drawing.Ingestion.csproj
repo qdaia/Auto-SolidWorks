@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CadModeling.Ir\CadModeling.Ir.csproj" />
     <PackageReference Include="PdfPig" Version="0.1.16" />
     <ProjectReference Include="..\CadModeling.Drawing.Contracts\CadModeling.Drawing.Contracts.csproj" />
     <ProjectReference Include="..\CadModeling.Drawing.Providers.Abstractions\CadModeling.Drawing.Providers.Abstractions.csproj" />

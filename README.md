@@ -1,10 +1,12 @@
 # Auto SolidWorks
 
+**当前为预发布版。** [本次更新公告](docs/release-0.5.5-rc4.zh-CN.md) · [0.5.4 稳定版](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v0.5.4)。新增图纸覆盖复查、原生投影/剖面与限定族验证；独立原图最终验收仍未完成。
+
 **简体中文** | [English](README.en.md)
 
 在本机 SolidWorks 中，通过自然语言或工程图创建和修改参数化零件、装配体，并保存原生模型与 STEP/STL。
 
-**Windows · 本机 SolidWorks · 默认 mm · 9 个 MCP 工具**
+**Windows · 本机 SolidWorks · 默认 mm · 15 个 MCP 工具**
 
 [下载 Windows 插件](docs/download.zh-CN.md) · [安装说明](docs/installation.md) · [从源码构建](docs/development.md) · [功能参数](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md)
 
@@ -38,7 +40,7 @@
 ## 快速开始
 
 1. 安装并激活本机 SolidWorks，安装 **.NET 9 Windows Desktop Runtime（x64）** 和支持插件的 Codex CLI。
-2. 从[下载页面](docs/download.zh-CN.md)下载 `auto-solidworks-0.5.4-windows-x64.zip`，解压到一个长期保留的目录。
+2. 从[下载页面](docs/download.zh-CN.md)下载 `auto-solidworks-0.5.5-rc4-windows-x64.zip`，解压到一个长期保留的目录。
 3. 在解压目录打开 PowerShell，运行：
 
    ```powershell
@@ -72,7 +74,7 @@ GitHub 自动提供的 **Source code (zip)** 是源码，未包含编译后的�
 
 `cad_export_drawing` 可从已保存零件导出第一角法 A3 原生工程图和 PDF，包含四视图、原生尺寸与参数表。导出后重新打开检查纸页与模型引用，并核对源模型哈希。当前最多支持 44 个源参数；复杂图纸可能仍需人工整理标注。
 
-0.5.4 同时包含来源尺寸绑定、局部几何检查、检查点恢复与倒角参数修复。详见[版本验证](docs/validation.md)。
+0.5.5-rc4 同时包含来源尺寸绑定、局部几何检查、检查点恢复与倒角参数修复。详见[版本验证](docs/validation.md)。
 
 ## 运行方式与范围
 

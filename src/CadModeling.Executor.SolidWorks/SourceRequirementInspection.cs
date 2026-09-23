@@ -41,6 +41,7 @@ internal sealed partial class SolidWorksComExecutor
     private static ModelVerificationResult VerifySourceRequirements(IModelDoc2 model,ModelVerificationSpec spec,
         GeometrySnapshot? geometry,out IReadOnlyList<MeasuredCylinder> cylinders)
     {
+        using var timing = CadModeling.Ir.PerformanceTrace.Begin("native.source_verification");
         cylinders=[];
         var measurementErrors=new List<VerificationCheckResult>();
         try { if(spec.CylinderGroups.Count>0) cylinders=MeasureCylinders(model); }

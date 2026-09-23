@@ -94,39 +94,107 @@ internal static class ExecutorProgram
 
 internal sealed class ExecutorPipeServer(string pipeName, IModelingExecutor executor)
 {
+    private readonly ConcurrentDictionary<string,CancellationTokenSource> _requestTokens=new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string,ExecutionResult> _completedExecutions=new(StringComparer.Ordinal);
+    private readonly ConcurrentQueue<string> _completedOrder=new();
+
     public async Task RunAsync(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        var handlers=new ConcurrentDictionary<int,Task>();var handlerId=0;
+        try
         {
-            await using var pipe = new NamedPipeServerStream(
-                pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-            await pipe.WaitForConnectionAsync(cancellationToken);
-            using var reader = new StreamReader(pipe, Encoding.UTF8, leaveOpen: true);
-            using var writer = new StreamWriter(pipe, new UTF8Encoding(false), leaveOpen: true) { AutoFlush = true };
-            ExecutorServiceResponse response;
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                var pipe=new NamedPipeServerStream(pipeName,PipeDirection.InOut,NamedPipeServerStream.MaxAllowedServerInstances,
+                    PipeTransmissionMode.Byte,PipeOptions.Asynchronous);
+                try { await pipe.WaitForConnectionAsync(cancellationToken); }
+                catch { await pipe.DisposeAsync();throw; }
+                var id=Interlocked.Increment(ref handlerId);
+                var task=HandleConnectionAsync(pipe,cancellationToken);
+                handlers[id]=task;
+                _=task.ContinueWith(_completed=>handlers.TryRemove(id,out var _removed),CancellationToken.None,TaskContinuationOptions.ExecuteSynchronously,TaskScheduler.Default);
+            }
+        }
+        catch(OperationCanceledException) when(cancellationToken.IsCancellationRequested) { }
+        finally
+        {
+            foreach(var cts in _requestTokens.Values)cts.Cancel();
+            try { await Task.WhenAll(handlers.Values); } catch { }
+        }
+    }
+
+    private async Task HandleConnectionAsync(NamedPipeServerStream pipe,CancellationToken serverToken)
+    {
+        await using var ownedPipe=pipe;
+        using var reader=new StreamReader(pipe,Encoding.UTF8,leaveOpen:true);
+        using var writer=new StreamWriter(pipe,new UTF8Encoding(false),leaveOpen:true){AutoFlush=true};
+        ExecutorServiceResponse response;
+        try
+        {
+            var line=await reader.ReadLineAsync(serverToken);
+            var request=line is null?null:JsonSerializer.Deserialize<ExecutorServiceRequest>(line,ModelingIrJson.Options);
+            response=await DispatchAsync(request,serverToken);
+        }
+        catch(OperationCanceledException) when(serverToken.IsCancellationRequested)
+        { return; }
+        catch(Exception ex)
+        { response=new(Error:$"Executor request failed: {ex.Message}"); }
+        try { await writer.WriteLineAsync(JsonSerializer.Serialize(response,ModelingIrJson.Options)); }
+        catch(IOException) { /* Client may disconnect after issuing a pause. Persisted execution status remains queryable. */ }
+    }
+
+    private async Task<ExecutorServiceResponse> DispatchAsync(ExecutorServiceRequest? request,CancellationToken serverToken)
+    {
+        if(request is null)return new(Error:"Empty executor request.");
+        var action=request.Action.ToLowerInvariant();
+        if(action=="pause")
+        {
+            if(string.IsNullOrWhiteSpace(request.RequestId))return new(Error:"pause requires request_id.");
+            if(_requestTokens.TryGetValue(request.RequestId,out var active))
+            {
+                active.Cancel();
+                return new(RequestId:request.RequestId,Pending:true,PauseAccepted:true);
+            }
+            if(_completedExecutions.TryGetValue(request.RequestId,out var alreadyCompleted))
+                return new(Execution:alreadyCompleted,RequestId:request.RequestId);
+            return new(Error:"No active or completed execution exists for request_id.",RequestId:request.RequestId);
+        }
+        if(action=="execution_status")
+        {
+            if(string.IsNullOrWhiteSpace(request.RequestId))return new(Error:"execution_status requires request_id.");
+            if(_completedExecutions.TryGetValue(request.RequestId,out var completed))return new(Execution:completed,RequestId:request.RequestId);
+            if(_requestTokens.ContainsKey(request.RequestId))return new(RequestId:request.RequestId,Pending:true);
+            return new(Error:"Unknown execution request_id.",RequestId:request.RequestId);
+        }
+        if(action=="execute"&&request.Plan is not null)
+        {
+            if(string.IsNullOrWhiteSpace(request.RequestId))return new(Error:"execute requires request_id.");
+            using var requestCts=CancellationTokenSource.CreateLinkedTokenSource(serverToken);
+            if(!_requestTokens.TryAdd(request.RequestId,requestCts))return new(Error:"Duplicate active execution request_id.",RequestId:request.RequestId);
             try
             {
-                var line = await reader.ReadLineAsync(cancellationToken);
-                var request = line is null
-                    ? null
-                    : JsonSerializer.Deserialize<ExecutorServiceRequest>(line, ModelingIrJson.Options);
-                response = request?.Action.ToLowerInvariant() switch
-                {
-                    "health" => new(Health: await executor.HealthAsync(cancellationToken)),
-                    "inspect" when request.Inspection is not null => new(Inspection: await executor.InspectAsync(request.Inspection, cancellationToken)),
-                    "drawing" when request.Drawing is not null => new(Drawing: await executor.ExportDrawingAsync(request.Drawing, cancellationToken)),
-                    "assembly" when request.Assembly is not null => new(Assembly: await executor.BuildAssemblyAsync(request.Assembly,cancellationToken)),
-                    "execute" when request.Plan is not null =>
-                        new(Execution: await executor.ExecuteAsync(request.Plan, request.DryRun, cancellationToken)),
-                    _ => new(Error: "Unknown action or missing Modeling IR plan.")
-                };
+                var execution=await executor.ExecuteAsync(request.Plan,request.DryRun,requestCts.Token);
+                _completedExecutions[request.RequestId]=execution;_completedOrder.Enqueue(request.RequestId);TrimCompleted();
+                return new(Execution:execution,RequestId:request.RequestId);
             }
-            catch (Exception ex)
-            {
-                response = new(Error: $"Executor request failed: {ex.Message}");
-            }
-            await writer.WriteLineAsync(JsonSerializer.Serialize(response, ModelingIrJson.Options));
+            finally { _requestTokens.TryRemove(request.RequestId,out _); }
         }
+        return action switch
+        {
+            "health"=>new(Health:await executor.HealthAsync(serverToken)),
+            "inspect" when request.Inspection is not null=>new(Inspection:await executor.InspectAsync(request.Inspection,serverToken)),
+            "observe" when request.Observation is not null=>new(Observation:await executor.CaptureObservationAsync(request.Observation,serverToken)),
+            "projection" when request.Projection is not null=>new(Projection:await executor.CaptureProjectionAsync(request.Projection,serverToken)),
+            "section" when request.Section is not null=>new(Section:await executor.CaptureSectionAsync(request.Section,serverToken)),
+            "drawing" when request.Drawing is not null=>new(Drawing:await executor.ExportDrawingAsync(request.Drawing,serverToken)),
+            "assembly" when request.Assembly is not null=>new(Assembly:await executor.BuildAssemblyAsync(request.Assembly,serverToken)),
+            _=>new(Error:"Unknown action or missing Modeling IR plan.")
+        };
+    }
+
+    private void TrimCompleted()
+    {
+        while(_completedExecutions.Count>256&&_completedOrder.TryDequeue(out var old))_completedExecutions.TryRemove(old,out _);
     }
 }
 
@@ -160,7 +228,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 return new(true, "dry_run", "IR validated; SolidWorks was not mutated.",
                     plan.Operations.Select(x => new ExecutionEvidence("operation", $"Would execute {x.Id}: {x.Name}.", true)).ToArray(),
                     plan.Output.NativePath, PlanFingerprint: ModelingPlanIdentity.Fingerprint(plan));
-            return await _sta.InvokeAsync(() => ExecuteOnSta(plan), cancellationToken);
+            // Once COM work is queued, cancellation becomes a pause request. Do not cancel the STA
+            // delegate itself: a synchronous SolidWorks call must be allowed to reach a known boundary.
+            return await _sta.InvokeAsync(() => ExecuteOnSta(plan,cancellationToken), CancellationToken.None);
         }
         finally { _serialGate.Release(); }
     }
@@ -195,8 +265,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
         }
     }
 
-    private static ExecutionResult ExecuteOnSta(ModelingPlan plan)
+    private static ExecutionResult ExecuteOnSta(ModelingPlan plan,CancellationToken cancellationToken)
     {
+        using var timing = CadModeling.Ir.PerformanceTrace.Begin("native.execute");
         var evidence = new List<ExecutionEvidence>();
         GeometrySnapshot? geometry = null;
         IReadOnlyList<StableFeatureReference>? featureReferences = null;
@@ -227,6 +298,24 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                         : "Hid the known false .NET Framework startup dialog without acknowledging it.",
                     ("notification_audio", suppression.NotificationAudioSilenced ? "silenced-and-restored" : "not-confirmed")));
             app.Visible = true;
+            if(checkpoint is not null)
+            {
+                var currentEnvironment=new CheckpointEnvironmentIdentity
+                {
+                    CompilerVersion=ComponentContentIdentity.ForType(typeof(GenericPlanCompiler),"generic-plan-compiler/v1"),
+                    ExecutorVersion=ComponentContentIdentity.ForType(typeof(SolidWorksComExecutor),"solidworks-executor/v1"),
+                    VerifierVersion=ComponentContentIdentity.ForType(typeof(ModelVerification),"model-verification/v1"),
+                    RulesFingerprint=ComponentContentIdentity.Rules(ModelingCheckpointManifest.CurrentFormatVersion.ToString(),"resume-native-prefix-v2","saved-model-reopen-v1"),
+                    SolidWorksRevision=app.RevisionNumber()
+                };
+                var resumeDecision=ModelingRecovery.DecideResume(plan,checkpoint,currentEnvironment:currentEnvironment);
+                if(resumeDecision.RequiresCleanRebuild)
+                    throw new InvalidOperationException("Checkpoint execution environment is stale: "+string.Join(", ",resumeDecision.InvalidationReasons));
+                evidence.Add(Pass("checkpoint_resume_decision","Checkpoint source/prefix/environment identities were re-evaluated before native reuse.",
+                    ("reused_operations",string.Join(",",resumeDecision.ReusedOperationIds)),
+                    ("reverification_evidence",string.Join(",",resumeDecision.ReverificationEvidenceIds)),
+                    ("reasons",string.Join(",",resumeDecision.InvalidationReasons))));
+            }
             var targetName=Path.GetFileName(plan.Output.NativePath);
             foreach(var open in (app.GetDocuments() as object[]??[]).Cast<IModelDoc2>())
                 if(Path.GetFileName(open.GetPathName()).Equals(targetName,StringComparison.OrdinalIgnoreCase)||open.GetTitle().Equals(targetName,StringComparison.OrdinalIgnoreCase))
@@ -242,7 +331,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
                 File.Copy(sourceModel, target, plan.Output.OverwriteAllowed);
                 int openErrors=0,openWarnings=0;
-                model=(IModelDoc2?)app.OpenDoc6(target,(int)swDocumentTypes_e.swDocPART,(int)swOpenDocOptions_e.swOpenDocOptions_Silent,"",ref openErrors,ref openWarnings);
+                model=(IModelDoc2?)PerformanceTrace.Measure("native.open", () => app.OpenDoc6(target,(int)swDocumentTypes_e.swDocPART,(int)swOpenDocOptions_e.swOpenDocOptions_Silent,"",ref openErrors,ref openWarnings));
                 if(model is null) throw new IOException($"Cannot open model copy (errors={openErrors}).");
                 if(!Path.GetFullPath(model.GetPathName()).Equals(target,StringComparison.OrdinalIgnoreCase))
                 { model=null; throw new IOException("SolidWorks returned another open document instead of the edit copy. Use a unique output filename."); }
@@ -267,9 +356,12 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
             var mathUtility = (IMathUtility)app.GetMathUtility();
             foreach (var operation in plan.Operations.Skip(completed))
             {
+                if(cancellationToken.IsCancellationRequested)
+                    return PauseAtBoundary("Pause was requested before the next SolidWorks operation was submitted.",null);
                 activeOperationId=operation.Id;
                 try
                 {
+                    using var operationTiming = PerformanceTrace.Begin("native.feature_com");
                     switch (operation)
                     {
                         case NativeFeatureOperation native:
@@ -303,6 +395,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                     throw WrapOperationFailure(operation, ex);
                 }
                 completed++;
+                activeOperationId=null;
                 if(checkpointAfter.Contains(operation.Id))
                 {
                     try
@@ -316,11 +409,31 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                         evidence.Add(new("checkpoint_unavailable",checkpointError.Message,true,Code:"CHECKPOINT_UNAVAILABLE",SuggestedAction:"Use the last valid checkpoint if available; otherwise rebuild."));
                     }
                 }
+                if(cancellationToken.IsCancellationRequested)
+                {
+                    // The in-flight synchronous COM call has returned, so its outcome is now known.
+                    // Capture this exact boundary when possible; never submit the next operation.
+                    if(checkpoint?.CompletedOperationCount!=completed)
+                    {
+                        try
+                        {
+                            (checkpointPath,checkpoint)=SaveCheckpoint(app,model,plan,completed,operationObjects);
+                            evidence.Add(Pass("pause_checkpoint","Pause reached a confirmed COM boundary; saved and reopened the completed prefix.",
+                                ("completed_operations",completed.ToString(CultureInfo.InvariantCulture)),("manifest",checkpointPath)));
+                        }
+                        catch(Exception checkpointError)
+                        {
+                            evidence.Add(new("pause_checkpoint_unavailable",checkpointError.Message,true,Code:"PAUSE_CHECKPOINT_UNAVAILABLE",
+                                SuggestedAction:"Resume only from the last valid checkpoint; otherwise clean-rebuild the uncheckpointed prefix."));
+                        }
+                    }
+                    return PauseAtBoundary("Pause was requested while/after a SolidWorks operation was in flight; the call reached a known boundary and no subsequent operation was submitted.",operation.Id);
+                }
             }
 
             activeOperationId=null;
 
-            var rebuildOk = Convert.ToBoolean(model.ForceRebuild3(false));
+            var rebuildOk = Convert.ToBoolean(PerformanceTrace.Measure("native.rebuild", () => model.ForceRebuild3(false)));
             if (!rebuildOk) throw new InvalidOperationException("ForceRebuild3 reported failure.");
             evidence.Add(Pass("rebuild", "SolidWorks rebuild completed without a reported error."));
 
@@ -359,7 +472,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
             var saveErrors = 0;
             var saveWarnings = 0;
             PrepareModelPresentation(model);
-            var saveOk = model.Extension.SaveAs(output, 0, 1, null, ref saveErrors, ref saveWarnings);
+            var saveOk = PerformanceTrace.Measure("native.save", () => model.Extension.SaveAs(output, 0, 1, null, ref saveErrors, ref saveWarnings));
             if (!saveOk || !File.Exists(output) || new FileInfo(output).Length == 0)
                 throw new IOException($"IModelDocExtension.SaveAs failed (errors={saveErrors}, warnings={saveWarnings}).");
 
@@ -370,7 +483,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 Directory.CreateDirectory(Path.GetDirectoryName(export)!);
                 var exportErrors = 0;
                 var exportWarnings = 0;
-                var exportOk = model.Extension.SaveAs(export, 0, 1, null, ref exportErrors, ref exportWarnings);
+                var exportOk = PerformanceTrace.Measure("native.save", () => model.Extension.SaveAs(export, 0, 1, null, ref exportErrors, ref exportWarnings));
                 if (!exportOk || !File.Exists(export) || new FileInfo(export).Length == 0)
                     throw new IOException($"Export SaveAs failed for '{export}' (errors={exportErrors}, warnings={exportWarnings}).");
                 evidence.Add(Pass("export", "Exported an additional CAD artifact.",
@@ -404,7 +517,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
             }
 
             PrepareModelPresentation(model);
-            if (!model.Save3((int)swSaveAsOptions_e.swSaveAsOptions_Silent, ref saveErrors, ref saveWarnings) || saveErrors != 0)
+            if (!PerformanceTrace.Measure("native.save", () => model.Save3((int)swSaveAsOptions_e.swSaveAsOptions_Silent, ref saveErrors, ref saveWarnings)) || saveErrors != 0)
                 throw new IOException($"Could not save final model presentation (errors={saveErrors}, warnings={saveWarnings}).");
             evidence.Add(Pass("presentation", "Saved an isometric view with construction geometry hidden; no features were suppressed."));
 
@@ -448,7 +561,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 artifacts = new { native = output, exports = plan.Output.ExportPaths, previews = previewPaths, parameters = parametersPath }
             };
             var createdTitle = model.GetTitle();
-            app.CloseDoc(createdTitle);
+            PerformanceTrace.Measure("native.close", () => app.CloseDoc(createdTitle));
             ReleaseCom(model);
             model = null;
             if(ModelVerification.HasChecks(plan.Verification))
@@ -471,6 +584,23 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
 
             return new(true, "completed", "SolidWorks created, rebuilt, measured and saved the model.",
                 evidence, output, geometry, featureReferences, planFingerprint) {Verification=verification,Recovery=RecoveryState(plan,checkpointPath,checkpoint,null)};
+
+            ExecutionResult PauseAtBoundary(string message,string? completedInFlightOperationId)
+            {
+                evidence.Add(new("paused",message,true,new Dictionary<string,string>
+                {
+                    ["completed_operations"]=completed.ToString(CultureInfo.InvariantCulture),
+                    ["completed_in_flight_operation_id"]=completedInFlightOperationId??string.Empty,
+                    ["next_operation_submitted"]="false"
+                },Code:"EXECUTION_PAUSED",SuggestedAction:"Resume from the returned verified checkpoint when available; otherwise clean-rebuild."));
+                if(app is not null&&model is not null)
+                {
+                    try { PerformanceTrace.Measure("native.close", () => app.CloseDoc(model.GetTitle())); } catch(COMException) { }
+                    ReleaseCom(model);model=null;
+                }
+                return new(false,"paused",message,evidence,null,geometry,featureReferences,planFingerprint)
+                { Verification=verification,Recovery=RecoveryState(plan,checkpointPath,checkpoint,null) };
+            }
         }
         catch (Exception ex)
         {
@@ -483,7 +613,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 try
                 {
                     var failedTitle = model.GetTitle();
-                    app.CloseDoc(failedTitle);
+                    PerformanceTrace.Measure("native.close", () => app.CloseDoc(failedTitle));
                     evidence.Add(Pass("cleanup", "Closed the unsaved document created by the failed run.", ("title", failedTitle)));
                 }
                 catch (COMException) { }

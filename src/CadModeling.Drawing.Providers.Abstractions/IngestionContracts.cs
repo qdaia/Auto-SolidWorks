@@ -38,6 +38,14 @@ public sealed record DrawingIngestionRequest
 
 public sealed record DrawingIngestionResponse
 {
+    public SourceFactsDocument? SourceFacts { get; init; }
+    public string? SourceFactsPath { get; init; }
+    public string? SourceFactsRevisionId { get; init; }
+    public string? OmissionInventoryPath { get; init; }
+    public string? OmissionInventorySha256 { get; init; }
+    public string OmissionStatus { get; init; } = "not_available";
+    public int OmissionCandidateCount { get; init; }
+    public int RequiredReviewRegionCount { get; init; }
     public IngestionOutcome Outcome { get; init; }
     public string RunId { get; init; } = string.Empty;
     public string OutputDirectory { get; init; } = string.Empty;

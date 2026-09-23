@@ -17,10 +17,16 @@ public static partial class EngineeringDimensionParser
             if(!match.Success) continue;
             var symbol=match.Groups["symbol"].Value.ToUpperInvariant();
             var hasAngle=match.Groups["angle"].Success;
-            var value=double.Parse(match.Groups["value"].Value,CultureInfo.InvariantCulture);
-            var secondary=match.Groups["secondary"].Success ? double.Parse(match.Groups["secondary"].Value,CultureInfo.InvariantCulture) : (double?)null;
+            if(!double.TryParse(match.Groups["value"].Value,NumberStyles.AllowDecimalPoint,CultureInfo.InvariantCulture,out var value)||!double.IsFinite(value)) continue;
+            double? secondary=null;
+            if(match.Groups["secondary"].Success)
+            {
+                if(!double.TryParse(match.Groups["secondary"].Value,NumberStyles.AllowDecimalPoint,CultureInfo.InvariantCulture,out var parsedSecondary)||!double.IsFinite(parsedSecondary)) continue;
+                secondary=parsedSecondary;
+            }
             var kind=symbol switch { "R"=>"radius","M"=>"thread","Ø" or "⌀" or "Φ" or "∅"=>"diameter", _=>hasAngle?(secondary.HasValue?"chamfer":"angle"):"linear" };
-            var count=match.Groups["count"].Success?int.Parse(match.Groups["count"].Value,CultureInfo.InvariantCulture):1;
+            var count=1;
+            if(match.Groups["count"].Success&&(!int.TryParse(match.Groups["count"].Value,NumberStyles.None,CultureInfo.InvariantCulture,out count)||count<1)) continue;
             var nearby=Array.Empty<string>();
             if(text.Geometry.Count>0)
             {
