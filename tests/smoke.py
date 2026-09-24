@@ -79,6 +79,9 @@ try:
     report['checks']['fifteen_modeling_tools'] = True
     report['capabilities'] = call('cad_get_capabilities')
     assert report['capabilities']['mode'] == 'modeling_only'
+    manifest = json.loads((args.plugin / '.codex-plugin/plugin.json').read_text(encoding='utf-8'))
+    assert report['capabilities']['server_version'].split('+')[0] == manifest['version'].split('+')[0]
+    report['checks']['runtime_matches_plugin_version'] = True
     native = str(args.report.parent / 'model-check.SLDPRT')
     export = str(args.report.parent / 'model-check.STEP')
     schemas = {t['name']:t['inputSchema'] for t in listed}

@@ -1,6 +1,6 @@
 {
   "name": "auto-solidworks",
-  "version": "0.5.5-rc4",
+  "version": "0.6.0",
   "description": "Local typed SolidWorks modeling with drawing coverage review, native projection/section capture, bounded family verification and constrained repair checks.",
   "author": {
     "name": "csj17"

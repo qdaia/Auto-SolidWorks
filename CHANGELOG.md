@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0 — Optimized release and expanded validation evidence
+
+- Promote the current rc4 modeling/verification implementation to version 0.6.0 without changing its algorithms.
+- Update runtime identity, launcher namespace, current download pages and separate Chinese/English release notes.
+- Publish sanitized 22-stage performance evidence: 30 measured samples, 93 n=5 cells and 570 passing assertions, with explicit scope and no speedup claim.
+- Preserve the independent-drawing, long-duration and optional-feature limitations; do not count the interrupted holdout as passed.
+
+[中文更新公告](docs/release-0.6.0.zh-CN.md) · [English release notes](docs/release-0.6.0.en.md)
+
 ## 0.5.5-rc4 — Drawing review, native verification and constrained recovery (prerelease)
 
 - Expand public tools from 9 to 15 with drawing coverage review, native projection/section capture and revolved/hole/edge family gates.

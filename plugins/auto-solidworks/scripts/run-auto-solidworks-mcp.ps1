@@ -8,7 +8,7 @@ try {
     $pipeBytes = $pipeHasher.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($pluginRoot.ToLowerInvariant() + $executorHash))
     $pipeSuffix = ([System.BitConverter]::ToString($pipeBytes)).Replace('-', '').Substring(0, 16).ToLowerInvariant()
 } finally { $pipeHasher.Dispose() }
-$env:CAD_SOLIDWORKS_PIPE = 'auto-solidworks-0-5-' + $pipeSuffix
+$env:CAD_SOLIDWORKS_PIPE = 'auto-solidworks-0-6-' + $pipeSuffix
 $ocrConfigPath = Join-Path $env:LOCALAPPDATA 'AutoSolidWorks\dependencies\ocr.json'
 if (Test-Path -LiteralPath $ocrConfigPath) {
     $ocrConfig = Get-Content -LiteralPath $ocrConfigPath -Raw | ConvertFrom-Json

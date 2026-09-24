@@ -10,7 +10,7 @@ $projects = @(
     @{File='src\CadModeling.Executor.SolidWorks\CadModeling.Executor.SolidWorks.csproj'; Output='executor'}
 )
 foreach ($project in $projects) {
-    & dotnet publish (Join-Path $root $project.File) --configuration Release --no-self-contained --output (Join-Path $runtime $project.Output) "-p:SolidWorksInteropDir=$interop" '-p:DebugType=none' '-p:DebugSymbols=false'
+    & dotnet publish (Join-Path $root $project.File) --configuration Release -m:1 -nodeReuse:false --no-self-contained --output (Join-Path $runtime $project.Output) "-p:SolidWorksInteropDir=$interop" '-p:DebugType=none' '-p:DebugSymbols=false'
     if ($LASTEXITCODE -ne 0) { throw "Build failed: $($project.File)" }
 }
 Write-Output "Plugin built: $(Join-Path $root 'plugins\auto-solidworks')"
