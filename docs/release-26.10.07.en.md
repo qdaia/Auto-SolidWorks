@@ -1,6 +1,6 @@
-# Auto SolidWorks 26.10.07 release notes
+# Auto SolidWorks `26.10.07` release notes
 
-Released on 2026-10-07. This version incorporates the implemented plugin improvements under the unified version `26.10.07`.
+Released on October 7, 2026. Version numbers use `YY.MM.DD` (year/month/day): `26.10.07` means October 7, 2026. This version incorporates the implemented plugin improvements under the unified version `26.10.07`.
 
 [简体中文](release-26.10.07.zh-CN.md) | **English**
 

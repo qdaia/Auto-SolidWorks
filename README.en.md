@@ -6,7 +6,7 @@ Auto SolidWorks is a local CAD plugin for Codex / MCP. It creates, inspects and 
 
 [简体中文](README.md) | **English**
 
-**26.10.07 · Windows x64 · 18 MCP tools · Millimeters by default · Chinese output by default**
+**Version `26.10.07` (October 7, 2026) · Windows x64 · 18 MCP tools · Millimeters by default · Chinese output by default**
 
 [Download Windows plugin](docs/download.en.md) · [What is new](docs/release-26.10.07.en.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.07) · [Build from source](docs/development.en.md)
 
@@ -24,7 +24,7 @@ Provide an engineering image, PDF or explicit dimensions. The plugin turns the i
 | Drawings | First-angle views, native dimension import, view layout and pagination; SLDDRW / PDF |
 | Execution management | Status, pause, deadlines, cross-process leases, checkpoints and recovery identity checks |
 
-## Added in 26.10.07
+## Added on October 7, 2026 (version `26.10.07`)
 
 - Chinese defaults for feature trees and drawings, and local Gordon surface generation.
 - Advanced loft/spatial-curve controls, surface-definition readback, configuration equations and feature suppression.

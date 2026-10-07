@@ -2,7 +2,7 @@
 
 **简体中文** | [English](download.en.md) · [返回 README](../README.md)
 
-当前版本：**26.10.07**。通过 Codex / MCP 在本机 SolidWorks 创建、检查和修改参数化零件与装配体，保存原生模型、STEP / STL 和工程图。
+当前版本：**`26.10.07`（2026 年 10 月 7 日，按年/月/日排列）**。通过 Codex / MCP 在本机 SolidWorks 创建、检查和修改参数化零件与装配体，保存原生模型、STEP / STL 和工程图。
 
 [Windows x64 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip) · [SHA-256 校验文件](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.07) · [新增内容](release-26.10.07.zh-CN.md)
 

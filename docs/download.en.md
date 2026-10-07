@@ -2,7 +2,7 @@
 
 [简体中文](download.zh-CN.md) | **English** · [Back to README](../README.en.md)
 
-Current version: **26.10.07**. Create, inspect and edit parametric parts and assemblies in local SolidWorks through Codex / MCP, exporting native models, STEP / STL and drawings.
+Current version: **`26.10.07` (October 7, 2026; year/month/day)**. Create, inspect and edit parametric parts and assemblies in local SolidWorks through Codex / MCP, exporting native models, STEP / STL and drawings.
 
 [Windows x64 package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip) · [SHA-256 checksum](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.07) · [Additions](release-26.10.07.en.md)
 
