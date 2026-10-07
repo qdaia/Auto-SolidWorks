@@ -6,7 +6,7 @@ Auto SolidWorks is a local CAD plugin for Codex / MCP. It creates, inspects and 
 
 [简体中文](README.md) | **English**
 
-**Version `26.10.07` (October 7, 2026) · Windows x64 · 18 MCP tools · Millimeters by default · Chinese output by default**
+**Version `26.10.07` (October 7, 2026) · Windows x64 · 18 MCP tools **
 
 [Download Windows plugin](docs/download.en.md) · [What is new](docs/release-26.10.07.en.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.07) · [Build from source](docs/development.en.md)
 
