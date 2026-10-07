@@ -6,7 +6,7 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 
 **简体中文** | [English](README.en.md)
 
-**版本 `26.10.07`（2026 年 10 月 7 日） · Windows x64 · 18 个 MCP 工具 · 默认毫米 · 默认中文输出**
+**版本 `26.10.07`· Windows x64 · 18 个 MCP 工具 **
 
 [下载 Windows 插件](docs/download.zh-CN.md) · [本次新增内容](docs/release-26.10.07.zh-CN.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.07) · [从源码构建](docs/development.md)
 
