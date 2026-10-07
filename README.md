@@ -47,7 +47,7 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 
 <picture><img src="docs/examples/hollow-shaft/model-preview.png" width="480" alt="空心轴等轴视图"></picture>
 
-<picture><img src="docs/examples/hollow-shaft/drawing-preview.png" width="800" alt="空心轴工程图 PDF 预览"></picture>
+<picture><source srcset="docs/examples/hollow-shaft/drawing-preview.svg" type="image/svg+xml"><img src="docs/examples/hollow-shaft/drawing-preview.png" width="1200" alt="空心轴工程图 PDF 矢量预览"></picture>
 
 工程图 PDF：`docs/examples/hollow-shaft/drawing.pdf`
 
