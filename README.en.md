@@ -45,9 +45,9 @@ The three-view drawing and dimensions are used to create the arched base, uprigh
 
 ### Hollow shaft
 
-<img src="docs/examples/hollow-shaft/model-preview.png" width="480" alt="Hollow shaft, isometric view">
+<picture><img src="docs/examples/hollow-shaft/model-preview.png" width="480" alt="Hollow shaft, isometric view"></picture>
 
-<img src="docs/examples/hollow-shaft/drawing-preview.png" width="800" alt="Hollow shaft engineering drawing PDF preview">
+<picture><img src="docs/examples/hollow-shaft/drawing-preview.png" width="800" alt="Hollow shaft engineering drawing PDF preview"></picture>
 
 Engineering drawing PDF: `docs/examples/hollow-shaft/drawing.pdf`
 
