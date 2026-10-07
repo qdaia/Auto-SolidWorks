@@ -33,17 +33,25 @@ Provide an engineering image, PDF or explicit dimensions. The plugin turns the i
 
 See the [English release notes](docs/release-26.10.07.en.md) for all additions.
 
-## Example: Hollow shaft
+## Examples
+
+### Arched support: Modeling process
+
+The three-view drawing and dimensions are used to create the arched base, upright wall, cylindrical boss, through hole, semicircular notch, and R3 fillets.
+
+<p>
+<a href="docs/examples/arch-support/modeling-process.gif"><img src="docs/examples/arch-support/modeling-process.gif" width="800" alt="Arched support native SolidWorks modeling process"></a>
+</p>
+
+This approximately 16-second animation replays the generated model in native feature-tree order; it is not a live recording. The final model passed rebuild, save-and-reopen, and STEP export readback checks.
+
+### Hollow shaft
 
 **PPL001M45.1-2 hollow shaft**: a complex shaft modeling example based on a multiview engineering drawing, showing stepped shaft sections, elongated side openings, keyways, annular grooves and end-face hole groups.
 
-<table>
-<tr>
-<td align="center" width="33%"><a href="docs/examples/hollow-shaft/model-preview.png"><img src="docs/examples/hollow-shaft/model-preview.png" width="240" alt="Hollow shaft, isometric view"></a><br><sub>Isometric</sub></td>
-<td align="center" width="33%"><a href="docs/examples/hollow-shaft/model-side.png"><img src="docs/examples/hollow-shaft/model-side.png" width="240" alt="Hollow shaft, side view"></a><br><sub>Side</sub></td>
-<td align="center" width="33%"><a href="docs/examples/hollow-shaft/model-end.png"><img src="docs/examples/hollow-shaft/model-end.png" width="240" alt="Hollow shaft, end view"></a><br><sub>End</sub></td>
-</tr>
-</table>
+<p>
+<a href="docs/examples/hollow-shaft/model-preview.png"><img src="docs/examples/hollow-shaft/model-preview.png" width="480" alt="Hollow shaft, isometric view"></a>
+</p>
 
 Click a thumbnail to view the original full-size image.
 
