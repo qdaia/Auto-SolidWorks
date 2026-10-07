@@ -43,30 +43,13 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 <a href="docs/examples/arch-support/modeling-process.gif"><img src="docs/examples/arch-support/modeling-process.gif" width="800" alt="拱形支座的 SolidWorks 原生建模过程"></a>
 </p>
 
-动画按本次生成模型的原生特征树顺序回放，时长约 16 秒；不是实时操作录像。最终模型已通过重建、保存重开与 STEP 导出回读检查。
-
 ### 空心轴
 
-**PPL001M45.1-2 空心轴**：以多视图工程图为输入的复杂轴类零件建模案例，展示阶梯轴段、侧面长窗口、键槽、环槽及端面孔组等结构。
+<img src="docs/examples/hollow-shaft/model-preview.png" width="480" alt="空心轴等轴视图">
 
-<p>
-<a href="docs/examples/hollow-shaft/model-preview.png"><img src="docs/examples/hollow-shaft/model-preview.png" width="480" alt="空心轴等轴视图"></a>
-</p>
+<img src="docs/examples/hollow-shaft/drawing-preview.png" width="800" alt="空心轴工程图 PDF 预览">
 
-点击缩略图查看原始大图。
-
-[查看案例说明](docs/examples/hollow-shaft/README.md) · [查看原始 PDF 图纸](docs/examples/hollow-shaft/drawing.pdf)
-
-<details>
-<summary>展开查看输入工程图</summary>
-
-![空心轴输入工程图，包含主视图、剖面、端视图及局部详图](docs/examples/hollow-shaft/drawing-preview.png)
-
-完整尺寸与技术要求请打开上方 PDF。
-
-</details>
-
-本案例展示提供的图纸与模型效果；截图不作为全部尺寸、公差和图纸等价性已通过验证的证明。
+工程图 PDF：`docs/examples/hollow-shaft/drawing.pdf`
 
 ## 快速开始
 

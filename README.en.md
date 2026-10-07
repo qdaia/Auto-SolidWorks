@@ -43,30 +43,13 @@ The three-view drawing and dimensions are used to create the arched base, uprigh
 <a href="docs/examples/arch-support/modeling-process.gif"><img src="docs/examples/arch-support/modeling-process.gif" width="800" alt="Arched support native SolidWorks modeling process"></a>
 </p>
 
-This approximately 16-second animation replays the generated model in native feature-tree order; it is not a live recording. The final model passed rebuild, save-and-reopen, and STEP export readback checks.
-
 ### Hollow shaft
 
-**PPL001M45.1-2 hollow shaft**: a complex shaft modeling example based on a multiview engineering drawing, showing stepped shaft sections, elongated side openings, keyways, annular grooves and end-face hole groups.
+<img src="docs/examples/hollow-shaft/model-preview.png" width="480" alt="Hollow shaft, isometric view">
 
-<p>
-<a href="docs/examples/hollow-shaft/model-preview.png"><img src="docs/examples/hollow-shaft/model-preview.png" width="480" alt="Hollow shaft, isometric view"></a>
-</p>
+<img src="docs/examples/hollow-shaft/drawing-preview.png" width="800" alt="Hollow shaft engineering drawing PDF preview">
 
-Click a thumbnail to view the original full-size image.
-
-[Example details (Chinese)](docs/examples/hollow-shaft/README.md) · [Original PDF drawing](docs/examples/hollow-shaft/drawing.pdf)
-
-<details>
-<summary>Expand to view the input drawing</summary>
-
-![Hollow shaft input drawing with the main view, sections, end views and detail views](docs/examples/hollow-shaft/drawing-preview.png)
-
-Open the PDF linked above for the complete dimensions and technical requirements.
-
-</details>
-
-This example presents the supplied drawing and model images. The screenshots do not establish that all dimensions, tolerances or equivalence to the drawing have been verified.
+Engineering drawing PDF: `docs/examples/hollow-shaft/drawing.pdf`
 
 ## Quick start
 
