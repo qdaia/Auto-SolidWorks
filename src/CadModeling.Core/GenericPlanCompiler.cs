@@ -40,11 +40,14 @@ public enum GenericCurveKind
 /// </summary>
 public sealed record GenericModelDraft
 {
+    public ExecutionDeadlineOptions ExecutionDeadline { get; init; } = new();
     public ModelVerificationSpec Verification { get; init; } = new();
     public ModelingRecoveryOptions Recovery { get; init; } = new();
     public DrawingPlanContext? DrawingContext { get; init; }
     public string? SourceModelPath { get; init; }
-    public required string Name { get; init; }
+    public DesignIntentSpec? DesignIntent { get; init; }
+    public BoxEdgeHistorySpec? BoxEdgeHistory { get; init; }
+    public string Name { get; init; } = "参数化零件";
     public required string SourceText { get; init; }
     public IReadOnlyList<string> Assumptions { get; init; } = [];
     public required IReadOnlyList<GenericOperationDraft> Operations { get; init; }
@@ -60,6 +63,8 @@ public sealed record GenericModelDraft
 
 public sealed record GenericOperationDraft
 {
+    public bool AutoDimensionPrimitives { get; init; }
+    public bool RequireFullyDefined { get; init; }
     public IReadOnlyList<SketchConstraintSpec> Constraints { get; init; } = [];
     public IReadOnlyList<SketchDimensionSpec> Dimensions { get; init; } = [];
     public IReadOnlyList<SketchEditSpec> Edits { get; init; } = [];
@@ -69,7 +74,7 @@ public sealed record GenericOperationDraft
     public bool Merge { get; init; } = true;
     public required GenericOperationKind Type { get; init; }
     public required string Id { get; init; }
-    public required string Name { get; init; }
+    public string Name { get; init; } = "";
     public IReadOnlyList<string> DependsOn { get; init; } = [];
 
     // profile_sketch fields
@@ -130,16 +135,18 @@ public sealed partial class GenericPlanCompiler
         var diagnostics = new List<ModelingDiagnostic>();
         diagnostics.AddRange(DrawingPlanValidation.Validate(draft));
         if (string.IsNullOrWhiteSpace(draft.Name))
-            diagnostics.Add(Error("GPC001", "A generic model draft requires a name.", "draft.name"));
+            diagnostics.Add(Error("GPC001", "一个通用模型草案需要一个名称。", "draft.name"));
         if (string.IsNullOrWhiteSpace(draft.SourceText))
-            diagnostics.Add(Error("GPC002", "A generic model draft requires source_text for traceability.", "draft.source_text"));
-        if (draft.Operations.Count == 0)
-            diagnostics.Add(Error("GPC003", "A generic model draft requires at least one operation.", "draft.operations"));
+            diagnostics.Add(Error("GPC002", "一个通用模型草案需要 source_text 以实现可追溯性。", "draft.source_text"));
+        if (draft.Operations.Count == 0 && (draft.DesignIntent is null || string.IsNullOrWhiteSpace(draft.SourceModelPath)))
+            diagnostics.Add(Error("GPC003", "一个通用的模型草案至少需要一个操作。", "draft.operations"));
 
         var operations = new List<ModelingOperation>();
         for (var index = 0; index < draft.Operations.Count; index++)
         {
             var source = draft.Operations[index];
+            if (string.IsNullOrWhiteSpace(source.Name))
+                source = source with { Name = GeneratedChineseText.FeatureName(source, index + 1) };
             var path = $"draft.operations[{index}]";
             var operation = CompileOperation(source, path, diagnostics);
             if (operation is not null) operations.Add(operation);
@@ -154,9 +161,12 @@ public sealed partial class GenericPlanCompiler
             Name = draft.Name.Trim(),
             SourceText = draft.SourceText.Trim(),
             SourceModelPath = draft.SourceModelPath,
+            DesignIntent = draft.DesignIntent,
+            BoxEdgeHistory = draft.BoxEdgeHistory,
             DrawingContext = draft.DrawingContext,
             Verification = draft.Verification,
             Recovery = draft.Recovery,
+            ExecutionDeadline = draft.ExecutionDeadline,
             Assumptions = draft.Assumptions,
             Operations = operations,
             Output = new()
@@ -194,7 +204,7 @@ public sealed partial class GenericPlanCompiler
         diagnostics.AddRange(validation.Diagnostics);
         if (diagnostics.All(item => item.Severity != DiagnosticSeverity.Error))
             diagnostics.Add(new("GPC000", DiagnosticSeverity.Info,
-                "Typed draft compiled to executable Modeling IR."));
+                "类型化草案已编译为可执行建模计划。"));
         return new(plan, diagnostics);
     }
 
@@ -204,9 +214,9 @@ public sealed partial class GenericPlanCompiler
         List<ModelingDiagnostic> diagnostics)
     {
         if (string.IsNullOrWhiteSpace(source.Id))
-            diagnostics.Add(Error("GPC010", "Operation id is required.", $"{path}.id"));
+            diagnostics.Add(Error("GPC010", "操作 ID 是必需的。", $"{path}.id"));
         if (string.IsNullOrWhiteSpace(source.Name))
-            diagnostics.Add(Error("GPC011", "Operation name is required.", $"{path}.name"));
+            diagnostics.Add(Error("GPC011", "操作名称是必需的。", $"{path}.name"));
 
         return source.Type switch
         {
@@ -224,9 +234,9 @@ public sealed partial class GenericPlanCompiler
         List<ModelingDiagnostic> diagnostics)
     {
         if (source.Plane is null && source.Frame is null && source.PlaneId is null)
-            diagnostics.Add(Error("GPC020", "A profile sketch requires plane.", $"{path}.plane"));
+            diagnostics.Add(Error("GPC020", "轮廓草图需要平面。", $"{path}.plane"));
         if (source.Primitives.Count == 0)
-            diagnostics.Add(Error("GPC021", "A profile sketch requires at least one primitive.", $"{path}.primitives"));
+            diagnostics.Add(Error("GPC021", "一个轮廓草图至少需要一个基本形状。", $"{path}.primitives"));
 
         var primitives = new List<ProfilePrimitive>();
         for (var index = 0; index < source.Primitives.Count; index++)
@@ -255,6 +265,8 @@ public sealed partial class GenericPlanCompiler
 
         return new ProfileSketchOperation
         {
+            AutoDimensionPrimitives = source.AutoDimensionPrimitives,
+            RequireFullyDefined = source.RequireFullyDefined,
             Constraints = source.Constraints,
             Dimensions = source.Dimensions,
             Edits = source.Edits,
@@ -276,11 +288,11 @@ public sealed partial class GenericPlanCompiler
         bool isBoss)
     {
         if (string.IsNullOrWhiteSpace(source.SketchId))
-            diagnostics.Add(Error("GPC030", "An extrude requires sketch_id.", $"{path}.sketch_id"));
+            diagnostics.Add(Error("GPC030", "挤出需要 sketch_id。", $"{path}.sketch_id"));
         if (source.EndCondition is null)
-            diagnostics.Add(Error("GPC031", "An extrude requires an explicit end_condition.", $"{path}.end_condition"));
+            diagnostics.Add(Error("GPC031", "挤出需要显式的 end_condition 特征。", $"{path}.end_condition"));
         if (source.DepthMm is null)
-            diagnostics.Add(Error("GPC032", "An extrude requires an explicit depth_mm; use 0 only for UpToSurface.", $"{path}.depth_mm"));
+            diagnostics.Add(Error("GPC032", "挤出需要显式的depth_mm；仅使用0来生成UpToSurface。", $"{path}.depth_mm"));
         if (string.IsNullOrWhiteSpace(source.SketchId) || source.EndCondition is null || source.DepthMm is null)
             return null;
 
@@ -338,10 +350,10 @@ public sealed partial class GenericPlanCompiler
         {
             case GenericPrimitiveKind.Slot:
                 if (source.Points.Count != 2 || source.WidthMm is not > 0)
-                { diagnostics.Add(Error("SLOT_PARAMETERS", "Slot requires two arc-center points and positive width_mm.", path)); return null; }
+                { diagnostics.Add(Error("SLOT_PARAMETERS", "槽需要两个弧心点，并且要求 width_mm 为正数。", path)); return null; }
                 var start = source.Points[0]; var end = source.Points[1]; var radius = source.WidthMm.Value / 2;
                 var dx = end.Xmm - start.Xmm; var dy = end.Ymm - start.Ymm; var length = Math.Sqrt(dx*dx+dy*dy);
-                if (length < 1e-9) { diagnostics.Add(Error("SLOT_LENGTH", "Slot centers must differ.",path)); return null; }
+                if (length < 1e-9) { diagnostics.Add(Error("SLOT_LENGTH", "槽中心必须不同。",path)); return null; }
                 ProfilePoint Shift(ProfilePoint p, double u, double v) => new(p.Xmm+(dx*u-dy*v)/length, p.Ymm+(dy*u+dx*v)/length);
                 return new CompositeCurveProfile { Role=source.Role, Curves=[
                     new LineProfileCurve { Start=Shift(start,0,radius),End=Shift(end,0,radius) },
@@ -352,7 +364,7 @@ public sealed partial class GenericPlanCompiler
             case GenericPrimitiveKind.Ellipse:
                 if (!RequireCenter(source, path, diagnostics) || source.WidthMm is null || source.HeightMm is null)
                 {
-                    diagnostics.Add(Error("GPC050", "Ellipse requires explicit center, width_mm and height_mm.", path));
+                    diagnostics.Add(Error("GPC050", "椭圆需要显式的中心点，width_mm和height_mm。", path));
                     return null;
                 }
                 return new EllipseProfile { CenterXmm = source.CenterXmm!.Value, CenterYmm = source.CenterYmm!.Value,
@@ -364,7 +376,7 @@ public sealed partial class GenericPlanCompiler
             case GenericPrimitiveKind.OpenCurve:
                 if (source.Curves.Any(c => c.Type == GenericCurveKind.ThreePointArc && c.PointOnArc is null))
                 {
-                    diagnostics.Add(Error("GPC051", "Every arc requires point_on_arc.", path));
+                    diagnostics.Add(Error("GPC051", "每个弧都需要 point_on_arc。", path));
                     return null;
                 }
                 return new OpenCurveProfile { Role = source.Role, Construction = source.Construction,
@@ -374,8 +386,8 @@ public sealed partial class GenericPlanCompiler
             case GenericPrimitiveKind.CenteredRectangle:
                 if (!RequireCenter(source, path, diagnostics) || source.WidthMm is null || source.HeightMm is null)
                 {
-                    if (source.WidthMm is null) diagnostics.Add(Error("GPC040", "A centered rectangle requires width_mm.", $"{path}.width_mm"));
-                    if (source.HeightMm is null) diagnostics.Add(Error("GPC041", "A centered rectangle requires height_mm.", $"{path}.height_mm"));
+                    if (source.WidthMm is null) diagnostics.Add(Error("GPC040", "中心的矩形需要 width_mm 。", $"{path}.width_mm"));
+                    if (source.HeightMm is null) diagnostics.Add(Error("GPC041", "中心的矩形需要 height_mm。", $"{path}.height_mm"));
                     return null;
                 }
                 return new CenteredRectangleProfile
@@ -390,7 +402,7 @@ public sealed partial class GenericPlanCompiler
             case GenericPrimitiveKind.ThreePointRectangle:
                 if (source.Points.Count != 3)
                 {
-                    diagnostics.Add(Error("GPC042", "A three-point rectangle requires exactly three ordered points.", $"{path}.points"));
+                    diagnostics.Add(Error("GPC042", "三点矩形需要恰好三个有序点。", $"{path}.points"));
                     return null;
                 }
                 return new ThreePointRectangleProfile
@@ -404,7 +416,7 @@ public sealed partial class GenericPlanCompiler
             case GenericPrimitiveKind.Circle:
                 if (!RequireCenter(source, path, diagnostics) || source.DiameterMm is null)
                 {
-                    if (source.DiameterMm is null) diagnostics.Add(Error("GPC043", "A circle requires diameter_mm.", $"{path}.diameter_mm"));
+                    if (source.DiameterMm is null) diagnostics.Add(Error("GPC043", "一个圆需要 diameter_mm。", $"{path}.diameter_mm"));
                     return null;
                 }
                 return new CircleProfile
@@ -418,7 +430,7 @@ public sealed partial class GenericPlanCompiler
             case GenericPrimitiveKind.Polygon:
                 if (source.Points.Count < 3)
                 {
-                    diagnostics.Add(Error("GPC044", "A polygon requires at least three ordered points.", $"{path}.points"));
+                    diagnostics.Add(Error("GPC044", "一个多边形至少需要三个有序的点。", $"{path}.points"));
                     return null;
                 }
                 return new PolygonProfile { Role = source.Role, Points = source.Points };
@@ -426,7 +438,7 @@ public sealed partial class GenericPlanCompiler
             case GenericPrimitiveKind.CompositeCurve:
                 if (source.Curves.Count < 3)
                 {
-                    diagnostics.Add(Error("GPC045", "A composite curve requires at least three ordered curves.", $"{path}.curves"));
+                    diagnostics.Add(Error("GPC045", "一个复合曲线至少需要三个有序的曲线。", $"{path}.curves"));
                     return null;
                 }
                 var curves = new List<ProfileCurve>();
@@ -436,7 +448,7 @@ public sealed partial class GenericPlanCompiler
                     var curvePath = $"{path}.curves[{index}]";
                     if (curve.Type == GenericCurveKind.ThreePointArc && curve.PointOnArc is null)
                     {
-                        diagnostics.Add(Error("GPC046", "A three-point arc requires point_on_arc.", $"{curvePath}.point_on_arc"));
+                        diagnostics.Add(Error("GPC046", "三点圆弧需要 point_on_arc。", $"{curvePath}.point_on_arc"));
                         continue;
                     }
                     curves.Add(curve.Type == GenericCurveKind.Line
@@ -453,7 +465,7 @@ public sealed partial class GenericPlanCompiler
                     : null;
 
             default:
-                diagnostics.Add(Error("GPC049", $"Unsupported primitive type '{source.Type}'.", $"{path}.type"));
+                diagnostics.Add(Error("GPC049", $"不支持的原始类型 '{source.Type}'。", $"{path}.type"));
                 return null;
         }
     }
@@ -466,12 +478,12 @@ public sealed partial class GenericPlanCompiler
         var valid = true;
         if (source.CenterXmm is null)
         {
-            diagnostics.Add(Error("GPC047", "This primitive requires explicit center_xmm.", $"{path}.center_xmm"));
+            diagnostics.Add(Error("GPC047", "这个原始需要显式 center_xmm。", $"{path}.center_xmm"));
             valid = false;
         }
         if (source.CenterYmm is null)
         {
-            diagnostics.Add(Error("GPC048", "This primitive requires explicit center_ymm.", $"{path}.center_ymm"));
+            diagnostics.Add(Error("GPC048", "这个原始需要显式 center_ymm。", $"{path}.center_ymm"));
             valid = false;
         }
         return valid;
@@ -482,7 +494,7 @@ public sealed partial class GenericPlanCompiler
         string path,
         List<ModelingDiagnostic> diagnostics)
     {
-        diagnostics.Add(Error("GPC019", $"Unsupported operation type '{source.Type}'.", $"{path}.type"));
+        diagnostics.Add(Error("GPC019", $"不支持的操作类型 '{source.Type}' 。", $"{path}.type"));
         return null;
     }
 
@@ -493,5 +505,5 @@ public sealed partial class GenericPlanCompiler
 
     private static ModelingDiagnostic Error(string code, string message, string path) =>
         new(code, DiagnosticSeverity.Error, message, path,
-            "Correct the structured draft and compile again; do not bypass Modeling IR.");
+            "修正结构草案并重新编译；不要跳过建模 IR。");
 }

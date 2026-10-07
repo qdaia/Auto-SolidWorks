@@ -10,12 +10,13 @@ public sealed record VerificationCheckResult(string Id, bool Passed, string Stat
 public sealed record ModelVerificationResult(IReadOnlyList<VerificationCheckResult> Checks)
 {
     public bool Passed => Checks.Count>0 && Checks.All(c=>c.Passed);
-    public string Scope => "Declared source requirements only; not complete drawing or GD&T equivalence.";
+    public string Scope => "仅声明了源要求；未完成图纸或GD&T等效性。";
+    public bool WholeModelInventoryChecked => Checks.Any(c=>c.Passed&&c.Measurements?.GetValueOrDefault("scope")=="whole_model_inventory");
 }
 
 public static partial class ModelVerification
 {
-    public static bool HasChecks(ModelVerificationSpec spec) => spec.CylinderGroups.Count+spec.NativeDimensions.Count+spec.Bounds.Count+spec.SurfaceSamples.Count+spec.BoundaryClearances.Count>0;
+    public static bool HasChecks(ModelVerificationSpec spec) => spec.RequireWholeModelInventory||spec.CylinderGroups.Count+spec.NativeDimensions.Count+spec.Bounds.Count+spec.SurfaceSamples.Count+spec.BoundaryClearances.Count+spec.WholeModelChecks.Count+spec.EdgeShapes.Count+spec.SurfaceContinuity.Count>0;
     public static IEnumerable<ModelingDiagnostic> Validate(ModelVerificationSpec spec, DrawingPlanContext? context)
     {
         var errors=new List<ModelingDiagnostic>();
@@ -24,75 +25,86 @@ public static partial class ModelVerification
             .Concat(spec.NativeDimensions.Select(c=>(c.Id,c.SourceLiteral,c.SourceDimensionIds,(object)c)))
             .Concat(spec.Bounds.Select(c=>(c.Id,c.SourceLiteral,c.SourceDimensionIds,(object)c)))
             .Concat(spec.SurfaceSamples.Select(c=>(c.Id,c.SourceLiteral,c.SourceDimensionIds,(object)c)))
-            .Concat(spec.BoundaryClearances.Select(c=>(c.Id,c.SourceLiteral,c.SourceDimensionIds,(object)c))).ToArray();
+            .Concat(spec.BoundaryClearances.Select(c=>(c.Id,c.SourceLiteral,c.SourceDimensionIds,(object)c)))
+            .Concat(spec.WholeModelChecks.Select(c=>(c.Id,c.SourceLiteral,c.SourceDimensionIds,(object)c)))
+            .Concat(spec.EdgeShapes.Select(c=>(c.Id,c.SourceLiteral,c.SourceDimensionIds,(object)c)))
+            .Concat(spec.SurfaceContinuity.Select(c=>(c.Id,c.SourceLiteral,c.SourceDimensionIds,(object)c))).ToArray();
+        ValidateShapeChecks(spec,Error);
         ValidateLocalChecks(spec,Error);
-        if(all.Select(c=>c.Id).Distinct(StringComparer.Ordinal).Count()!=all.Length) Error("Verification check IDs must be unique.");
+        ValidateWholeModelChecks(spec,Error);
+        if(all.Select(c=>c.Id).Distinct(StringComparer.Ordinal).Count()!=all.Length) Error("验证检查ID必须唯一。");
         foreach(var c in all)
         {
-            if(string.IsNullOrWhiteSpace(c.Id)||string.IsNullOrWhiteSpace(c.SourceLiteral)) Error("Each check needs an ID and source requirement literal.");
+            if(string.IsNullOrWhiteSpace(c.Id)||string.IsNullOrWhiteSpace(c.SourceLiteral)) Error("每个检查都需要一个ID和来源要求字面表达。");
             if(context is not null && (c.SourceDimensionIds.Count==0 || c.SourceDimensionIds.Any(id=>!context.Dimensions.Any(d=>d.Id==id))))
-                Error($"Check '{c.Id}' needs existing source dimension IDs.");
+                Error($"检查 '{c.Id}' 需要现有的源尺寸 ID。");
             if(context is not null)
                 foreach(var id in c.SourceDimensionIds)
-                    if(!spec.Bindings.Any(b=>b.DimensionId==id&&b.CheckId==c.Id)) Error($"Check '{c.Id}' has no measured-parameter binding for source dimension '{id}'.");
+                    if(!spec.Bindings.Any(b=>b.DimensionId==id&&b.CheckId==c.Id)) Error($"检查 '{c.Id}' 没有为源尺寸 '{id}' 建立测量参数绑定。");
         }
         foreach(var c in spec.CylinderGroups)
         {
             if(!Positive(c.DiameterMm)||!Positive(c.LengthMm)||!Positive(c.ToleranceMm)||!Finite(c.Direction)||Norm(c.Direction)<1e-12 ||
                !double.IsFinite(c.DirectionToleranceDegrees)||c.DirectionToleranceDegrees<0||c.DirectionToleranceDegrees>=90 ||
-               c.AxisStartsMm.Count==0||c.AxisStartsMm.Any(p=>!Finite(p))) Error($"Cylinder check '{c.Id}' has invalid dimensions, direction, tolerance or axis starts.");
+               c.AxisStartsMm.Count==0||c.AxisStartsMm.Any(p=>!Finite(p))) Error($"圆柱检查 '{c.Id}' 有无效的尺寸、方向、公差或轴开始。");
             for(var i=0;i<c.AxisStartsMm.Count;i++) for(var j=0;j<i;j++)
-                if(Norm(Sub(c.AxisStartsMm[i],c.AxisStartsMm[j]))<=c.ToleranceMm) Error($"Cylinder check '{c.Id}' has duplicate expected cylinders.");
+                if(Norm(Sub(c.AxisStartsMm[i],c.AxisStartsMm[j]))<=c.ToleranceMm) Error($"圆柱检查 '{c.Id}' 有预期的圆柱重复。");
         }
         foreach(var c in spec.NativeDimensions)
-            if(string.IsNullOrWhiteSpace(c.DimensionName)||!double.IsFinite(c.Value)||!Positive(c.Tolerance)||!Enum.IsDefined(c.Unit)) Error($"Native dimension check '{c.Id}' is invalid.");
+            if(string.IsNullOrWhiteSpace(c.DimensionName)||!double.IsFinite(c.Value)||!Positive(c.Tolerance)||!Enum.IsDefined(c.Unit)) Error($"原生尺寸检查 '{c.Id}' 无效。");
         foreach(var c in spec.Bounds)
-            if(!Finite(c.SizeMm)||c.SizeMm.X<0||c.SizeMm.Y<0||c.SizeMm.Z<0||!Positive(c.ToleranceMm)) Error($"Bounds check '{c.Id}' is invalid.");
-        if(context is null && spec.Bindings.Count>0) Error("Source verification bindings require drawing_context.");
+            if(!Finite(c.SizeMm)||c.SizeMm.X<0||c.SizeMm.Y<0||c.SizeMm.Z<0||!Positive(c.ToleranceMm)) Error($"边界检查 '{c.Id}' 无效。");
+        if(context is null && spec.Bindings.Count>0) Error("源验证绑定需要 drawing_context。");
         foreach(var binding in spec.Bindings)
         {
             var fact=context?.Dimensions.FirstOrDefault(d=>d.Id==binding.DimensionId);
             var check=all.FirstOrDefault(c=>c.Id==binding.CheckId);
             if(fact is null || check.Item4 is null || !check.SourceDimensionIds.Contains(binding.DimensionId))
-            { Error("Verification binding refers to an absent check or source dimension."); continue; }
+            { Error("验证绑定指的是缺少的检查或源尺寸。"); continue; }
             var element=JsonSerializer.SerializeToElement(check.Item4,check.Item4.GetType(),ModelingIrJson.Options);
             var found=TryField(element,binding.ParameterPath,out var value);
             var sourceValue=fact.Value*UnitFactor(fact.Unit);
             var isAngle=check.Item4 is NativeDimensionCheck { Unit: DrawingValueUnit.Degree } || check.Item4 is SurfaceSampleCheck && binding.ParameterPath is "cone_half_angle_degrees" or "cone_included_angle_degrees";
-            var isCount=binding.ParameterPath=="expected_count"||check.Item4 is NativeDimensionCheck { Unit: DrawingValueUnit.Unitless };
+            var isCount=binding.ParameterPath=="expected_count"||check.Item4 is WholeModelCheck||check.Item4 is NativeDimensionCheck { Unit: DrawingValueUnit.Unitless };
             if(check.Item4 is NativeDimensionCheck dimension && binding.ParameterPath=="value") value*=UnitFactor(dimension.Unit);
             var allowed=binding.ParameterPath=="value"&&check.Item4 is NativeDimensionCheck ||
                 check.Item4 is BoundsCheck && binding.ParameterPath.StartsWith("size_mm.",StringComparison.Ordinal) ||
                 check.Item4 is CylinderGroupCheck && (binding.ParameterPath is "diameter_mm" or "length_mm" or "expected_count" || binding.ParameterPath.StartsWith("axis_starts_mm.",StringComparison.Ordinal)) ||
-                check.Item4 is SurfaceSampleCheck && (binding.ParameterPath is "diameter_mm" or "cone_half_angle_degrees" or "cone_included_angle_degrees" || binding.ParameterPath.StartsWith("points_mm.",StringComparison.Ordinal)) ||
-                check.Item4 is BoundaryClearanceCheck && (binding.ParameterPath=="minimum_distance_mm" || binding.ParameterPath.StartsWith("points_mm.",StringComparison.Ordinal));
+                check.Item4 is SurfaceSampleCheck && (binding.ParameterPath is "diameter_mm" or "radius_mm" or "cone_half_angle_degrees" or "cone_included_angle_degrees" || binding.ParameterPath.StartsWith("points_mm.",StringComparison.Ordinal) || binding.ParameterPath.StartsWith("center_mm.",StringComparison.Ordinal)) ||
+                check.Item4 is BoundaryClearanceCheck && (binding.ParameterPath=="minimum_distance_mm" || binding.ParameterPath.StartsWith("points_mm.",StringComparison.Ordinal)) ||
+                check.Item4 is WholeModelCheck && binding.ParameterPath is "solid_body_count" or "surface_body_count" or "face_count" or "edge_count" or "open_edge_count" ||
+                check.Item4 is EdgeShapeCheck && (binding.ParameterPath=="length_mm" || binding.ParameterPath.StartsWith("start_point_mm.",StringComparison.Ordinal) || binding.ParameterPath.StartsWith("end_point_mm.",StringComparison.Ordinal));
             if(!allowed || !found || !double.IsFinite(value) || isAngle!=(fact.Unit==DrawingValueUnit.Degree) || isCount!=(fact.Unit==DrawingValueUnit.Unitless) || Math.Abs(value-sourceValue)>1e-7*Math.Max(1,Math.Abs(sourceValue)))
-                Error($"Check '{binding.CheckId}' parameter '{binding.ParameterPath}' differs from source dimension '{binding.DimensionId}', or uses an invalid field/unit.");
+                Error($"检查参数 '{binding.CheckId}' 的 '{binding.ParameterPath}' 不同于源尺寸 '{binding.DimensionId}'，或者使用了无效的字段/单位。");
         }
         return errors;
     }
 
     public static ModelVerificationResult Evaluate(ModelVerificationSpec spec, IReadOnlyList<MeasuredCylinder> cylinders,
         IReadOnlyDictionary<string,double> nativeSystemValues, GeometrySnapshot? geometry,
-        IReadOnlyDictionary<string,IReadOnlyList<LocalPointMeasurement>>? localMeasurements=null)
+        IReadOnlyDictionary<string,IReadOnlyList<LocalPointMeasurement>>? localMeasurements=null, WholeModelMeasurement? wholeModel=null,
+        IReadOnlyDictionary<string,ShapeMeasurement>? shapeMeasurements=null)
     {
         var results=new List<VerificationCheckResult>();
+        results.AddRange(EvaluateShapeChecks(spec,shapeMeasurements));
         results.AddRange(EvaluateLocalChecks(spec,localMeasurements));
+        results.AddRange(EvaluateWholeModelChecks(spec,wholeModel));
+        if(spec.RequireWholeModelInventory&&spec.WholeModelChecks.Count==0)results.Add(new("whole_model_inventory_required",false,"unverifiable","所需的整个模型库存没有独立的来源检查。"));
         foreach(var check in spec.CylinderGroups) results.Add(CheckCylinders(check,cylinders));
         foreach(var check in spec.NativeDimensions)
         {
             if(!nativeSystemValues.TryGetValue(check.DimensionName,out var actual)||!double.IsFinite(actual))
-            { results.Add(new(check.Id,false,"unverifiable","The saved model does not expose the requested active native dimension.")); continue; }
+            { results.Add(new(check.Id,false,"unverifiable","保存的模型未暴露所请求的活动原生尺寸。")); continue; }
             var factor=check.Unit==DrawingValueUnit.Degree ? 180/Math.PI : check.Unit==DrawingValueUnit.Unitless?1:1000/UnitFactor(check.Unit);
             var measured=actual*factor;
             var passed=Math.Abs(measured-check.Value)<=check.Tolerance;
-            results.Add(new(check.Id,passed,passed?"passed":"mismatch","Read the native model dimension.",new Dictionary<string,string>{["name"]=check.DimensionName,["measured"]=F(measured),["expected"]=F(check.Value),["unit"]=check.Unit.ToString()}));
+            results.Add(new(check.Id,passed,passed?"passed":"mismatch","读取原生模型的尺寸。",new Dictionary<string,string>{["name"]=check.DimensionName,["measured"]=F(measured),["expected"]=F(check.Value),["unit"]=check.Unit.ToString()}));
         }
         foreach(var check in spec.Bounds)
         {
             var b=geometry?.BoundingBoxMm;
             var passed=b is not null&&Finite(new(b.X,b.Y,b.Z))&&Math.Abs(b.X-check.SizeMm.X)<=check.ToleranceMm&&Math.Abs(b.Y-check.SizeMm.Y)<=check.ToleranceMm&&Math.Abs(b.Z-check.SizeMm.Z)<=check.ToleranceMm;
-            results.Add(new(check.Id,passed,b is null?"unverifiable":passed?"passed":"mismatch","Measured the actual model bounding box.",new Dictionary<string,string>{["measured_mm"]=b is null?"unavailable":$"{F(b.X)}, {F(b.Y)}, {F(b.Z)}",["expected_mm"]=Point(check.SizeMm)}));
+            results.Add(new(check.Id,passed,b is null?"unverifiable":passed?"passed":"mismatch","测量了实际模型的包围盒。",new Dictionary<string,string>{["measured_mm"]=b is null?"unavailable":$"{F(b.X)}, {F(b.Y)}, {F(b.Z)}",["expected_mm"]=Point(check.SizeMm)}));
         }
         return new(results);
     }
@@ -105,7 +117,7 @@ public static partial class ModelVerification
         foreach(var cylinder in measurements)
         {
             if(!Finite(cylinder.AxisStartMm)||!Finite(cylinder.AxisEndMm)||!Finite(cylinder.Direction)||!Positive(cylinder.RadiusMm)||!Positive(cylinder.AreaMm2))
-                return new(check.Id,false,"unverifiable","Cylinder measurement contains invalid geometry.");
+                return new(check.Id,false,"unverifiable","测量圆柱包含无效几何。");
             if(cylinder.Interior!=check.Interior||Math.Abs(cylinder.RadiusMm*2-check.DiameterMm)>check.ToleranceMm || Math.Abs(Dot(Unit(cylinder.Direction),direction))+1e-12<cos) continue;
             var a=Dot(cylinder.AxisStartMm,direction); var b=Dot(cylinder.AxisEndMm,direction);
             spans.Add(new(Sub(cylinder.AxisStartMm,Scale(direction,a)),Math.Min(a,b),Math.Max(a,b),cylinder.AreaMm2,cylinder.RadiusMm));
@@ -126,18 +138,18 @@ public static partial class ModelVerification
             var matches=merged.Select((m,i)=>(m,i)).Where(x=>Norm(Sub(x.m.Lateral,lateral))<=check.ToleranceMm &&
                 Math.Abs(x.m.Start-Math.Min(t0,t1))<=check.ToleranceMm&&Math.Abs(x.m.End-Math.Max(t0,t1))<=check.ToleranceMm).ToArray();
             if(matches.Length!=1 || used.Contains(matches.FirstOrDefault().i)&&matches.Length==1)
-            {failures.Add($"No unique cylinder with the requested axial extent at {Point(start)}.");continue;}
+            {failures.Add($"没有具有所请求的轴向长度的唯一圆柱体{Point(start)}。");continue;}
             var (actual,index)=matches[0];used.Add(index);
             var fullArea=2*Math.PI*actual.Radius*(actual.End-actual.Start);
             // Partial/open/intersected cylindrical walls are not certified as complete drilled holes.
             if(fullArea<=0||Math.Abs(actual.Area/fullArea-1)>0.002)
-            {incomplete=true;failures.Add($"Cylinder at {Point(start)} is partial or intersected; full cylindrical wall cannot be verified.");}
+            {incomplete=true;failures.Add($"圆柱在{Point(start)}处为部分或相交；无法验证完整的圆柱壁。");}
         }
-        if(check.ExactCount&&merged.Count!=check.AxisStartsMm.Count) failures.Add($"Expected {check.AxisStartsMm.Count} cylinders of this diameter/direction, measured {merged.Count}.");
+        if(check.ExactCount&&merged.Count!=check.AxisStartsMm.Count) failures.Add($"此直径／方向预期有{check.AxisStartsMm.Count}个圆柱面，实际测得{merged.Count}个。");
         var passed=failures.Count==0;
-        return new(check.Id,passed,passed?"passed":incomplete?"unverifiable":"mismatch",passed?"Actual cylindrical walls match diameter, axis, axial start/end and count.":string.Join(" ",failures),
+        return new(check.Id,passed,passed?"passed":incomplete?"unverifiable":"mismatch",passed?"实际的圆柱壁匹配直径、轴线、轴向起始/结束和数量。":string.Join(" ",failures),
             new Dictionary<string,string>{["expected_count"]=check.AxisStartsMm.Count.ToString(CultureInfo.InvariantCulture),["measured_count"]=merged.Count.ToString(CultureInfo.InvariantCulture),
-                ["measured_axes_and_spans_mm"]=string.Join("; ",merged.Select(m=>$"axis {Point(m.Lateral)}; t {F(m.Start)}..{F(m.End)}; diameter {F(m.Radius*2)}"))});
+                ["measured_axes_and_spans_mm"]=string.Join("; ",merged.Select(m=>$"轴向 {Point(m.Lateral)}；t {F(m.Start)}..{F(m.End)}；直径 {F(m.Radius*2)}"))});
     }
     private static bool TryField(JsonElement node,string path,out double value)
     {

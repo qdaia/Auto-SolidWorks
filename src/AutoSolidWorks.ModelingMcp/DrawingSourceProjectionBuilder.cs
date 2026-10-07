@@ -34,17 +34,17 @@ internal static class DrawingSourceProjectionBuilder
     {
         ArgumentNullException.ThrowIfNull(request);
         var view = request.ViewMap.Views.SingleOrDefault(item => item.ViewId == request.ViewId)
-            ?? throw new ArgumentException($"View '{request.ViewId}' does not exist in the view map.", nameof(request));
+            ?? throw new ArgumentException($"视图 '{request.ViewId}' 不存在于视图映射中。", nameof(request));
         if (view.Status is ViewMapStatus.Conflict or ViewMapStatus.Unverifiable)
-            throw new InvalidOperationException($"View '{view.ViewId}' is not resolved enough for projection verification.");
+            throw new InvalidOperationException($"视图{view.ViewId}未能充分解析，无法进行投影验证。");
         var transform = request.ViewMap.Transforms.SingleOrDefault(item => item.TransformId == view.SourceToViewTransformId)
-            ?? throw new InvalidOperationException($"Source-to-view transform '{view.SourceToViewTransformId}' is absent.");
+            ?? throw new InvalidOperationException($"源到视图变换 '{view.SourceToViewTransformId}' 不存在。");
         var selected = request.Observation.Observations
             .Where(item => request.IncludedObservationIds.Contains(item.ObservationId))
             .OrderBy(item => item.ObservationId, StringComparer.Ordinal).ToArray();
         var missing = request.IncludedObservationIds.Except(selected.Select(item => item.ObservationId), StringComparer.Ordinal).ToArray();
         if (missing.Length > 0)
-            throw new InvalidOperationException("Approved source geometry is missing from observation evidence: " + string.Join(", ", missing));
+            throw new InvalidOperationException("批准的源几何体在观察证据中缺失：" + string.Join(", ", missing));
 
         var primitives = new List<ProjectionPrimitive>();
         foreach (var observation in selected)
@@ -57,7 +57,7 @@ internal static class DrawingSourceProjectionBuilder
                     !request.FactByObservationId.TryGetValue(observation.ObservationId,out factId) || string.IsNullOrWhiteSpace(factId) ||
                     !request.SourceFactFingerprintByObservationId.TryGetValue(observation.ObservationId,out factFingerprint) || !IsSha(factFingerprint) ||
                     !request.RequirementFingerprintByObservationId.TryGetValue(observation.ObservationId,out requirementFingerprint) || !IsSha(requirementFingerprint))
-                    throw new InvalidOperationException($"Projection requirement '{requirementId}' lacks frozen source revision/fact/requirement identity.");
+                    throw new InvalidOperationException($"投影要求 '{requirementId}' 缺少冻结的源修订/事实/要求标识。");
             }
             var points = observation.Geometry.Where(point => point.CoordinateFrameId == view.SourceFrameId).ToArray();
             switch (observation.Kind)
@@ -95,7 +95,7 @@ internal static class DrawingSourceProjectionBuilder
                     var bottom = mapped.Min(point => point.Y); var top = mapped.Max(point => point.Y);
                     var rx = (right - left) / 2; var ry = (top - bottom) / 2;
                     if (rx <= 0 || ry <= 0 || Math.Abs(rx - ry) > request.CircleRoundnessToleranceMm)
-                        throw new InvalidOperationException($"Circle '{observation.ObservationId}' is not round in the frozen millimeter frame.");
+                        throw new InvalidOperationException($"圆 '{observation.ObservationId}' 在已锁定的毫米框架中不是圆形。");
                     primitives.Add(new()
                     {
                         Id = $"source-{observation.ObservationId}-circle",
@@ -126,12 +126,12 @@ internal static class DrawingSourceProjectionBuilder
                             v * v * v * control[0].Y + 3 * v * v * t * control[1].Y + 3 * v * t * t * control[2].Y + t * t * t * control[3].Y);
                     }
                     if (primitive is not ("quadratic_bezier_arc_candidate" or "cubic_bezier_arc_candidate" or "circular_arc"))
-                        throw new NotSupportedException($"Arc '{observation.ObservationId}' lacks a supported circular-arc evidence type.");
+                        throw new NotSupportedException($"弧 '{observation.ObservationId}' 缺少支持的圆弧证据类型。");
                     var start = Sample(0); var mid = Sample(.5); var end = Sample(1);
                     var (center, radius) = FitCircle(start, mid, end);
                     var residual = new[] { .25, .5, .75 }.Select(t => Math.Abs(Distance(center, Sample(t)) - radius)).Max();
                     if (residual > request.ArcCircularityToleranceMm)
-                        throw new InvalidOperationException($"Arc '{observation.ObservationId}' deviates from a circular arc by {residual:0.###} mm in the frozen frame.");
+                        throw new InvalidOperationException($"弧{observation.ObservationId}在冻结帧中偏离一个圆弧{residual:0.###}mm。");
                     primitives.Add(new()
                     {
                         Id = $"source-{observation.ObservationId}-arc",
@@ -150,10 +150,10 @@ internal static class DrawingSourceProjectionBuilder
                     });
                     break;
                 default:
-                    throw new NotSupportedException($"Projection source builder supports only approved line/circle/circular-arc observations; got '{observation.Kind}'.");
+                    throw new NotSupportedException($"投影源构建器仅支持批准的线/圆/圆弧观察；得到 '{observation.Kind}' 。");
             }
         }
-        if (primitives.Count == 0) throw new InvalidOperationException("No approved source line/circle/arc primitives were supplied.");
+        if (primitives.Count == 0) throw new InvalidOperationException("没有供应批准的源线/圆/弧基本元素。");
         return new()
         {
             ViewId = view.ViewId,
@@ -180,20 +180,20 @@ internal static class DrawingSourceProjectionBuilder
         if (!observation.CandidateProperties.TryGetValue("line_style", out var value)) return "visible";
         var normalized = value.Trim().ToLowerInvariant();
         return normalized is "visible" or "hidden" or "center" ? normalized
-            : throw new InvalidOperationException($"Observation '{observation.ObservationId}' has unsupported line_style '{value}'.");
+            : throw new InvalidOperationException($"观察 '{observation.ObservationId}' 不支持 line_style '{value}'。");
     }
 
     private static (ProjectionPointMm Center, double Radius) FitCircle(ProjectionPointMm a, ProjectionPointMm b, ProjectionPointMm c)
     {
         var d = 2 * (a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y));
         if (!double.IsFinite(d) || Math.Abs(d) <= 1e-9)
-            throw new InvalidOperationException("Arc samples are collinear or numerically unstable; circular arc cannot be certified.");
+            throw new InvalidOperationException("弧样本共线或数值不稳定；圆形弧无法认证。");
         var aa = a.X * a.X + a.Y * a.Y; var bb = b.X * b.X + b.Y * b.Y; var cc = c.X * c.X + c.Y * c.Y;
         var center = new ProjectionPointMm((aa * (b.Y - c.Y) + bb * (c.Y - a.Y) + cc * (a.Y - b.Y)) / d,
             (aa * (c.X - b.X) + bb * (a.X - c.X) + cc * (b.X - a.X)) / d);
         var radius = Distance(center, a);
         if (!center.IsFinite || !double.IsFinite(radius) || radius <= 0)
-            throw new InvalidOperationException("Circular arc fit returned invalid center/radius.");
+            throw new InvalidOperationException("圆弧拟合返回无效的中心/半径。");
         return (center, radius);
     }
 
@@ -209,7 +209,7 @@ internal static class DrawingSourceProjectionBuilder
         var positive = Ccw(a, b); var toMid = Ccw(a, m);
         var sweep = toMid <= positive + 1e-7 ? positive : positive - 360;
         if (!double.IsFinite(sweep) || Math.Abs(sweep) <= 1e-7 || Math.Abs(sweep) >= 360 - 1e-7)
-            throw new InvalidOperationException("Arc sweep is degenerate or indistinguishable from a full circle.");
+            throw new InvalidOperationException("弧扫描是退化成一个完整的圆，或者无法区分。");
         return sweep;
     }
 }

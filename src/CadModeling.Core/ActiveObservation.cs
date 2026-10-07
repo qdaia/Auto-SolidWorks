@@ -79,6 +79,8 @@ public sealed record ObservationCapabilities
 
 public sealed record ObservationRenderArtifact
 {
+    public string? RequestId { get; init; }
+    public bool OutcomeUnknown { get; init; }
     public bool Success { get; init; }
     public string? OutputPath { get; init; }
     public string? OutputSha256 { get; init; }
@@ -132,7 +134,7 @@ public sealed class ObservationSession
         {
             if (cached.Artifact is { } cachedArtifact && ArtifactStillValid(request, cachedArtifact, out _))
                 return cached with { RequestId=request.RequestId, Status = ObservationStatus.Reused, Reused = true,
-                    DerivedMeasurementRequests=BuildMeasurementRequests(request), StopReason = "Exact source/model/question/view identity and immutable output bytes reused." };
+                    DerivedMeasurementRequests=BuildMeasurementRequests(request), StopReason = "精确源/模型/问题/视图的身份以及不可变的输出字节被重复使用。" };
 
             // A cache entry is evidence only while the artifact bytes and frozen view/section identity
             // still match.  Invalidating it also permits one replacement render for this identity;
@@ -145,28 +147,28 @@ public sealed class ObservationSession
             ? capabilities.SupportsFullPlaneSection
             : capabilities.SupportedViews.Contains(request.RequestedView);
         if (!supported)
-            return Result(ObservationStatus.Unsupported, "Requested observation capability is not registered; no lower-fidelity fallback was substituted.");
+            return Result(ObservationStatus.Unsupported, "请求的观察能力未注册；没有较低精度的替代方案。");
 
         if (_attempts >= request.Budget.MaxAttempts || _completed.Count >= request.Budget.MaxUniqueRequests)
-            return Result(ObservationStatus.BudgetExceeded, "Observation budget exhausted before rendering.");
+            return Result(ObservationStatus.BudgetExceeded, "观察预算在渲染之前耗尽。");
         var identityKey = IdentityWithoutAttempt(request);
         _attemptsByIdentity.TryGetValue(identityKey, out var repeats);
         if (repeats >= request.Budget.MaxRepeatsPerIdentity)
-            return Result(ObservationStatus.BudgetExceeded, "Repeated observation identity reached its configured limit.");
+            return Result(ObservationStatus.BudgetExceeded, "重复观察达到配置的限制。");
 
         _attempts++;
         _attemptsByIdentity[identityKey] = repeats + 1;
         ObservationRenderArtifact artifact;
         try { artifact = renderer(request); }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or ArgumentException or UnauthorizedAccessException)
-        { return Result(ObservationStatus.Failed, "Renderer failed without stale-output fallback: " + ex.Message); }
+        { return Result(ObservationStatus.Failed, "渲染器失败；未回退到过期输出：" + ex.Message); }
 
         var artifactValid = ArtifactStillValid(request, artifact, out var artifactFailure);
         if (!artifact.Success || !artifactValid)
             return Result(ObservationStatus.Failed, string.IsNullOrWhiteSpace(artifact.Message)
                 ? artifactFailure : artifact.Message + " " + artifactFailure, artifact);
 
-        var result = Result(ObservationStatus.Completed, "Observation completed with source/model/output identity preserved.", artifact,
+        var result = Result(ObservationStatus.Completed, "观察完成，源/模型/输出的身份保持不变。", artifact,
             BuildMeasurementRequests(request));
         _completed[fingerprint] = result;
         return result;
@@ -229,15 +231,15 @@ public sealed class ObservationSession
         if (request.Contract != ObservationRequest.ContractVersion || string.IsNullOrWhiteSpace(request.RequestId) ||
             string.IsNullOrWhiteSpace(request.Question) || string.IsNullOrWhiteSpace(request.SourceRevisionId) ||
             !ValidHash(request.SourceSha256) || !ValidHash(request.ModelSha256))
-            throw new ArgumentException("Observation request requires versioned identity, question, source revision and SHA-256 source/model fingerprints.", nameof(request));
+            throw new ArgumentException("观察请求需要版本化的身份、问题、源修订版和SHA-256源/模型指纹。", nameof(request));
         if (request.Budget.MaxAttempts < 1 || request.Budget.MaxUniqueRequests < 1 || request.Budget.MaxRepeatsPerIdentity < 1)
-            throw new ArgumentException("Observation budget limits must be positive.", nameof(request));
+            throw new ArgumentException("观察预算限制必须是正数。", nameof(request));
         if (request.TargetGeometry is not null)
         {
             GeometryRefResolver.Validate(request.TargetGeometry);
             if (!request.TargetGeometry.ModelSha256.Equals(request.ModelSha256, StringComparison.OrdinalIgnoreCase) ||
                 request.TargetGeometry.SourceRevisionId is { Length: > 0 } revision && revision != request.SourceRevisionId)
-                throw new ArgumentException("Observation target GeometryRef must belong to the requested model/source revision.", nameof(request));
+                throw new ArgumentException("观察目标 GeometryRef 必须属于请求的模型/源修订版本。", nameof(request));
         }
         if (request.SourceRegion is { } region)
         {
@@ -245,26 +247,26 @@ public sealed class ObservationSession
                 !region.SourceSha256.Equals(request.SourceSha256, StringComparison.OrdinalIgnoreCase) ||
                 !double.IsFinite(region.Left + region.Top + region.Right + region.Bottom) || region.Left < 0 || region.Top < 0 ||
                 region.Right > 1 || region.Bottom > 1 || region.Right <= region.Left || region.Bottom <= region.Top)
-                throw new ArgumentException("Observation source region must be a valid normalized box bound to the same source hash.", nameof(request));
+                throw new ArgumentException("观察源区域必须是一个有效的归一化盒，并且绑定到相同的源哈希。", nameof(request));
         }
         if (request.RequestedView == ObservationViewKind.SourceCrop && request.SourceRegion is null)
-            throw new ArgumentException("Source-crop observations require a mapped source region.", nameof(request));
+            throw new ArgumentException("源裁剪观察需要映射的源区域。", nameof(request));
         if (request.RequestedView == ObservationViewKind.FullPlaneSection && request.Section is null ||
             request.RequestedView != ObservationViewKind.FullPlaneSection && request.Section is not null)
-            throw new ArgumentException("A SectionSpec is required only for full-plane section observations.", nameof(request));
+            throw new ArgumentException("需要一个 SectionSpec 仅用于全平面剖面观察。", nameof(request));
         if (request.Section is { Type: not SectionType.FullPlane })
-            throw new ArgumentException("T11 may request only the T10-supported fixed full-plane section capability.", nameof(request));
+            throw new ArgumentException("T11 只能请求 T10 支持的固定全平面剖面能力。", nameof(request));
         if (request.Section is { } section)
         {
             SectionVerifier.Validate(section);
             if (!section.SourceSha256.Equals(request.SourceSha256,StringComparison.OrdinalIgnoreCase) ||
                 !section.SourceRevisionId.Equals(request.SourceRevisionId,StringComparison.Ordinal))
-                throw new ArgumentException("Observation section evidence must belong to the same source SHA/revision as the observation request.",nameof(request));
+                throw new ArgumentException("剖面观察证据必须与观察请求来自相同的源 SHA/修订版本。",nameof(request));
         }
         if (request.MeasurementIntents.Count > 16 || request.MeasurementIntents.Any(i => !double.IsFinite(i.NumericalTolerance) || i.NumericalTolerance <= 0))
-            throw new ArgumentException("Observation-derived measurement intents must be finite and bounded.", nameof(request));
+            throw new ArgumentException("观察衍生的测量意图必须是有限且有界的。", nameof(request));
         if (request.MeasurementIntents.Count > 0 && request.TargetGeometry is null)
-            throw new ArgumentException("Observation-derived measurements require a target GeometryRef.", nameof(request));
+            throw new ArgumentException("基于观测的测量需要一个目标 GeometryRef。", nameof(request));
         if (request.TargetGeometry is { } target)
         {
             for (var i=0;i<request.MeasurementIntents.Count;i++)
@@ -273,7 +275,7 @@ public sealed class ObservationSession
                 if (intent.SecondaryGeometry is { } secondary &&
                     (!secondary.ModelSha256.Equals(request.ModelSha256,StringComparison.OrdinalIgnoreCase) ||
                      secondary.SourceRevisionId is {Length:>0} secondaryRevision && secondaryRevision!=request.SourceRevisionId))
-                    throw new ArgumentException("Observation-derived secondary GeometryRef belongs to another model/source revision.",nameof(request));
+                    throw new ArgumentException("观察所得的secondary GeometryRef属于另一个模型/源修订版本。",nameof(request));
                 DirectionalMeasurementVerifier.Validate(new MeasurementQuery
                 {
                     QueryId=$"validate:{request.RequestId}:{i}",Geometry=target,SecondaryGeometry=intent.SecondaryGeometry,
@@ -309,21 +311,21 @@ public sealed class ObservationSession
     private static bool ArtifactStillValid(ObservationRequest request, ObservationRenderArtifact artifact, out string reason)
     {
         if (!artifact.Success || artifact.ActualView != request.RequestedView)
-        { reason = "Renderer returned a failed or different view than requested."; return false; }
+        { reason = "渲染器返回的视图与请求的不同或失败。"; return false; }
         if (!ValidHash(artifact.OutputSha256) || string.IsNullOrWhiteSpace(artifact.OutputPath) ||
             !Path.IsPathFullyQualified(artifact.OutputPath) || !File.Exists(artifact.OutputPath))
-        { reason = "Observation output path/hash is missing, non-absolute, or no longer exists."; return false; }
+        { reason = "观察输出路径/哈希缺失，非绝对路径，或已不再存在。"; return false; }
         string actualHash;
         try { actualHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(artifact.OutputPath))); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        { reason = "Observation output bytes cannot be reread: " + ex.Message; return false; }
+        { reason = "观察输出字节无法读回：" + ex.Message; return false; }
         if (!actualHash.Equals(artifact.OutputSha256, StringComparison.OrdinalIgnoreCase))
-        { reason = "Observation output bytes changed after rendering; cached evidence is invalid."; return false; }
+        { reason = "观察输出字节在渲染后改变；缓存证据无效。"; return false; }
         if (request.RequestedView == ObservationViewKind.FullPlaneSection)
         {
             if (request.Section is null || string.IsNullOrWhiteSpace(artifact.SectionPlaneFingerprint) ||
                 !artifact.SectionPlaneFingerprint.Equals(SectionVerifier.Fingerprint(request.Section), StringComparison.OrdinalIgnoreCase))
-            { reason = "Section observation does not match the complete frozen SectionSpec fingerprint."; return false; }
+            { reason = "剖面观察与冻结的 SectionSpec 指纹不匹配。"; return false; }
         }
         reason = string.Empty;
         return true;

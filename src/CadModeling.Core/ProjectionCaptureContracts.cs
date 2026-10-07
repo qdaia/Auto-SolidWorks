@@ -19,6 +19,8 @@ public sealed record ProjectionCaptureRequest
 
 public sealed record ProjectionCaptureResult(bool Success, string Message)
 {
+    public string? RequestId { get; init; }
+    public bool OutcomeUnknown { get; init; }
     public ProjectionSnapshot? Snapshot { get; init; }
     public bool Complete { get; init; }
     public IReadOnlyList<string> Limitations { get; init; } = [];

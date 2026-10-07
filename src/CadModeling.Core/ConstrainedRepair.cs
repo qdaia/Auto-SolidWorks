@@ -148,7 +148,7 @@ public sealed class ConstrainedRepairSession
         _budget = budget ?? new();
         if (_budget.MaxInitialExecutionAttempts < 1 || _budget.MaxGeometryAttempts < 1 || _budget.MaxTotalAttempts < 1 || _budget.MaxElapsedSeconds < 1 ||
             _budget.MaxTotalAttempts > _budget.MaxInitialExecutionAttempts + _budget.MaxGeometryAttempts)
-            throw new ArgumentException("Repair budgets must be positive and bounded by the phase budgets.", nameof(budget));
+            throw new ArgumentException("修复预算必须是正数且受相位预算的限制。", nameof(budget));
     }
 
     public RepairAttempt Prepare(ModelingPlan plan, RepairRequest request, CoverageReport coverage, FailureLocation location)
@@ -164,29 +164,29 @@ public sealed class ConstrainedRepairSession
 
         if (!Hash(coverage.SourceSha256) || !Hash(coverage.CandidateModelSha256) || !Hash(coverage.RequiredScopeFingerprint) || coverage.RequiredFactIds.Count == 0 ||
             coverage.RequiredFactIds.Any(string.IsNullOrWhiteSpace) || coverage.RequiredFactIds.Distinct(StringComparer.Ordinal).Count() != coverage.RequiredFactIds.Count)
-            return Rejected("T12 repair input must carry a nonempty frozen required-fact scope and source/model identities.");
+            return Rejected("T12 修复输入必须携带一个非空的已锁定的必要事实范围和源/模型的身份标识。");
         if (!coverage.SourceRevisionId.Equals(request.SourceRevisionId, StringComparison.Ordinal))
-            return Rejected("T12 coverage belongs to a different source revision.");
+            return Rejected("T12 覆盖属于不同的源修订版本。");
         if (!coverage.SourceSha256.Equals(plan.DrawingSourceSha256, StringComparison.OrdinalIgnoreCase))
-            return Rejected("T12 coverage source SHA does not match the typed plan's frozen drawing source.");
+            return Rejected("T12 覆盖源 SHA 不匹配类型化计划的冻结图纸源。");
         if (string.IsNullOrWhiteSpace(coverage.CandidatePlanFingerprint) ||
             !coverage.CandidatePlanFingerprint.Equals(beforeFingerprint, StringComparison.OrdinalIgnoreCase))
-            return Rejected("T12 coverage is not bound to the exact pre-repair typed plan fingerprint.");
+            return Rejected("T12 覆盖不绑定到精确的预修复类型计划指纹。");
         if (!location.FailureId.Equals(request.FailureId,StringComparison.Ordinal))
-            return Rejected("T13 failure identity does not match this repair request.");
+            return Rejected("T13 修复身份不匹配此维修请求。");
         if (!location.Located || !string.Equals(location.EarliestAffectedOperationId, request.TargetOperationId, StringComparison.Ordinal) &&
                                  !location.DownstreamOperationIds.Contains(request.TargetOperationId, StringComparer.Ordinal))
-            return Rejected("T13 did not locate this repair target inside the proven affected scope.");
+            return Rejected("T13 未能在已证实受影响的范围内定位此修复目标。");
         if (location.SourceFactIds.Any(id=>!coverage.RequiredFactIds.Contains(id,StringComparer.Ordinal)))
-            return Rejected("T13 source lineage is not fully represented in the current T12 required-fact inventory.");
+            return Rejected("T13 源关联 未在当前的 T12 所需-fact 仓库中完全体现。");
         if (request.GeometryResolutions.Any(resolution=>!resolution.ResolvedModelSha256.Equals(coverage.CandidateModelSha256,StringComparison.OrdinalIgnoreCase)||
                 resolution.Reference.SourceRevisionId is {Length:>0} revision&&!revision.Equals(request.SourceRevisionId,StringComparison.Ordinal)))
-            return Rejected("Geometry repair evidence belongs to another model/source revision.");
+            return Rejected("几何修复证据属于另一模型/源修订。");
         if (_lastEvidenceByFailure.TryGetValue(request.FailureFingerprint, out var priorEvidence) &&
             string.Equals(priorEvidence, request.NewEvidenceFingerprint, StringComparison.OrdinalIgnoreCase))
-            return Attempt(RepairAttemptStatus.DuplicateFailure, "The same failure fingerprint repeated without new evidence; repair loop stopped.");
+            return Attempt(RepairAttemptStatus.DuplicateFailure, "相同的失败指纹重复出现，缺乏新证据；修复循环停止。");
         if (BudgetExceeded(rule.Phase))
-            return Attempt(RepairAttemptStatus.BudgetExceeded, "Repair attempt budget is exhausted.");
+            return Attempt(RepairAttemptStatus.BudgetExceeded, "修复尝试预算已耗尽。");
 
         _totalAttempts++;
         var phaseIndex = rule.Phase == RepairPhase.InitialExecution ? ++_initialAttempts : ++_geometryAttempts;
@@ -201,7 +201,7 @@ public sealed class ConstrainedRepairSession
                 RepairKind.FilletSelection => RepairFilletSelection(plan, request),
                 RepairKind.ThroughDirection => RepairThroughDirection(plan, request),
                 RepairKind.GeometryRefRebind => RepairGeometryRef(plan, request),
-                _ => throw new InvalidOperationException("Unsupported repair kind.")
+                _ => throw new InvalidOperationException("不支持的修复类型。")
             };
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
@@ -211,11 +211,11 @@ public sealed class ConstrainedRepairSession
 
         var afterLocked = LockedRequirementsFingerprint(candidate);
         if (!lockedFingerprint.Equals(afterLocked, StringComparison.OrdinalIgnoreCase))
-            return Attempt(RepairAttemptStatus.Rejected, "Candidate repair changed locked source requirements/acceptance and was rejected.", _totalAttempts, phaseIndex);
+            return Attempt(RepairAttemptStatus.Rejected, "候选项修复更改了锁定源要求/接受准则，并被拒绝。", _totalAttempts, phaseIndex);
         var beforeOperation = plan.Operations.Single(operation => operation.Id == request.TargetOperationId);
         var afterOperation = candidate.Operations.Single(operation => operation.Id == request.TargetOperationId);
         if (!RepairPolicy.IsAllowedOperationMutation(beforeOperation, afterOperation, request.Kind))
-            return Attempt(RepairAttemptStatus.Rejected, "Candidate repair changed fields outside the rule's explicit edit allowance.", _totalAttempts, phaseIndex);
+            return Attempt(RepairAttemptStatus.Rejected, "候选修复改变了规则明确编辑允许范围之外的字段。", _totalAttempts, phaseIndex);
 
         return new()
         {
@@ -239,7 +239,7 @@ public sealed class ConstrainedRepairSession
             AttemptIndex = _totalAttempts,
             PhaseAttemptIndex = phaseIndex,
             TypedPlanDiff = diff,
-            StopReason = "Prepared only; execution and required post-checks must run before this repair can be accepted.",
+            StopReason = "仅准备完成；修复必须在这些执行和要求的后检查完成后再被接受。",
             CandidatePlan = candidate
         };
 
@@ -276,27 +276,27 @@ public sealed class ConstrainedRepairSession
     {
         var operation = Find<NativeFeatureOperation>(plan, request.TargetOperationId);
         if (operation.Options.Kind != NativeFeatureKind.Fillet)
-            throw new InvalidOperationException("Fillet selection repair requires a native fillet operation.");
+            throw new InvalidOperationException("修复圆角选择需要原生的圆角操作。");
         var queries = QueriesFromUniqueResolutions(request.GeometryResolutions, EntityKind.Edge);
-        if (queries.Count == 0) throw new InvalidOperationException("Fillet repair requires at least one uniquely resolved target edge from T06/T13 evidence.");
+        if (queries.Count == 0) throw new InvalidOperationException("圆角修复需要至少一个由 T06/T13 证据唯一确定的目标边。");
         var updated = operation with { Options = operation.Options with { Selections = queries } };
-        return (Replace(plan, updated), $"{operation.Id}.options.selections: {operation.Options.Selections.Count} -> {queries.Count}; radius_mm locked at {operation.Options.RadiusMm:R}");
+        return (Replace(plan, updated), $"{operation.Id}.options.selections:{operation.Options.Selections.Count}->{queries.Count}; radius_mm 已锁定在{operation.Options.RadiusMm:R}");
     }
 
     private static (ModelingPlan Plan, string Diff) RepairThroughDirection(ModelingPlan plan, RepairRequest request)
     {
-        if (request.DesiredReverseDirection is null) throw new InvalidOperationException("Through-direction repair requires the evidenced desired direction.");
+        if (request.DesiredReverseDirection is null) throw new InvalidOperationException("通过方向的修复需要证实所需的定向。");
         var op = plan.Operations.SingleOrDefault(item => item.Id == request.TargetOperationId)
-            ?? throw new InvalidOperationException("Repair target operation does not exist.");
+            ?? throw new InvalidOperationException("修复目标操作不存在。");
         return op switch
         {
             ExtrudeCutOperation cut when cut.EndCondition == ExtrudeEndCondition.ThroughAll =>
                 (Replace(plan, cut with { ReverseDirection = request.DesiredReverseDirection.Value }),
-                    $"{cut.Id}.reverse_direction: {cut.ReverseDirection} -> {request.DesiredReverseDirection.Value}; end_condition locked ThroughAll"),
+                    $"{cut.Id}.reverse_direction：{cut.ReverseDirection}->{request.DesiredReverseDirection.Value}；end_condition 保持锁定为 ThroughAll。"),
             ExtrudeBossOperation boss when boss.EndCondition == ExtrudeEndCondition.ThroughAll =>
                 (Replace(plan, boss with { ReverseDirection = request.DesiredReverseDirection.Value }),
-                    $"{boss.Id}.reverse_direction: {boss.ReverseDirection} -> {request.DesiredReverseDirection.Value}; end_condition locked ThroughAll"),
-            _ => throw new InvalidOperationException("Direction repair is allowed only for an existing ThroughAll extrude/cut; through/blind semantics cannot be changed.")
+                    $"{boss.Id}.reverse_direction：{boss.ReverseDirection}->{request.DesiredReverseDirection.Value}；end_condition 保持锁定为 ThroughAll。"),
+            _ => throw new InvalidOperationException("方向修复仅允许对现有 ThroughAll 打孔/切割；通过/盲语义无法更改。")
         };
     }
 
@@ -304,9 +304,9 @@ public sealed class ConstrainedRepairSession
     {
         var operation = Find<NativeFeatureOperation>(plan, request.TargetOperationId);
         var queries = QueriesFromUniqueResolutions(request.GeometryResolutions, null);
-        if (queries.Count == 0) throw new InvalidOperationException("GeometryRef repair requires one or more uniquely resolved/rebound T06 references.");
+        if (queries.Count == 0) throw new InvalidOperationException("GeometryRef 修复需要一个或多个唯一解析/反弹的 T06 参考。");
         var updated = operation with { Options = operation.Options with { Selections = queries } };
-        return (Replace(plan, updated), $"{operation.Id}.options.selections rebound from T06-resolved geometry; all feature parameters locked");
+        return (Replace(plan, updated), $"{operation.Id}.options.selections 重建从 T06 已解决几何体；所有特征参数已锁定");
     }
 
     private static IReadOnlyList<EntityQuery> QueriesFromUniqueResolutions(IReadOnlyList<GeometryRefResolution> resolutions, EntityKind? requiredKind)
@@ -315,30 +315,21 @@ public sealed class ConstrainedRepairSession
         foreach (var resolution in resolutions)
         {
             if (resolution.Status != GeometryRefResolutionStatus.Resolved || resolution.Candidate is null || resolution.CandidateIds.Count != 1)
-                throw new InvalidOperationException("Ambiguous, stale, missing or unsupported GeometryRef evidence cannot drive automatic rebinding.");
+                throw new InvalidOperationException("模糊、过期、缺失或不支持的 GeometryRef 证据无法驱动自动绑定。");
+            if(!GeometryRefResolver.IsVerifiedResolution(resolution))
+                throw new InvalidOperationException("GeometryRef 签名或完整语义历史回执未通过重验，不能驱动修复。");
             var candidate = resolution.Candidate;
             var signature = candidate.Signature;
             if (requiredKind is { } kind && signature.EntityKind != kind)
-                throw new InvalidOperationException($"Repair requires {kind} geometry but resolved evidence is {signature.EntityKind}.");
-            queries.Add(new()
-            {
-                Kind = signature.EntityKind,
-                FeatureId = candidate.FeatureId,
-                PersistentReference = candidate.NativePersistentReference,
-                Geometry = signature.GeometryKind,
-                PositionMm = signature.AnchorMm,
-                Direction = signature.Direction,
-                RadiusMm = signature.RadiusMm,
-                ToleranceMm = signature.PositionToleranceMm,
-                AllMatches = false
-            });
+                throw new InvalidOperationException($"修复需要{kind}几何，但已解决的证据是{signature.EntityKind}。");
+            queries.Add(GeometryRefResolver.SelectionQuery(resolution));
         }
         return queries;
     }
 
     private static T Find<T>(ModelingPlan plan, string id) where T : ModelingOperation =>
         plan.Operations.SingleOrDefault(operation => operation.Id == id) as T
-        ?? throw new InvalidOperationException($"Repair target '{id}' is not a {typeof(T).Name}.");
+        ?? throw new InvalidOperationException($"修复目标 '{id}' 不是{typeof(T).Name}。");
     private static ModelingPlan Replace(ModelingPlan plan, ModelingOperation replacement) =>
         plan with { Operations = plan.Operations.Select(operation => operation.Id == replacement.Id ? replacement : operation).ToArray() };
 
@@ -348,27 +339,27 @@ public sealed class ConstrainedRepairSession
         {
             Kind = kind,
             Phase = RepairPhase.Geometry,
-            RequiredEvidence = ["T12 coverage", "T13 located failure", "unique T06 edge resolution"],
-            AllowedEdits = ["fillet selection set"],
-            LockedRequirements = ["fillet radius", "source dimensions", "feature count", "tolerances"],
+            RequiredEvidence = ["T12 覆盖检查", "在位置T13发生失败", "唯一 T06 边线分辨率"],
+            AllowedEdits = ["圆角选择集"],
+            LockedRequirements = ["圆角半径", "源尺寸", "特征数量", "tolerances"],
             RequiredPostChecks = ["T12:affected-source-coverage", "T13:affected-scope", "unaffected-requirement-sample"]
         },
         RepairKind.ThroughDirection => new()
         {
             Kind = kind,
             Phase = RepairPhase.InitialExecution,
-            RequiredEvidence = ["T12 coverage", "T13 located failure", "evidenced desired extrusion direction"],
+            RequiredEvidence = ["T12 覆盖检查", "在位置T13发生失败", "证实期望的拉伸方向"],
             AllowedEdits = ["reverse_direction"],
-            LockedRequirements = ["diameter/position", "ThroughAll end condition", "source dimensions", "feature count", "tolerances"],
+            LockedRequirements = ["diameter/position", "ThroughAll 结束条件", "源尺寸", "特征数量", "tolerances"],
             RequiredPostChecks = ["T08:connectivity", "T12:affected-source-coverage", "T13:affected-scope", "unaffected-requirement-sample"]
         },
         RepairKind.GeometryRefRebind => new()
         {
             Kind = kind,
             Phase = RepairPhase.Geometry,
-            RequiredEvidence = ["T12 coverage", "T13 located failure", "unique T06 GeometryRef resolution"],
-            AllowedEdits = ["supported entity selection binding"],
-            LockedRequirements = ["all feature parameters", "source dimensions", "counts", "through/blind semantics", "tolerances"],
+            RequiredEvidence = ["T12 覆盖检查", "在位置T13发生失败", "唯一 T06 GeometryRef 分辨率"],
+            AllowedEdits = ["支持的实体选择绑定"],
+            LockedRequirements = ["所有特征参数", "源尺寸", "counts", "通过/盲语义", "tolerances"],
             RequiredPostChecks = ["T07:targeted-measurement", "T12:affected-source-coverage", "T13:affected-scope", "unaffected-requirement-sample"]
         },
         _ => throw new ArgumentOutOfRangeException(nameof(kind))
@@ -398,7 +389,7 @@ public sealed class ConstrainedRepairSession
         if (request.Contract != RepairRequest.ContractVersion || string.IsNullOrWhiteSpace(request.RequestId) || string.IsNullOrWhiteSpace(request.FailureId) ||
             string.IsNullOrWhiteSpace(request.SourceRevisionId) || string.IsNullOrWhiteSpace(request.TargetOperationId) ||
             !Hash(request.FailureFingerprint) || request.NewEvidenceFingerprint is { Length: > 0 } evidence && !Hash(evidence))
-            throw new ArgumentException("Repair request requires versioned identity, source revision, target operation and SHA-256 failure/evidence fingerprints.", nameof(request));
+            throw new ArgumentException("修复请求需要版本化的身份、源修订版、目标操作和SHA-256失败/证据指纹。", nameof(request));
     }
     private static bool Hash(string value) => value is { Length: 64 } && value.All(Uri.IsHexDigit);
 
@@ -409,7 +400,7 @@ public sealed class ConstrainedRepairSession
         RequestId = attempt?.RequestId ?? string.Empty,
         Status = RepairValidationStatus.Unverifiable,
         MissingOrFailedChecks = ["execution-receipt-required"],
-        Message = "Post-repair acceptance requires versioned execution evidence binding this attempt, plan fingerprints and reopened candidate model."
+        Message = "修复后验收需要版本化的执行证据绑定此次尝试、计划指纹和重新打开的候选项模型。"
     };
 
     public static RepairValidationResult ValidatePostRepair(RepairAttempt attempt, RepairExecutionEvidence execution,
@@ -484,10 +475,10 @@ public sealed class ConstrainedRepairSession
                      diff.UnexpectedChanges.Count>0||diff.FailedUnaffectedRequirementIds.Count>0;
         var unique=problems.Distinct(StringComparer.Ordinal).ToArray();
         if(hardFail)
-            return Bound(RepairValidationStatus.Failed,"Repair candidate has bound deterministic failure evidence and must not be accepted.",unique);
+            return Bound(RepairValidationStatus.Failed,"修复候选体已绑定确定性失败证据，不得接受。",unique);
         if(unique.Length==0)
-            return Bound(RepairValidationStatus.Passed,"Repair candidate is bound to this attempt/execution and passed frozen T12 scope, complete T13 diff and all required/actual post-checks.",[]);
-        return Bound(RepairValidationStatus.Unverifiable,"Repair candidate lacks complete identity-bound post-validation evidence and remains unverified.",unique);
+            return Bound(RepairValidationStatus.Passed,"修复候选对象受此修复尝试/执行限制，并且已锁定 T12 范围，完成 T13 差异并执行所有必需/实际的后检查。",[]);
+        return Bound(RepairValidationStatus.Unverifiable,"候选修复缺乏完全绑定验证的完整证据，仍然未验证。",unique);
 
         RepairValidationResult Bound(RepairValidationStatus status,string message,IReadOnlyList<string> missing)=>new()
         {

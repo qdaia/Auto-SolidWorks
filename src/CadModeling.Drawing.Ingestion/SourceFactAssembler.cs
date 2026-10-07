@@ -60,7 +60,7 @@ public static class SourceFactAssembler
                     Fact = new()
                     {
                         Status = FactStatus.Unknown,
-                        Rationale = "Observation candidate retained without truth promotion."
+                        Rationale = "候选观察被保留而不进行真值提升。"
                     },
                     EvidenceIds = evidenceIds,
                     Critical = true
@@ -71,7 +71,7 @@ public static class SourceFactAssembler
         var initial = new SourceFactsDocument
         {
             RevisionId = "pending",
-            RevisionRationale = "Initial independent source inventory from drawing observations.",
+            RevisionRationale = "初始独立来源库存自绘图观察。",
             DocumentId = "source-facts",
             SourceSha256 = sourceSha256,
             ProducerName = producerName,
@@ -91,13 +91,13 @@ public static class SourceFactAssembler
     {
         ArgumentNullException.ThrowIfNull(fact);
         if (status is not (FactStatus.Stated or FactStatus.Assumed))
-            throw new ArgumentOutOfRangeException(nameof(status), "Candidate confirmation may only create stated or explicitly assumed facts.");
+            throw new ArgumentOutOfRangeException(nameof(status), "候选确认只能创建已声明或明确假设的事实。");
         if (status == FactStatus.Assumed && string.IsNullOrWhiteSpace(assumptionAuthorizationId))
-            throw new ArgumentException("An assumed source fact requires an explicit authorization id.", nameof(assumptionAuthorizationId));
+            throw new ArgumentException("假设的源事实需要明确的授权ID。", nameof(assumptionAuthorizationId));
         var candidate = fact.Candidates.SingleOrDefault(item => item.CandidateId == candidateId)
-            ?? throw new ArgumentException($"Candidate '{candidateId}' does not belong to source fact '{fact.FactId}'.", nameof(candidateId));
+            ?? throw new ArgumentException($"候选项 '{candidateId}' 不属于源事实 '{fact.FactId}'。", nameof(candidateId));
         if (candidate.NumericValue is null && fact.Kind is not SourceFactKind.FeatureRequirement)
-            throw new InvalidOperationException("A numeric source fact cannot be confirmed without a numeric candidate.");
+            throw new InvalidOperationException("无法确认一个数值源事实，除非有一个数值候选项。");
         return fact with
         {
             NumericValue = candidate.NumericValue,
@@ -108,7 +108,7 @@ public static class SourceFactAssembler
                 Status = status,
                 PreviousStatus = fact.Fact.Status,
                 SourceIds = status == FactStatus.Stated ? candidate.EvidenceIds : [],
-                Rationale = status == FactStatus.Stated ? "Explicit source candidate confirmation." : "Explicitly authorized assumption.",
+                Rationale = status == FactStatus.Stated ? "确认显式源候选项。" : "明确授权的假设。",
                 AssumptionAuthorizationId = status == FactStatus.Assumed ? assumptionAuthorizationId : null
             },
             EvidenceIds = candidate.EvidenceIds

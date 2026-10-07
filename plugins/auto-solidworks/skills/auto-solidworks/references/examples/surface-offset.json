@@ -1,0 +1,46 @@
+{
+  "name": "OffsetSurface",
+  "source_text": "Explicit millimeter surface development fixture; native acceptance not run.",
+  "expected_solid_body_count": 0,
+  "expected_surface_body_count": 2,
+  "operations": [
+    {
+      "type": "ProfileSketch",
+      "id": "circle",
+      "name": "circle",
+      "plane": "Front",
+      "primitives": [
+        {
+          "type": "Circle",
+          "center_xmm": 0,
+          "center_ymm": 0,
+          "diameter_mm": 20
+        }
+      ]
+    },
+    {
+      "type": "NativeFeature",
+      "id": "sheet",
+      "name": "sheet",
+      "feature": {
+        "kind": "SurfacePlanar",
+        "sketch_id": "circle"
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "surface",
+      "name": "OffsetSurface",
+      "feature": {
+        "kind": "SurfaceOffset",
+        "selections": [
+          {
+            "kind": "Face",
+            "feature_id": "sheet"
+          }
+        ],
+        "distance_mm": 2
+      }
+    }
+  ]
+}

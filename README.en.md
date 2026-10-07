@@ -1,14 +1,37 @@
 # Auto SolidWorks
 
-**Current version: 0.6.0.** [Release notes](docs/release-0.6.0.en.md) · [Latest package](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v0.6.0). Consolidates validated modeling, drawing review and constrained repair, with a 22-stage performance matrix. Independent drawing acceptance remains incomplete.
+**Turn engineering drawings and dimension descriptions into editable SolidWorks parametric models.**
+
+Auto SolidWorks is a local CAD plugin for Codex / MCP. It creates, inspects and edits parts and assemblies in your SolidWorks installation, exporting native models, STEP / STL and drawings. Its local Gordon tool builds NURBS surfaces from curve networks.
 
 [简体中文](README.md) | **English**
 
-Create and modify parametric parts and assemblies in your local SolidWorks installation from natural-language descriptions or engineering drawings, and save native models and STEP/STL exports.
+**26.10.07 · Windows x64 · 18 MCP tools · Millimeters by default · Chinese output by default**
 
-**Windows · Local SolidWorks · mm by default · 15 MCP tools**
+[Download Windows plugin](docs/download.en.md) · [What is new](docs/release-26.10.07.en.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.07) · [Build from source](docs/development.en.md)
 
-[Download Windows plugin](docs/download.en.md) · [Installation (Chinese)](docs/installation.md) · [Build from source (Chinese)](docs/development.md) · [Operation reference](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md)
+## From input to deliverable
+
+Provide an engineering image, PDF or explicit dimensions. The plugin turns the input into an inspectable modeling plan and executes it through local SolidWorks. Continue by editing driving dimensions, checking geometry and assembly relationships, and saving editable native files.
+
+| Workflow | Capabilities and outputs |
+| --- | --- |
+| Parametric parts | Sketches and constraints, extrudes, revolves, holes, fillets/chamfers, sweeps, lofts, patterns, multi-body parts, sheet metal and weldments; SLDPRT / STEP / STL |
+| Surfaces and spatial curves | Typed Boundary / Fill / Sweep / Offset controls, spatial curves and helices; local Gordon networks and NURBS files |
+| Design parameters | Global variables, dimension equations, configuration expressions, unit checks, feature suppression and saved readback |
+| Existing models | Copy-based edits, persistent references, local/whole-model geometry checks, bounded topology history and repair receipts |
+| Assemblies | Components, mates, interference checks and bounded spatial-tree mobility checks; SLDASM |
+| Drawings | First-angle views, native dimension import, view layout and pagination; SLDDRW / PDF |
+| Execution management | Status, pause, deadlines, cross-process leases, checkpoints and recovery identity checks |
+
+## Added in 26.10.07
+
+- Chinese defaults for feature trees and drawings, and local Gordon surface generation.
+- Advanced loft/spatial-curve controls, surface-definition readback, configuration equations and feature suppression.
+- Persistent geometry history, complete spline/sphere revision checks, nominal physical threads and spatial-tree mechanism checks.
+- Assembly drawing dimension readback, pagination, execution status/pause tools and desktop Codex installation support.
+
+See the [English release notes](docs/release-26.10.07.en.md) for all additions.
 
 ## Example: Hollow shaft
 
@@ -39,56 +62,32 @@ This example presents the supplied drawing and model images. The screenshots do 
 
 ## Quick start
 
-1. Install and activate SolidWorks locally, then install the **.NET 9 Windows Desktop Runtime (x64)** and a Codex CLI version with plugin support.
-2. Download `auto-solidworks-0.6.0-windows-x64.zip` from the [download page](docs/download.en.md) and extract it to a directory you will keep for ongoing use.
-3. Open PowerShell in the extracted directory and run:
+1. Prepare Windows x64, an activated local SolidWorks installation, [.NET 9 Windows Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/9.0), and Codex with plugin support.
+2. Download and extract the [26.10.07 Windows package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip). Run this command in the extracted directory:
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
    ```
 
-4. Select **Auto SolidWorks** in a new Codex task, then describe the dimensions or provide a drawing:
+3. Open a new Codex chat, enable **Auto SolidWorks**, and provide dimensions or a drawing:
 
-   > Create an 80 × 50 × 10 mm rectangular plate with a centered through-hole 10 mm in diameter, and save SLDPRT and STEP files.
+   > Create an 80 × 50 × 10 mm mounting plate with a centered 10 mm through hole and R2 corner fillets. Save SLDPRT and STEP.
 
-The installer reads the interop components from your local SolidWorks installation and then registers a local plugin marketplace. The plugin package does not distribute SolidWorks software or interop DLLs. If the installation directory cannot be detected automatically, use `-SolidWorksInteropDir`; see the [installation guide (Chinese)](docs/installation.md).
+The installer prefers the CLI bundled with the Codex desktop app and prepares Interop from your local SolidWorks installation. See the [English download and installation guide](docs/download.en.md) for detailed steps and custom paths.
 
-GitHub's automatically generated **Source code (zip)** contains source files without the compiled runtime. Source users must build the project first. Adding this repository directly as a remote plugin marketplace does not automatically download the runtime either; use the Release ZIP for installation.
+## Local execution and capability queries
 
-## Capabilities
+CAD execution, native files and geometry checks run locally. Users install and license SolidWorks; Gordon also requires local FreeCAD. Image / PDF interpretation uses your selected model and service. OCR and PDF rasterization dependencies can be configured as needed.
 
-| Area | Features |
-|---|---|
-| Sketches | Rectangles, circles, arcs, polygons, slots, ellipses, splines, constraints and driving dimensions |
-| Parts | Extrusions, cuts, revolves, holes, fillets, chamfers, shells, drafts, ribs, lofts and sweeps |
-| Repetition and multibody | Patterns, mirrors, Boolean operations, splits, moves and copies |
-| Sheet metal, weldments and surfaces | Base features and flanges, flattening, structural members and trimming, surfaces and thickening |
-| Assemblies | Component insertion, configurations and placement, geometric mates and interference checks |
-| Inspection and editing | Features, dimensions, configurations, body geometry, editing copies of native parts and STEP import inspection |
-| Drawing input | Local images and PDFs, OCR candidates, region/rotation hints and dimension-binding checks |
-| File output | SLDPRT, SLDASM, STEP/STP, STL, SLDDRW and PDF |
+<!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
+Version: `26.10.07`. Query `cad_get_capabilities` for available features, input constraints and validation scope, or read the [bundled capability manifest](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json). This release has a fresh build, 1,101 offline checks and 128 post-install public-interface checks; native fixture evidence remains tied to its original revision.
+<!-- Capability manifest SHA256: 04e0dc6afa7d8b14dc5ebde410f73c1ae0b050afaacbde725a504d9aec910ac1 -->
+<!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
-Tool workflow: `cad_get_capabilities → cad_read_drawing (if a drawing is provided) → cad_create_model_plan → cad_build_model → cad_inspect_model`.
-
-Assembly building, profile discovery and connection diagnostics use `cad_build_assembly`, `cad_list_weldment_profiles` and `cad_executor_health`, respectively. Plans pass typed drafts / IR directly; `dryRun` is optional, and modeling executes by default. CAD is not controlled through an arbitrary shell or script execution interface.
-
-`cad_export_drawing` exports a saved part to first-angle A3 native SLDDRW and PDF files with four views, native dimensions and a parameter schedule. It reopens the drawing to check sheets and model references and checks that the source hash is unchanged. The initial limit is 44 source parameters; complex annotations may need manual layout editing.
-
-Version 0.6.0 also includes source-dimension binding, local geometry checks, checkpoint recovery and corrected chamfer parameter routing. See [validation details](docs/validation.md).
-
-## Runtime and limitations
-
-- CAD execution, drawing preprocessing and file storage run locally. How Codex or another AI client handles prompts, drawings and requests to model providers depends on that client and its settings; this project does not describe cloud AI sessions as fully offline.
-- Dimensions default to mm when no unit is specified. Missing or conflicting critical dimensions require clarification; OCR numbers must be checked against the original drawing.
-- `cad_executor_health` and actual modeling may start SolidWorks. New files are created by default, without overwriting existing models.
-- The current version does not generate physical helical threads, and does not fully interpret arbitrary GD&T. Tapped holes use tap-drill holes and native cosmetic threads.
-- Support for a feature family does not imply support for every SolidWorks option within it. Successful geometry creation, rebuilding and measurement do not automatically establish equivalence to an arbitrary engineering drawing.
-- Local development validation used SolidWorks 2025; other versions require separate verification. See [release validation (Chinese)](docs/validation.md) for the checks performed for this public release.
+[Feature parameters](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md) · [Gordon guide](plugins/auto-solidworks/skills/auto-solidworks/references/gordon-surface.md) · [Surface controls](plugins/auto-solidworks/skills/auto-solidworks/references/surface-modeling.md) · [Geometry verification](plugins/auto-solidworks/skills/auto-solidworks/references/local-geometry-verification.md)
 
 ## Development and feedback
 
-Source code is in `src/`, and plugin files are in `plugins/auto-solidworks/`. See the [development guide (Chinese)](docs/development.md) for builds, non-CAD smoke checks and native tests. When reporting an issue, include the plugin version, SolidWorks version, a minimal dimensioned description and the error message.
+[Build and test](docs/development.en.md) · [Architecture](docs/architecture.en.md) · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Report an issue](https://github.com/qdaia/Auto-SolidWorks/issues)
 
-## License
-
-The project source code is licensed under the [MIT License](LICENSE). Third-party components retain their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). SolidWorks is an external proprietary dependency and requires the user's own installation and license. This is an independent project and does not represent Dassault Systèmes or the official SOLIDWORKS organization.
+This project uses the MIT license; see [LICENSE](LICENSE). SolidWorks, FreeCAD and other third-party components retain their own licenses.

@@ -46,7 +46,8 @@ expected={p.relative_to(unpacked/'plugins/auto-solidworks').as_posix():hashlib.s
 actual={p.relative_to(cache).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
         for p in cache.rglob('*') if p.is_file()}
 assert expected==actual,'Installed-cache hashes differ'
-subprocess.run(['python',str(root/'tests/smoke.py'),str(cache),'--report',str(work/'smoke.json')],
+env['AUTO_SOLIDWORKS_VERIFY_PLUGIN']=str(cache)
+subprocess.run(['python',str(root/'scripts/verify-local-integration-mcp.py'),str(work/'mcp')],
                env=env,check=True,timeout=120)
 report=dict(success=True,archive_files=len(hashes),installed_files=len(actual),installed_hashes_match=True,
             isolated_codex_install=True,installed_smoke_passed=True,

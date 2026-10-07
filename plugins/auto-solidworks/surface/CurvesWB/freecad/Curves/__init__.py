@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+import os
+import FreeCAD
+from .version import __version__
+
+ICONPATH = os.path.join(os.path.dirname(__file__), "resources", "icons")
+WB_NAME = "Curves"
+WB_URL = "https://github.com/tomate44/CurvesWB"
+WB_WIKI_URL = "https://wiki.freecad.org/Curves_Workbench"
+
+TOL3D = 1e-7
+TOL2D = 1e-9
+if hasattr(FreeCAD.Base, "Precision"):
+    TOL3D = FreeCAD.Base.Precision.confusion()
+    TOL2D = FreeCAD.Base.Precision.parametric(TOL3D)

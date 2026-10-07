@@ -10,47 +10,47 @@ internal sealed partial class SolidWorksComExecutor
     private static (double Area,double Error) MeasureBoundaryFaceArea(IFace2 face,double budgetMm2)
     {
         var surface=(ISurface)face.GetSurface();var kind=surface.IsPlane()?0:surface.IsCylinder()?1:surface.IsCone()?2:-1;
-        if(kind<0)throw new InvalidOperationException("Area integration supports plane, cylinder and cone faces only.");
+        if(kind<0)throw new InvalidOperationException("面积整合仅支持平面、圆柱和圆锥的面。");
         Vector3 origin,axis;double radius=0,halfAngle=0;
         if(kind==0)
         {
-            var uv=ToDoubles(face.GetUVBounds(),4,"plane UV");var p=ToDoubles(surface.Evaluate((uv[0]+uv[1])/2,(uv[2]+uv[3])/2,0,0),6,"plane point and normal");
+            var uv=ToDoubles(face.GetUVBounds(),4,"UV基准面");var p=ToDoubles(surface.Evaluate((uv[0]+uv[1])/2,(uv[2]+uv[3])/2,0,0),6,"平面、点和法线");
             origin=new(p[0]*1000,p[1]*1000,p[2]*1000);axis=ModelVerification.Unit(new(p[3],p[4],p[5]));
         }
         else
         {
-            var p=ToDoubles(kind==1?surface.CylinderParams:surface.ConeParams2,kind==1?7:11,"analytic area parameters");
+            var p=ToDoubles(kind==1?surface.CylinderParams:surface.ConeParams2,kind==1?7:11,"分析区域参数");
             origin=new(p[0]*1000,p[1]*1000,p[2]*1000);axis=ModelVerification.Unit(new(p[3],p[4],p[5]));
             radius=p[6]*1000;if(kind==2)halfAngle=Math.Abs(p[7]);
-            if(kind==1&&!ModelVerification.Positive(radius)||kind==2&&(!ModelVerification.Positive(halfAngle)||halfAngle>=Math.PI/2))throw new InvalidOperationException("Invalid analytic area parameters.");
+            if(kind==1&&!ModelVerification.Positive(radius)||kind==2&&(!ModelVerification.Positive(halfAngle)||halfAngle>=Math.PI/2))throw new InvalidOperationException("无效的分析区域参数。");
         }
         var loops=(face.GetLoops() as object[]??[]).Cast<ILoop2>().ToArray();
-        if(loops.Length==0||loops.Length!=face.GetLoopCount())throw new InvalidOperationException("Incomplete area trimming-loop inventory.");
+        if(loops.Length==0||loops.Length!=face.GetLoopCount())throw new InvalidOperationException("不完整的区域修剪循环库存。");
         var coedges=new List<ICoEdge>();
         foreach(var loop in loops)
         {
             if(loop.IsSingular())continue; // A cone apex contributes zero to the boundary integral.
             var items=(loop.GetCoEdges() as object[]??[]).Cast<ICoEdge>().ToArray();
-            if(items.Length==0||items.Length!=loop.GetCoEdgeCount())throw new InvalidOperationException("Incomplete oriented trimming boundary.");
+            if(items.Length==0||items.Length!=loop.GetCoEdgeCount())throw new InvalidOperationException("草图不完整的定向裁剪边界。");
             coedges.AddRange(items);
         }
-        if(coedges.Count==0||coedges.Count>2048)throw new InvalidOperationException("Unsupported area boundary size.");
+        if(coedges.Count==0||coedges.Count>2048)throw new InvalidOperationException("不支持的区域边界大小。");
         double total=0,error=0;int evaluations=0;
         var elapsed=System.Diagnostics.Stopwatch.StartNew();
         foreach(var coedge in coedges)
         {
             // Initialize underlying curve metadata before retrieving the coedge's parameter interval.
             _=((IEdge)coedge.GetEdge()).GetCurve();
-            var parameters=ToDoubles(coedge.GetCurveParams(),8,"coedge parameters");
+            var parameters=ToDoubles(coedge.GetCurveParams(),8,"轮廓边参数");
             var lo=Math.Min(parameters[6],parameters[7]);var hi=Math.Max(parameters[6],parameters[7]);
-            if(!double.IsFinite(lo)||!double.IsFinite(hi)||hi<=lo)throw new InvalidOperationException("Invalid coedge interval.");
+            if(!double.IsFinite(lo)||!double.IsFinite(hi)||hi<=lo)throw new InvalidOperationException("无效的边间隔。");
             double Integrand(double t)
             {
-                if(++evaluations>20_000||elapsed.Elapsed.TotalSeconds>20)throw new InvalidOperationException("Boundary area exceeded its bounded evaluation/time budget.");
-                var value=ToDoubles(coedge.Evaluate2(t,1),6,"oriented coedge derivative");
+                if(++evaluations>20_000||elapsed.Elapsed.TotalSeconds>20)throw new InvalidOperationException("边界区域超出其限定的评估/时间预算。");
+                var value=ToDoubles(coedge.Evaluate2(t,1),6,"定向边边缘导数");
                 var p=ModelVerification.Sub(new(value[0]*1000,value[1]*1000,value[2]*1000),origin);
                 var derivative=new Vector3(value[3]*1000,value[4]*1000,value[5]*1000);
-                if(!ModelVerification.Finite(p)||!ModelVerification.Finite(derivative))throw new InvalidOperationException("Invalid boundary derivative.");
+                if(!ModelVerification.Finite(p)||!ModelVerification.Finite(derivative))throw new InvalidOperationException("边界导数无效。");
                 var cross=new Vector3(p.Y*derivative.Z-p.Z*derivative.Y,p.Z*derivative.X-p.X*derivative.Z,p.X*derivative.Y-p.Y*derivative.X);
                 var projected=ModelVerification.Dot(cross,axis);
                 return kind==0?projected/2:kind==1?-ModelVerification.Dot(p,axis)*projected/radius:projected/(2*Math.Sin(halfAngle));
@@ -59,7 +59,7 @@ internal sealed partial class SolidWorksComExecutor
             total+=integral.Value;error+=integral.Error;
         }
         var area=Math.Abs(total);
-        if(!ModelVerification.Positive(area)||!double.IsFinite(error)||error>budgetMm2)throw new InvalidOperationException("Boundary area did not reach the requested numerical precision.");
+        if(!ModelVerification.Positive(area)||!double.IsFinite(error)||error>budgetMm2)throw new InvalidOperationException("边界区域未能达到所请求的数值精度。");
         return (area,error);
     }
 
@@ -76,7 +76,7 @@ internal sealed partial class SolidWorksComExecutor
                 var mid=lo+(panel+.5)*width;
                 for(var i=0;i<4;i++)result+=width/2*weights[i]*(fn(mid-width/2*nodes[i])+fn(mid+width/2*nodes[i]));
             }
-            if(!double.IsFinite(result))throw new InvalidOperationException("Nonfinite boundary area integral.");
+            if(!double.IsFinite(result))throw new InvalidOperationException("非有限边界面积积分。");
             if(prior is {} p)
             {
                 var difference=Math.Abs(result-p);var floor=Math.Max(1,Math.Abs(result))*1e-10;
@@ -86,6 +86,6 @@ internal sealed partial class SolidWorksComExecutor
             }
             prior=result;
         }
-        throw new InvalidOperationException("Boundary area quadrature failed to converge within 64 panels.");
+        throw new InvalidOperationException("边界区域四次方未能在64面板上收敛。");
     }
 }

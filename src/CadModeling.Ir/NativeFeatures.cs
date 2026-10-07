@@ -12,7 +12,7 @@ public sealed record SketchFrame
 [JsonConverter(typeof(JsonStringEnumConverter<EntityKind>))]
 public enum EntityKind { Feature, Face, Edge, Body, Plane, Axis }
 [JsonConverter(typeof(JsonStringEnumConverter<GeometryKind>))]
-public enum GeometryKind { Any, Plane, Cylinder, Cone, Sphere, Torus, Line, Circle }
+public enum GeometryKind { Any, Plane, Cylinder, Cone, Sphere, Torus, Line, Circle, BSpline }
 
 /// <summary>Geometry-based selection. Position is a point on the entity, in model mm.
 /// Multiple matches require AllMatches=true; no arbitrary first-edge fallback.</summary>
@@ -22,10 +22,17 @@ public sealed record EntityQuery
     public string? FeatureId { get; init; }
     public string? Name { get; init; }
     public string? PersistentReference { get; init; }
+    public bool RequirePersistentIdentity { get; init; }
     public GeometryKind Geometry { get; init; } = GeometryKind.Any;
     public Vector3? PositionMm { get; init; }
     public Vector3? Direction { get; init; }
     public double? RadiusMm { get; init; }
+    public double? AreaMm2 { get; init; }
+    public double AreaToleranceMm2 { get; init; } = 0.1;
+    public double? LengthMm { get; init; }
+    public Vector3? StartPointMm { get; init; }
+    public Vector3? EndPointMm { get; init; }
+    public int? AdjacentFaceCount { get; init; }
     public double ToleranceMm { get; init; } = 0.05;
     public bool AllMatches { get; init; }
     public int SelectionMark { get; init; }
@@ -39,7 +46,8 @@ public enum NativeFeatureKind
     LoftBoss, LoftCut, SweepBoss, SweepCut, Rib, Hole,
     SheetMetalBase, EdgeFlange, Flatten, WeldmentMember, TrimWeldment,
     SurfaceExtrude, SurfaceLoft, SurfaceTrim, SurfaceKnit, Thicken,
-    SetDimension, Suppress, Restore, Split, ThinExtrude, SurfacePlanar, SketchPattern
+    SetDimension, Suppress, Restore, Split, ThinExtrude, SurfacePlanar, SketchPattern,
+    SurfaceBoundary, SurfaceFill, SurfaceSweep, SurfaceOffset, SpatialCurve, Helix, PhysicalThread
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<ChamferMode>))]
@@ -53,6 +61,14 @@ public enum WeldmentEndCondition { Miter=1, Butt1=2, Butt2=3, Trim=4 }
 
 public sealed record NativeFeatureOptions
 {
+    public SpatialCurveOptions? SpatialCurve { get; init; }
+    public HelixOptions? Helix { get; init; }
+    public PhysicalThreadOptions? PhysicalThread { get; init; }
+    public LinearPatternOptions? LinearPattern { get; init; }
+    public SweepOptions? Sweep { get; init; }
+    public LoftOptions? Loft { get; init; }
+    public VariableFilletOptions? VariableFillet { get; init; }
+    public SurfaceFeatureOptions? Surface { get; init; }
     public NativeFeatureKind Kind { get; init; }
     public IReadOnlyList<EntityQuery> Selections { get; init; } = [];
     public SketchFrame? Frame { get; init; }
@@ -77,6 +93,7 @@ public sealed record NativeFeatureOptions
     public double CountersinkDiameterMm { get; init; }
     public double CountersinkAngleDegrees { get; init; } = 90;
     public double ThreadMajorDiameterMm { get; init; }
+    public double? ThreadDepthMm { get; init; }
     public ChamferMode ChamferMode { get; init; } = ChamferMode.DistanceAngle;
     public int Count { get; init; } = 2;
     public double SpacingMm { get; init; }
@@ -100,6 +117,26 @@ public sealed record NativeFeatureOptions
     public string? DimensionName { get; init; }
     public double DimensionValue { get; init; }
     public bool DimensionIsAngle { get; init; }
+    public DrawingValueUnit? DimensionUnit { get; init; }
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<SurfaceEndCondition>))]
+public enum SurfaceEndCondition { None, NormalToProfile }
+[JsonConverter(typeof(JsonStringEnumConverter<SurfaceSweepOrientation>))]
+public enum SurfaceSweepOrientation { FollowPath, KeepNormalConstant }
+
+/// <summary>Bounded surface controls. Edge-based Fill supports explicit support faces and strict retained-control checks.</summary>
+public sealed record SurfaceFeatureOptions
+{
+    public IReadOnlyList<FillBoundaryConstraint> FillBoundaries { get; init; } = [];
+    public SurfaceEndCondition StartCondition { get; init; }
+    public SurfaceEndCondition EndCondition { get; init; }
+    public SurfaceSweepOrientation SweepOrientation { get; init; }
+    public int FillResolution { get; init; } = 2;
+    public bool OptimizeFill { get; init; } = true;
+    /// <summary>Opt-in assertion: two profiles and two guides form four endpoint corners.</summary>
+    public bool RequireBoundaryCornerMatch { get; init; }
+    public double ConnectionToleranceMm { get; init; } = 0.01;
 }
 
 public sealed record NativeFeatureOperation : ModelingOperation

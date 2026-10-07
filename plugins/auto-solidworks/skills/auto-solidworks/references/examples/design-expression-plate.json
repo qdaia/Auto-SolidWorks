@@ -1,0 +1,218 @@
+{
+  "name": "表达式配置安装板",
+  "source_text": "标准宽80mm，加厚配置宽100mm；高度50mm，厚度10/20mm。宽度引用高度尺寸并使用固定函数。",
+  "design_intent": {
+    "active_configuration": "加厚",
+    "global_variables": [
+      {
+        "name": "基础宽度",
+        "expression": {
+          "kind": "Multiply",
+          "left": {
+            "kind": "Dimension",
+            "dimension_name": "高度_0@尺寸轮廓"
+          },
+          "right": {
+            "kind": "Function",
+            "function": "Abs",
+            "arguments": [
+              {
+                "kind": "Negate",
+                "arguments": [
+                  {
+                    "kind": "Literal",
+                    "literal": {
+                      "value": 0.8,
+                      "unit": "Unitless"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "倍宽",
+        "expression": {
+          "kind": "Multiply",
+          "left": {
+            "kind": "Variable",
+            "variable": "基础宽度"
+          },
+          "right": {
+            "kind": "Literal",
+            "literal": {
+              "value": 2,
+              "unit": "Unitless"
+            }
+          }
+        }
+      },
+      {
+        "name": "角度比率",
+        "expression": {
+          "kind": "Function",
+          "function": "Sin",
+          "arguments": [
+            {
+              "kind": "Literal",
+              "literal": {
+                "value": 30,
+                "unit": "Degree"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "equations": [
+      {
+        "dimension_name": "宽度_0@尺寸轮廓",
+        "expression": {
+          "kind": "Variable",
+          "variable": "倍宽"
+        },
+        "expected_value": {
+          "value": 80,
+          "unit": "Millimeter"
+        }
+      }
+    ],
+    "configurations": [
+      {
+        "name": "标准",
+        "create_from_configuration": "Default",
+        "dimensions": [
+          {
+            "dimension_name": "D1@凸台",
+            "value": {
+              "value": 10,
+              "unit": "Millimeter"
+            }
+          }
+        ],
+        "geometry": {
+          "expected_solid_body_count": 1,
+          "expected_volume_mm3": 40000
+        }
+      },
+      {
+        "name": "加厚",
+        "create_from_configuration": "Default",
+        "dimensions": [
+          {
+            "dimension_name": "D1@凸台",
+            "value": {
+              "value": 20,
+              "unit": "Millimeter"
+            }
+          }
+        ],
+        "geometry": {
+          "expected_solid_body_count": 1,
+          "expected_volume_mm3": 100000
+        },
+        "global_variables": [
+          {
+            "name": "基础宽度",
+            "expression": {
+              "kind": "Function",
+              "function": "Max",
+              "arguments": [
+                {
+                  "kind": "Literal",
+                  "literal": {
+                    "value": 50,
+                    "unit": "Millimeter"
+                  }
+                },
+                {
+                  "kind": "Literal",
+                  "literal": {
+                    "value": 45,
+                    "unit": "Millimeter"
+                  }
+                }
+              ]
+            },
+            "expected_value": {
+              "value": 50,
+              "unit": "Millimeter"
+            }
+          }
+        ],
+        "equation_values": [
+          {
+            "dimension_name": "宽度_0@尺寸轮廓",
+            "value": {
+              "value": 100,
+              "unit": "Millimeter"
+            }
+          }
+        ],
+        "dimension_input_values": [
+          {
+            "dimension_name": "高度_0@尺寸轮廓",
+            "value": {
+              "value": 50,
+              "unit": "Millimeter"
+            }
+          }
+        ]
+      }
+    ],
+    "require_fully_defined_sketches": [
+      "尺寸轮廓"
+    ],
+    "dimension_inputs": [
+      {
+        "dimension_name": "高度_0@尺寸轮廓",
+        "value": {
+          "value": 50,
+          "unit": "Millimeter"
+        }
+      }
+    ]
+  },
+  "operations": [
+    {
+      "type": "ProfileSketch",
+      "id": "profile",
+      "name": "尺寸轮廓",
+      "plane": "Front",
+      "auto_dimension_primitives": true,
+      "require_fully_defined": true,
+      "primitives": [
+        {
+          "type": "CenteredRectangle",
+          "center_xmm": 0,
+          "center_ymm": 0,
+          "width_mm": 40,
+          "height_mm": 50
+        }
+      ]
+    },
+    {
+      "type": "ExtrudeBoss",
+      "id": "body",
+      "name": "凸台",
+      "depends_on": [
+        "profile"
+      ],
+      "sketch_id": "profile",
+      "depth_mm": 10,
+      "end_condition": "Blind"
+    }
+  ],
+  "expected_solid_body_count": 1,
+  "expected_bounding_box_mm": {
+    "x": 100,
+    "y": 50,
+    "z": 20
+  },
+  "expected_volume_mm3": 100000,
+  "assumptions": [
+    "离线示例假定原生模板已有 Default 配置；实际模板需按准确名称调整来源配置。"
+  ]
+}

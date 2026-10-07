@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="64"
+   height="64"
+   id="svg2869"
+   version="1.1"
+   viewBox="0 0 64 64"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs2871">
+    <linearGradient
+       id="linearGradient5">
+      <stop
+         style="stop-color:#ef2929;stop-opacity:1;"
+         offset="0"
+         id="stop19" />
+      <stop
+         style="stop-color:#ef2929;stop-opacity:0;"
+         offset="1"
+         id="stop20" />
+    </linearGradient>
+    <linearGradient
+       id="swatch18">
+      <stop
+         style="stop-color:#ef2929;stop-opacity:1;"
+         offset="0"
+         id="stop18" />
+    </linearGradient>
+    <linearGradient
+       id="swatch15">
+      <stop
+         style="stop-color:#3d0000;stop-opacity:1;"
+         offset="0"
+         id="stop15" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient5-1">
+      <stop
+         style="stop-color:#ef2929;stop-opacity:1;"
+         offset="0"
+         id="stop5" />
+      <stop
+         style="stop-color:#ef2929;stop-opacity:0;"
+         offset="1"
+         id="stop6" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3836-9">
+      <stop
+         style="stop-color:#a40000;stop-opacity:1"
+         offset="0"
+         id="stop3838-8" />
+      <stop
+         style="stop-color:#ef2929;stop-opacity:1"
+         offset="1"
+         id="stop3840-1" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3836-9-3">
+      <stop
+         style="stop-color:#a40000;stop-opacity:1"
+         offset="0"
+         id="stop3838-8-5" />
+      <stop
+         style="stop-color:#ef2929;stop-opacity:1"
+         offset="1"
+         id="stop3840-1-6" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient2">
+      <stop
+         style="stop-color:#73d216;stop-opacity:1;"
+         offset="0"
+         id="stop1" />
+      <stop
+         style="stop-color:#8ae234;stop-opacity:1;"
+         offset="1"
+         id="stop2" />
+    </linearGradient>
+    <linearGradient
+       x1="491.43066"
+       y1="77.8489"
+       x2="493.33023"
+       y2="78.522537"
+       id="linearGradient6608"
+       xlink:href="#linearGradient10585-2"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(2.9725171,0,0,2.9743076,-1430.8689,-221.62254)" />
+    <linearGradient
+       id="linearGradient10585-2">
+      <stop
+         id="stop10587-7"
+         style="stop-color:#fce94f;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop10595-6"
+         style="stop-color:#c4a000;stop-opacity:1"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       x1="482.62952"
+       y1="74.943916"
+       x2="495.94803"
+       y2="85.673454"
+       id="linearGradient6606"
+       xlink:href="#linearGradient800-1"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(3.8438424,0,0,3.8461577,-1857.2486,-287.1829)" />
+    <linearGradient
+       id="linearGradient800-1">
+      <stop
+         id="stop998-1"
+         style="stop-color:#fce94f;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop999-5"
+         style="stop-color:#c4a000;stop-opacity:1"
+         offset="1" />
+    </linearGradient>
+  </defs>
+  <metadata
+     id="metadata2874">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>[maxwxyz]</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:relation>https://www.freecad.org/wiki/index.php?title=Artwork</dc:relation>
+        <dc:publisher>
+          <cc:Agent>
+            <dc:title>FreeCAD</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:identifier>FreeCAD/src/</dc:identifier>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>FreeCAD LGPL2+</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:date>2024</dc:date>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer3"
+     style="display:inline">
+    <rect
+       width="46.12611"
+       height="53.828709"
+       rx="3.3975089"
+       ry="3.3995554"
+       x="8.936945"
+       y="7.1184721"
+       id="rect6469"
+       style="color:#000000;display:inline;fill:#fce94f;fill-opacity:1;fill-rule:evenodd;stroke:#221e0c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none" />
+    <path
+       width="46.12611"
+       height="53.828709"
+       rx="3.3975089"
+       ry="3.3995554"
+       x="8.936945"
+       y="7.0656519"
+       id="rect3"
+       style="color:#000000;display:inline;fill:url(#linearGradient6606);fill-opacity:1;fill-rule:evenodd;stroke:#fce94f;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none"
+       d="m 12.333984,9.0664063 h 39.332032 c 0.775414,0 1.396484,0.6206248 1.396484,1.3984377 v 47.029297 c 0,0.777812 -0.622497,1.40039 -1.396484,1.40039 H 12.333984 c -0.773987,0 -1.396484,-0.622578 -1.396484,-1.40039 V 10.464844 c 0,-0.7778129 0.62107,-1.3984378 1.396484,-1.3984377 z"
+       transform="translate(0,0.05282012)" />
+    <path
+       d="m 40.527096,13.347766 c 0,3.291904 -4.803842,1.487155 -8.917522,1.487155 -4.113681,0 -8.91756,1.804749 -8.91756,-1.487155 0,-3.291903 4.795001,-10.4399367 8.908642,-10.4399367 4.113373,0 8.92644,7.1480337 8.92644,10.4399367 z"
+       id="path6473"
+       style="color:#000000;display:inline;fill:url(#linearGradient6608);fill-opacity:1;fill-rule:evenodd;stroke:#221e0c;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none" />
+    <path
+       d="M 37.643369,9.5968936 H 33.387966"
+       id="path6475"
+       style="fill:none;stroke:#221e0c;stroke-width:2;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <path
+       d="m 29.634874,52.314627 q 4.458383,0 6.852699,-1.539383 2.47688,-1.539383 2.47688,-4.156335 0,-1.385445 -0.743062,-2.463012 -0.743064,-1.077569 -1.981505,-1.949885 -1.155876,-0.872318 -2.724568,-1.590697 -1.56869,-0.718378 -3.219942,-1.436757 -1.898941,-0.821005 -3.963006,-1.744634 -2.064066,-0.92363 -3.797882,-2.155136 -1.651253,-1.231507 -2.724568,-2.873515 -1.073314,-1.642009 -1.073314,-3.848458 0,-2.155136 1.155877,-3.899771 1.23844,-1.744634 3.302506,-2.97614 2.146628,-1.231506 5.036321,-1.898573 2.972255,-0.667065 6.357323,-0.667065 3.302506,0 6.109636,0.513127 2.807132,0.513128 4.706069,1.231507 l -2.311754,3.643206 q -1.733815,-0.718379 -3.797879,-1.077568 -1.981506,-0.410502 -4.210695,-0.410502 -4.04557,0 -6.522451,1.385444 -2.394315,1.334133 -2.394315,3.951084 0,1.436757 0.743064,2.514325 0.825625,1.077568 2.064066,1.949886 1.321002,0.872316 2.972254,1.590695 1.733815,0.71838 3.632757,1.488071 1.898942,0.769691 3.880444,1.693321 1.981505,0.92363 3.550194,2.155137 1.651252,1.180193 2.642005,2.822201 1.073315,1.590697 1.073315,3.797145 0,2.001198 -0.990753,3.797145 -0.990752,1.795948 -3.137379,3.181392 -2.064067,1.334132 -5.284012,2.155136 -3.137378,0.769692 -7.430635,0.769692 -3.96301,0 -6.935264,-0.564441 -2.972254,-0.564439 -5.284009,-1.48807 l 2.311755,-3.694519 q 2.146628,0.821004 4.37582,1.334132 2.311754,0.461815 5.284008,0.461815 z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:61.0453px;line-height:1.25;font-family:'Ubuntu Condensed';-inkscape-font-specification:'Ubuntu Condensed, ';letter-spacing:0px;word-spacing:0px;fill:#2e3436;fill-opacity:1;stroke:none;stroke-width:1.11562"
+       id="path1023" />
+  </g>
+</svg>

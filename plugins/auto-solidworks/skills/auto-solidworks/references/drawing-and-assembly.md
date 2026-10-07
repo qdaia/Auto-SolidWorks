@@ -33,14 +33,17 @@ The agent remains responsible for correct attachment of dimensions, section/hidd
 Create components first, or inspect existing SLDPRT/SLDASM files. Then call `cad_build_assembly` with `plan`:
 
 - name, absolute native_path ending in SLDASM, optional STEP/STP/STL export_paths.
+- Every successful build also writes same-directory, same-stem `.SLDDRW` and `.pdf` files automatically. Do not put these in `export_paths` or call the drawing exporter again for the same paths. Deliver all three files. Existing drawing/PDF outputs (including directories) are rejected before building, even with `overwrite_allowed=true`.
 - components: unique id, existing native path, optional configuration, translation_mm, rotation_degrees, fixed.
 - mates: name, kind, first and second. Each endpoint has component_id and an optional typed entity query in component-local coordinates. Omit entity for whole-component Lock mates.
 - Mate kinds: Coincident, Concentric, Parallel, Perpendicular, Distance, Angle, Lock. value is mm for Distance or degrees for Angle; anti_aligned and lock_rotation are optional.
-- check_interference defaults true. Positive interference volumes are reported in mm³, not silently treated as assembly failure.
+- `check_interference` and `reject_unapproved_interference` default true. Unapproved interference fails before save; declare exact component IDs and volume limits in `allowed_interferences` for intended overlaps. `require_fully_constrained_components` optionally rejects floating components. See [engineering reliability](engineering-reliability.md).
 
 Component rotation applies X, then Y, then Z, before translation. Fix a base component if appropriate. Floating components may move or rotate during mating. Add enough compatible mates for the intended constraints; a successful underconstrained assembly is not necessarily fully fixed.
 
 The result includes actual SolidWorks instance names, transforms, fixed states, native mate names, interference volumes and reopened status. It verifies component identities/transforms/fixed states and mate identities after native save and reopening. Source component files remain unchanged. `cad_inspect_model` also reads saved assemblies and lists their components; query part faces/edges using the component's part file.
+
+The nested `drawing` result includes native/PDF paths, four first-angle A3 views and saved-drawing readback. Overall `success=true` requires both the assembly and its drawing/PDF output. On drawing failure, the verified assembly remains available with `reopened=true`, but overall success is false; report the partial result and use `cad_export_drawing` with unused paths to retry. Inspect the PDF pages. Native dimensions from the assembly and its components are imported into drawing views. The schedule lists assembly-level parameters only; `view_dimensions` includes the actually placed component parameters with qualified names, units and values. `dimensions_reopened=true` records a successful saved-drawing dimension readback. Exports with zero placed dimensions fail explicitly. This does not generate component drawings, BOM balloons or a complete manufacturing definition.
 
 ## Recovery
 

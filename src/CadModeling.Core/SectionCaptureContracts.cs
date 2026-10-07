@@ -12,6 +12,8 @@ public sealed record SectionCaptureRequest
 
 public sealed record SectionCaptureResult(bool Success, string Message)
 {
+    public string? RequestId { get; init; }
+    public bool OutcomeUnknown { get; init; }
     public SectionSnapshot? Snapshot { get; init; }
     public bool Complete { get; init; }
     public IReadOnlyList<string> Limitations { get; init; } = [];

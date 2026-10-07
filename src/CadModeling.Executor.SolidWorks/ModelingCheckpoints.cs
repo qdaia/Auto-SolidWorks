@@ -11,12 +11,12 @@ internal sealed partial class SolidWorksComExecutor
     {
         using var timing = CadModeling.Ir.PerformanceTrace.Begin("native.checkpoint");
         if(model.SketchManager.ActiveSketch is not null || !PerformanceTrace.Measure("native.rebuild", () => model.ForceRebuild3(false)))
-            throw new InvalidOperationException("Cannot checkpoint an active sketch or a failed rebuild.");
+            throw new InvalidOperationException("无法对活动的草图或重建失败的对象进行检查点。");
         var geometry=MeasureGeometry(model);
         if(geometry.SolidBodyCount<1||!double.IsFinite(geometry.VolumeMm3)||geometry.VolumeMm3<=0||geometry.FaceCount<1)
-            throw new InvalidOperationException("Automatic checkpoints require a valid positive-volume solid.");
+            throw new InvalidOperationException("自动检查点需要一个有效的正体积实体。");
         var references=CaptureFeatureReferences(model,plan with { Operations=plan.Operations.Take(completed).ToArray() },objects);
-        if(references.Count!=completed) throw new InvalidOperationException("Checkpoint feature map is incomplete.");
+        if(references.Count!=completed) throw new InvalidOperationException("检查点特征图不完整。");
         var directory=plan.Recovery.Directory??Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),"AutoSolidWorks","Working","Checkpoints");
         directory=Path.Combine(Path.GetFullPath(directory),Guid.NewGuid().ToString("N"));
         var path=Path.Combine(directory,$"checkpoint_{completed}_{Path.GetFileName(directory)}.SLDPRT");
@@ -24,11 +24,12 @@ internal sealed partial class SolidWorksComExecutor
         Directory.CreateDirectory(directory);
         var errors=0;var warnings=0;
         if(!PerformanceTrace.Measure("native.save", () => model.Extension.SaveAs(path,0,(int)(swSaveAsOptions_e.swSaveAsOptions_Silent|swSaveAsOptions_e.swSaveAsOptions_Copy),null,ref errors,ref warnings))||errors!=0||!File.Exists(path))
-            throw new IOException($"Checkpoint copy save failed (errors={errors}, warnings={warnings}).");
+            throw new IOException($"检查点复制保存失败 (errors={errors}, 警告={warnings}).");
         var inspection=InspectOnSta(new(path),app);
+        File.WriteAllText(Path.Combine(directory,"readback.json"),JsonSerializer.Serialize(new{before=geometry,after=inspection.Geometry,inspection.Success,inspection.Message},new JsonSerializerOptions(ModelingIrJson.Options){WriteIndented=true}));
         if(!inspection.Success||inspection.Geometry is not { } saved||saved.SolidBodyCount!=geometry.SolidBodyCount||
            Math.Abs(saved.VolumeMm3-geometry.VolumeMm3)>Math.Max(1e-5,geometry.VolumeMm3*1e-8))
-            throw new InvalidOperationException("Saved checkpoint could not be reopened with matching geometry.");
+            throw new InvalidOperationException("保存的检查点无法以匹配的几何图形重新打开："+inspection.Message);
         var manifest=new ModelingCheckpointManifest {
             NativePath=path,NativeSha256=DrawingPlanValidation.FileHash(path),OriginalPlan=plan,
             SourceModelSha256=plan.SourceModelPath is { } source?DrawingPlanValidation.FileHash(source):null,
@@ -47,7 +48,7 @@ internal sealed partial class SolidWorksComExecutor
             }
         };
         if(plan.DrawingSourceSha256 is not null&&string.IsNullOrWhiteSpace(manifest.SourceRevisionId))
-            throw new InvalidOperationException("Drawing-backed checkpoints require recovery.source_revision_id so stale source facts cannot be resumed.");
+            throw new InvalidOperationException("基于草图的检查点需要恢复。source_revision_id 所以无法恢复过时的源事实。");
         var manifestPath=Path.Combine(directory,"checkpoint.json");
         var tempManifestPath=manifestPath+".writing";
         File.WriteAllText(tempManifestPath,JsonSerializer.Serialize(manifest,new JsonSerializerOptions(ModelingIrJson.Options){WriteIndented=true}));
@@ -68,18 +69,18 @@ internal sealed partial class SolidWorksComExecutor
             }
             feature??=FindFeatureByName(model,reference.SolidWorksName);
             if(feature is null || !feature.Name.Equals(reference.SolidWorksName,StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException($"Checkpoint feature '{reference.OperationId}' cannot be resolved uniquely.");
+                throw new InvalidOperationException($"检查点特征 '{reference.OperationId}' 无法唯一解析。");
             objects.Add(reference.OperationId,feature);
         }
         var measured=MeasureGeometry(model);
         if(measured.SolidBodyCount!=manifest.Geometry.SolidBodyCount||Math.Abs(measured.VolumeMm3-manifest.Geometry.VolumeMm3)>Math.Max(1e-5,manifest.Geometry.VolumeMm3*1e-8))
-            throw new InvalidOperationException("Opened checkpoint geometry differs from its saved inspection.");
+            throw new InvalidOperationException("检查点几何体与保存的检查几何体不同。");
     }
 
     private static ModelingRecoveryState RecoveryState(ModelingPlan plan,string? path,ModelingCheckpointManifest? manifest,string? failedId) => new(
         path,manifest?.NativePath,plan.Operations.Take(manifest?.CompletedOperationCount??0).Select(o=>o.Id).ToArray(),
         plan.Operations.Skip(manifest?.CompletedOperationCount??0).Select(o=>o.Id).ToArray(),failedId,
         manifest is not null&&manifest.CompletedOperationCount<plan.Operations.Count,
-        manifest is null?"No reusable checkpoint. Correct the failing operation and rebuild.":
-            "Keep the full corrected operation list and unchanged source requirements; set recovery.resume_manifest_path. The verified prefix will be reused, and the remaining operations replayed in order.");
+        manifest is null?"没有可重用的检查点。纠正失败的操作并重建。":
+            "保持完整的校正操作列表和不变的源要求；设置恢复.resume_manifest_path. 证实的前缀将被重用，其余操作按顺序重放。");
 }

@@ -89,7 +89,7 @@ internal static class IngestionUtilities
             CreateNoWindow = true
         };
         foreach (var argument in arguments) start.ArgumentList.Add(argument);
-        using var process = Process.Start(start) ?? throw new IOException($"Failed to start provider executable '{executable}'.");
+        using var process = Process.Start(start) ?? throw new IOException($"启动提供者可执行文件'{executable}'失败。");
         var stdout = process.StandardOutput.ReadToEndAsync(cancellationToken);
         var stderr = process.StandardError.ReadToEndAsync(cancellationToken);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -187,7 +187,7 @@ internal sealed class RasterBuffer
     }
     public RasterBuffer Crop(int left,int top,int width,int height)
     {
-        if(left<0||top<0||width<1||height<1||left+width>Width||top+height>Height) throw new ArgumentException("Crop lies outside the raster.");
+        if(left<0||top<0||width<1||height<1||left+width>Width||top+height>Height) throw new ArgumentException("裁剪超出栅格范围。");
         var bytes=new byte[width*height*4];
         for(var y=0;y<height;y++) Buffer.BlockCopy(Bgra,((top+y)*Width+left)*4,bytes,y*width*4,width*4);
         return new(width,height,bytes);

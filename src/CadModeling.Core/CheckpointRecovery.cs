@@ -25,7 +25,7 @@ public static class ComponentContentIdentity
         ArgumentNullException.ThrowIfNull(type);ArgumentException.ThrowIfNullOrWhiteSpace(roleContract);
         var location=type.Assembly.Location;
         if(string.IsNullOrWhiteSpace(location)||!File.Exists(location))
-            throw new InvalidOperationException($"Cannot fingerprint loaded component '{type.FullName}' because its assembly file is unavailable.");
+            throw new InvalidOperationException($"无法为已加载组件 '{type.FullName}' 打印指纹，因为其装配文件不可用。");
         return ForFile(location,roleContract+"|"+type.FullName);
     }
 
@@ -33,7 +33,7 @@ public static class ComponentContentIdentity
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);ArgumentException.ThrowIfNullOrWhiteSpace(roleContract);
         var full=Path.GetFullPath(path);
-        if(!File.Exists(full))throw new FileNotFoundException("Component binary is unavailable for content identity.",full);
+        if(!File.Exists(full))throw new FileNotFoundException("组件二进制不可用，用于内容身份。",full);
         var assemblySha=Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(full)));
         return Digest(roleContract+"|"+assemblySha);
     }
@@ -90,8 +90,8 @@ public sealed class PauseExecutionGate
 
     public bool TryBeginOperation(string operationId)
     {
-        if(string.IsNullOrWhiteSpace(operationId))throw new ArgumentException("Operation id is required.",nameof(operationId));
-        if(_inFlight is not null)throw new InvalidOperationException("A COM operation is already in flight.");
+        if(string.IsNullOrWhiteSpace(operationId))throw new ArgumentException("操作 ID 是必需的。",nameof(operationId));
+        if(_inFlight is not null)throw new InvalidOperationException("一个COM操作已经在执行中。");
         if(_pauseRequested)return false;
         _inFlight=operationId;_state=InFlightOperationState.Running;return true;
     }
@@ -99,7 +99,7 @@ public sealed class PauseExecutionGate
     public void CompleteOperation(string operationId,bool committed)
     {
         if(_inFlight is null||!_inFlight.Equals(operationId,StringComparison.Ordinal))
-            throw new InvalidOperationException("Completion does not match the in-flight operation.");
+            throw new InvalidOperationException("完成与飞行中的操作不符。");
         _state=committed?InFlightOperationState.Committed:InFlightOperationState.Failed;
         _inFlight=null;
     }
@@ -127,6 +127,9 @@ public static partial class ModelingRecovery
         if(completedOperationCount<0||completedOperationCount>plan.Operations.Count)throw new ArgumentOutOfRangeException(nameof(completedOperationCount));
         var normalized=plan with
         {
+            // A new compile request receives a new PlanId even when its native prefix
+            // is unchanged. Request identity must not prevent corrected-suffix reuse.
+            PlanId="checkpoint-native-prefix/v2",
             Operations=plan.Operations.Take(completedOperationCount).ToArray(),
             Output=new OutputSpec(),
             Recovery=new ModelingRecoveryOptions{Enabled=plan.Recovery.Enabled,SourceRevisionId=plan.Recovery.SourceRevisionId},

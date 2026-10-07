@@ -1,34 +1,36 @@
-# Download Windows plugin
-
-**Current version: 0.6.0.** [Release notes](release-0.6.0.en.md) · [Latest package](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v0.6.0). Consolidates validated modeling, drawing review and constrained repair, with a 22-stage performance matrix. Independent drawing acceptance remains incomplete.
+# Download the Auto SolidWorks Windows plugin
 
 [简体中文](download.zh-CN.md) | **English** · [Back to README](../README.en.md)
 
-## Auto SolidWorks 0.6.0
+Current version: **26.10.07**. Create, inspect and edit parametric parts and assemblies in local SolidWorks through Codex / MCP, exporting native models, STEP / STL and drawings.
 
-Create, inspect and modify parametric parts and assemblies in your local SolidWorks installation through Codex / MCP, using natural-language descriptions or engineering drawings as input and producing SolidWorks part models.
-This plugin relies on the LLM's ability to interpret drawings. GPT-6 Astra is recommended.
+[Windows x64 package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip) · [SHA-256 checksum](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.07) · [Additions](release-26.10.07.en.md)
 
-## Download and install
+## Install
 
-[Download Windows plugin ZIP](https://github.com/qdaia/Auto-SolidWorks/releases/download/v0.6.0/auto-solidworks-0.6.0-windows-x64.zip) · [SHA-256 checksum](https://github.com/qdaia/Auto-SolidWorks/releases/download/v0.6.0/auto-solidworks-0.6.0-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v0.6.0)
+1. Prepare Windows x64, an activated local SolidWorks installation, .NET 9 Windows Desktop Runtime x64, and Codex with plugin support.
+2. Download `auto-solidworks-26.10.07-windows-x64.zip` and extract it to a directory you will retain.
+3. Run this command in the extracted directory:
 
-For agent-assisted installation, send this message to your agent: Help me install https://github.com/qdaia/Auto-SolidWorks
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+   ```
 
-For manual installation, download `auto-solidworks-0.6.0-windows-x64.zip` using the link above, extract it, and run the following command in the extracted directory:
+4. Open a new Codex chat and enable Auto SolidWorks.
+
+The installer prefers the CLI bundled with the Codex desktop app and prepares Interop from the local SolidWorks installation. For a custom installation path, run:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -SolidWorksInteropDir 'C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS'
 ```
 
-Requires Windows x64, an activated local SolidWorks installation, .NET 9 Windows Desktop Runtime x64, and a Codex CLI version with plugin support. Open a new Codex task after installation. The SHA-256 checksum is available through the matching `.zip.sha256` link above.
+## Checksum and package contents
 
-The installer copies the SolidWorks interop DLLs from the user's local installation. Install Tesseract for OCR and Poppler for PDF rasterization separately as needed. See the [installation guide (Chinese)](installation.md) for detailed steps.
+```powershell
+Get-FileHash .\auto-solidworks-26.10.07-windows-x64.zip -Algorithm SHA256
+Get-Content .\auto-solidworks-26.10.07-windows-x64.zip.sha256
+```
 
-GitHub's automatically generated Source code archives do not contain the runtime. Choose the Windows plugin ZIP for direct installation.
+Compare the two digests. The archive also contains a per-file `SHA256SUMS.json`, compiled runtime, 18 MCP tools, usage skills, installation scripts, documentation and license notices.
 
-## Included
-
-- 15 MCP tools covering capability queries, drawing input, plan compilation, part building, model inspection, assembly building, profile discovery, connection diagnostics and SLDDRW/PDF drawing export.
-- Workflows for native features, sheet metal, weldments, surfaces, geometric references and editing copies of existing models.
-- Compiled plugin runtime, documentation, installation scripts, the MIT license and third-party notices. C# source code, public synthetic tests and build scripts are available in the GitHub repository.
+Gordon requires local FreeCAD. Tesseract is optional for OCR and Poppler for PDF rasterization. Source and tests are available in the repository or the Release `source-tests.zip`; choose the Windows ZIP for direct installation.

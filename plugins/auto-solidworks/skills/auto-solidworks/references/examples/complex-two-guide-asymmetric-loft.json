@@ -1,0 +1,193 @@
+{
+  "name": "two_guide_asymmetric_loft",
+  "source_text": "New complex modeling fixture with explicit mm requirements, not a replay of previous acceptance.",
+  "operations": [
+    {
+      "type": "ProfileSketch",
+      "id": "s0",
+      "name": "s0",
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Circle",
+          "diameter_mm": 20,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "ProfileSketch",
+      "id": "s1",
+      "name": "s1",
+      "frame": {
+        "origin_mm": {
+          "x": 4,
+          "y": 3,
+          "z": 25
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Circle",
+          "diameter_mm": 32,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "ProfileSketch",
+      "id": "s2",
+      "name": "s2",
+      "frame": {
+        "origin_mm": {
+          "x": 10,
+          "y": 0,
+          "z": 55
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Circle",
+          "diameter_mm": 16,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "NativeFeature",
+      "id": "right_guide",
+      "name": "right_guide",
+      "depends_on": [
+        "s0",
+        "s1",
+        "s2"
+      ],
+      "feature": {
+        "kind": "SpatialCurve",
+        "spatial_curve": {
+          "points_mm": [
+            {
+              "x": 10,
+              "y": 0,
+              "z": 0
+            },
+            {
+              "x": 20,
+              "y": 3,
+              "z": 25
+            },
+            {
+              "x": 18,
+              "y": 0,
+              "z": 55
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "left_guide",
+      "name": "left_guide",
+      "depends_on": [
+        "s0",
+        "s1",
+        "s2",
+        "right_guide"
+      ],
+      "feature": {
+        "kind": "SpatialCurve",
+        "spatial_curve": {
+          "points_mm": [
+            {
+              "x": -10,
+              "y": 0,
+              "z": 0
+            },
+            {
+              "x": -12,
+              "y": 3,
+              "z": 25
+            },
+            {
+              "x": 2,
+              "y": 0,
+              "z": 55
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "guided_loft",
+      "name": "guided_loft",
+      "depends_on": [
+        "s0",
+        "s1",
+        "s2",
+        "right_guide",
+        "left_guide"
+      ],
+      "feature": {
+        "kind": "LoftBoss",
+        "profile_ids": [
+          "s0",
+          "s1",
+          "s2"
+        ],
+        "guide_ids": [
+          "right_guide",
+          "left_guide"
+        ],
+        "loft": {
+          "guide_influence": "Global"
+        }
+      }
+    }
+  ],
+  "expected_solid_body_count": 1,
+  "expected_surface_body_count": 0,
+  "recovery": {
+    "enabled": false
+  }
+}

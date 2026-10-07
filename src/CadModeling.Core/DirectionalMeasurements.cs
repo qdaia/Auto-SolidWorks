@@ -99,64 +99,64 @@ public static class DirectionalMeasurementVerifier
         Validate(requirement);
         ArgumentNullException.ThrowIfNull(measurement);
         if (!query.QueryId.Equals(measurement.QueryId, StringComparison.Ordinal) || !query.QueryId.Equals(requirement.QueryId, StringComparison.Ordinal))
-            throw new ArgumentException("Measurement query, result and source requirement ids must agree.");
+            throw new ArgumentException("测量查询的结果ID和源ID必须一致。");
         if (!measurement.QueryFingerprint.Equals(Fingerprint(query), StringComparison.OrdinalIgnoreCase) || measurement.Kind != query.Kind)
-            return Result(RequirementCheckStatus.Stale, "Measurement result does not belong to the current complete query fingerprint/kind.");
+            return Result(RequirementCheckStatus.Stale, "测量结果不属于当前完整的查询指纹/类型。");
         if (!measurement.ReferenceResolution.Reference.RefId.Equals(query.Geometry.RefId, StringComparison.Ordinal))
-            throw new ArgumentException("Measurement result was produced for a different GeometryRef.");
+            throw new ArgumentException("测量结果针对的是一个不同的GeometryRef。");
         if (!GeometryRefResolver.Fingerprint(measurement.ReferenceResolution.Reference).Equals(GeometryRefResolver.Fingerprint(query.Geometry), StringComparison.OrdinalIgnoreCase))
-            return Result(RequirementCheckStatus.Stale, "Primary GeometryRef identity changed after the measurement was produced.");
+            return Result(RequirementCheckStatus.Stale, "主标识在测量产生后发生了GeometryRef更改。");
         if (query.SecondaryGeometry is null != (measurement.SecondaryReferenceResolution is null))
-            return Result(RequirementCheckStatus.Unverifiable, "Measurement result does not contain the secondary GeometryRef resolution required by the current query.");
+            return Result(RequirementCheckStatus.Unverifiable, "测量结果不包含当前查询所需的secondary GeometryRef分辨率要求。");
         if (query.SecondaryGeometry is not null && measurement.SecondaryReferenceResolution is { } measuredSecondary &&
             !GeometryRefResolver.Fingerprint(measuredSecondary.Reference).Equals(GeometryRefResolver.Fingerprint(query.SecondaryGeometry), StringComparison.OrdinalIgnoreCase))
-            return Result(RequirementCheckStatus.Stale, "Secondary GeometryRef identity changed after the measurement was produced.");
+            return Result(RequirementCheckStatus.Stale, "Secondary GeometryRef 身份在测量产生后更改。");
         if (query.Geometry.SourceRevisionId is { Length: > 0 } sourceRevision &&
             !sourceRevision.Equals(requirement.SourceRevisionId, StringComparison.Ordinal))
-            return Result(RequirementCheckStatus.Stale, "Geometry reference and source requirement belong to different source revisions.");
+            return Result(RequirementCheckStatus.Stale, "几何参考和源属于不同的源修订版本。");
         if (query.Geometry.SourceFactIds.Count > 0 && !query.Geometry.SourceFactIds.Contains(requirement.SourceFactId, StringComparer.Ordinal))
-            return Result(RequirementCheckStatus.Stale, "Geometry reference is not bound to the source fact used by this requirement.");
+            return Result(RequirementCheckStatus.Stale, "几何参考未绑定到此要求使用的源事实。");
 
         var refStatus = Map(measurement.ReferenceResolution.Status);
         if (refStatus is not RequirementCheckStatus.Passed)
-            return Result(refStatus, "Geometry reference did not resolve; source requirement was not compared.");
+            return Result(refStatus, "几何参考无法解析；源要求未被比较。");
         if (measurement.SecondaryReferenceResolution is { } secondary && Map(secondary.Status) is { } secondaryStatus && secondaryStatus is not RequirementCheckStatus.Passed)
-            return Result(secondaryStatus, "Secondary geometry reference did not resolve; source requirement was not compared.");
+            return Result(secondaryStatus, "二次几何参考无法解析；源要求未被比较。");
         if (!measurement.ActualModelSha256.Equals(measurement.ReferenceResolution.ResolvedModelSha256, StringComparison.OrdinalIgnoreCase))
-            return Result(RequirementCheckStatus.Stale, "Measurement model fingerprint differs from the model on which GeometryRef resolution was performed.");
+            return Result(RequirementCheckStatus.Stale, "测量模型指纹与进行了GeometryRef分辨率的模型不同。");
         if (measurement.SecondaryReferenceResolution is { } secondaryResolution &&
             !measurement.ActualModelSha256.Equals(secondaryResolution.ResolvedModelSha256, StringComparison.OrdinalIgnoreCase))
-            return Result(RequirementCheckStatus.Stale, "Secondary GeometryRef was resolved against a different model than the measurement result.");
+            return Result(RequirementCheckStatus.Stale, "Secondary GeometryRef 被解析为与测量结果对应的不同的模型。");
         if (!measurement.ModelReopened)
-            return Result(RequirementCheckStatus.Unverifiable, "Actual geometry was not measured from a saved and reopened model.");
+            return Result(RequirementCheckStatus.Unverifiable, "实际几何并未从已保存并重新打开的模型中测量。");
         if (measurement.Status != GeometryMeasurementStatus.Measured)
             return Result(measurement.Status == GeometryMeasurementStatus.Unsupported ? RequirementCheckStatus.Unsupported : RequirementCheckStatus.Unverifiable,
-                measurement.Message.Length == 0 ? "Actual geometry measurement is not valid." : measurement.Message);
+                measurement.Message.Length == 0 ? "实际几何测量无效。" : measurement.Message);
         if (!double.IsFinite(measurement.NumericalUncertainty) || measurement.NumericalUncertainty < 0)
-            return Result(RequirementCheckStatus.Unverifiable, "Measurement uncertainty is invalid.");
+            return Result(RequirementCheckStatus.Unverifiable, "测量不确定度无效。");
         if (measurement.Unit != requirement.Unit || measurement.Unit != query.Unit)
-            return Result(RequirementCheckStatus.Failed, "Measurement and source requirement units differ; implicit unit conversion is forbidden at comparison time.");
+            return Result(RequirementCheckStatus.Failed, "测量单位和源要求单位不同；比较时禁止隐式单位转换。");
 
         if (query.Kind == MeasurementKind.AxisDirection)
         {
             if (measurement.VectorValue is not { } actual || requirement.ExpectedVector is not { } expected || !Finite(actual) || !Finite(expected) || Norm(actual) <= 1e-12 || Norm(expected) <= 1e-12)
-                return Result(RequirementCheckStatus.Unverifiable, "Axis-direction comparison requires finite nonzero expected and actual vectors.");
+                return Result(RequirementCheckStatus.Unverifiable, "轴方向的比较需要有限且非零的预期向量和实际向量。");
             var cosine = Math.Clamp(Math.Abs(Dot(actual, expected) / (Norm(actual) * Norm(expected))), -1, 1);
             var angle = Math.Acos(cosine) * 180 / Math.PI;
             var status = angle <= requirement.DirectionToleranceDegrees ? RequirementCheckStatus.Passed : RequirementCheckStatus.Failed;
-            return Result(status, status == RequirementCheckStatus.Passed ? "Measured axis direction matches the independent source requirement." : "Measured axis direction differs from the independent source requirement.", angle);
+            return Result(status, status == RequirementCheckStatus.Passed ? "测量轴方向符合独立源要求。" : "测量轴的方向与独立源的要求不同。", angle);
         }
 
         if (requirement.ExpectedScalar is not { } expectedScalar || measurement.ScalarValue is not { } actualScalar ||
             !double.IsFinite(expectedScalar) || !double.IsFinite(actualScalar))
-            return Result(RequirementCheckStatus.Unverifiable, "Scalar requirement comparison requires finite expected and actual values.");
+            return Result(RequirementCheckStatus.Unverifiable, "标量要求比较需要有限的预期值和实际值。");
         var difference = Math.Abs(actualScalar - expectedScalar);
         // A result whose uncertainty straddles the acceptance threshold is not promoted to pass.
         if (difference - measurement.NumericalUncertainty > requirement.Tolerance)
-            return Result(RequirementCheckStatus.Failed, "Measured geometry differs from the independent source requirement.", difference);
+            return Result(RequirementCheckStatus.Failed, "测量几何体与独立源要求不同。", difference);
         if (difference + measurement.NumericalUncertainty > requirement.Tolerance)
-            return Result(RequirementCheckStatus.Unverifiable, "Measurement uncertainty overlaps the source-requirement tolerance boundary.", difference);
-        return Result(RequirementCheckStatus.Passed, "Measured geometry satisfies the independent source requirement.", difference);
+            return Result(RequirementCheckStatus.Unverifiable, "测量不确定度覆盖源要求的公差边界。", difference);
+        return Result(RequirementCheckStatus.Passed, "测量几何满足独立源要求。", difference);
 
         RequirementCheck Result(RequirementCheckStatus status, string message, double? difference = null) => new()
         {
@@ -191,17 +191,17 @@ public static class DirectionalMeasurementVerifier
     {
         ArgumentNullException.ThrowIfNull(query);
         if (string.IsNullOrWhiteSpace(query.QueryId) || !double.IsFinite(query.NumericalTolerance) || query.NumericalTolerance <= 0)
-            throw new ArgumentException("Measurement query requires an id and a positive finite numerical tolerance.", nameof(query));
+            throw new ArgumentException("测量查询需要一个 id 和一个正数且有限的数值容差。", nameof(query));
         GeometryRefResolver.Validate(query.Geometry);
         if (query.SecondaryGeometry is not null) GeometryRefResolver.Validate(query.SecondaryGeometry);
         if (query.Kind == MeasurementKind.PlaneSeparation && query.SecondaryGeometry is null)
-            throw new ArgumentException("Plane separation requires a secondary geometry reference.", nameof(query));
+            throw new ArgumentException("平面分离需要一个次级几何参考。", nameof(query));
         if (query.Kind != MeasurementKind.PlaneSeparation && query.SecondaryGeometry is not null)
-            throw new ArgumentException("Secondary geometry is only valid for plane separation.", nameof(query));
+            throw new ArgumentException("二次几何仅适用于平面分离。", nameof(query));
         if (query.Kind == MeasurementKind.AxisDirection && query.Unit != DrawingValueUnit.Unitless)
-            throw new ArgumentException("Axis direction is unitless.", nameof(query));
+            throw new ArgumentException("轴的方向是无单位的。", nameof(query));
         if (query.Kind != MeasurementKind.AxisDirection && query.Kind != MeasurementKind.FiniteEntityValidity && query.Unit is DrawingValueUnit.Degree or DrawingValueUnit.Unitless)
-            throw new ArgumentException("Length measurements require a length unit.", nameof(query));
+            throw new ArgumentException("长度测量需要长度单位。", nameof(query));
     }
 
     public static void Validate(MeasurementRequirement requirement)
@@ -213,11 +213,11 @@ public static class DirectionalMeasurementVerifier
             requirement.SourceFactFingerprint is { Length: > 0 } factFingerprint && !IsSha256(factFingerprint) ||
             !double.IsFinite(requirement.Tolerance) || requirement.Tolerance <= 0 ||
             !double.IsFinite(requirement.DirectionToleranceDegrees) || requirement.DirectionToleranceDegrees <= 0 || requirement.DirectionToleranceDegrees >= 90)
-            throw new ArgumentException("Measurement requirement contains missing identity or invalid tolerances.", nameof(requirement));
+            throw new ArgumentException("测量要求缺少身份标识或包含无效的公差。", nameof(requirement));
         if (requirement.ExpectedScalar is null == (requirement.ExpectedVector is null))
-            throw new ArgumentException("Measurement requirement must contain exactly one scalar or vector expectation.", nameof(requirement));
+            throw new ArgumentException("测量要求必须包含一个且仅包含一个标量或向量的期望值。", nameof(requirement));
         if (requirement.ExpectedScalar is { } scalar && !double.IsFinite(scalar) || requirement.ExpectedVector is { } vector && (!Finite(vector) || Norm(vector) <= 1e-12))
-            throw new ArgumentException("Measurement requirement expectation is invalid.", nameof(requirement));
+            throw new ArgumentException("测量要求预期无效。", nameof(requirement));
     }
 
     public static string Fingerprint(MeasurementQuery query)
@@ -270,50 +270,50 @@ public static class DirectionalMeasurementEngine
         DirectionalMeasurementVerifier.Validate(query);
         ArgumentNullException.ThrowIfNull(primary);
         if (actualModelSha256.Length != 64 || !actualModelSha256.All(Uri.IsHexDigit))
-            throw new ArgumentException("Actual measurement model SHA-256 is required.", nameof(actualModelSha256));
+            throw new ArgumentException("实际测量模型 SHA-256 需要。", nameof(actualModelSha256));
         if (!primary.Reference.RefId.Equals(query.Geometry.RefId, StringComparison.Ordinal))
-            throw new ArgumentException("Primary resolution does not belong to the measurement query GeometryRef.");
+            throw new ArgumentException("主分辨率不属于测量查询 GeometryRef。");
         if (query.SecondaryGeometry is null != (secondary is null))
-            throw new ArgumentException("Secondary resolution presence must match the measurement query.");
+            throw new ArgumentException("二次分辨率的存在必须与测量查询匹配。");
         if (secondary is not null && !secondary.Reference.RefId.Equals(query.SecondaryGeometry!.RefId, StringComparison.Ordinal))
-            throw new ArgumentException("Secondary resolution does not belong to the measurement query secondary GeometryRef.");
+            throw new ArgumentException("二级分辨率不属于二次测量查询的二级 GeometryRef。");
 
         if (primary.Status != GeometryRefResolutionStatus.Resolved || primary.Candidate is null)
-            return Result(GeometryMeasurementStatus.Unverifiable, "geometry_ref_resolution", "Primary geometry reference did not resolve.");
+            return Result(GeometryMeasurementStatus.Unverifiable, "geometry_ref_resolution", "主要几何参考无法解析。");
         if (secondary is { Status: not GeometryRefResolutionStatus.Resolved } || secondary is { Candidate: null })
-            return Result(GeometryMeasurementStatus.Unverifiable, "geometry_ref_resolution", "Secondary geometry reference did not resolve.");
+            return Result(GeometryMeasurementStatus.Unverifiable, "geometry_ref_resolution", "二次几何参考未解析。");
         if (!primary.ResolvedModelSha256.Equals(actualModelSha256, StringComparison.OrdinalIgnoreCase) ||
             secondary is not null && !secondary.ResolvedModelSha256.Equals(actualModelSha256, StringComparison.OrdinalIgnoreCase))
-            return Result(GeometryMeasurementStatus.WrongModel, "model_fingerprint", "Resolved geometry and requested measurement model fingerprints differ.");
+            return Result(GeometryMeasurementStatus.WrongModel, "model_fingerprint", "已解决的几何和请求的测量模型指纹不同。");
 
         var signature = primary.Candidate.Signature;
         return query.Kind switch
         {
             MeasurementKind.CylinderDiameter when signature.GeometryKind is GeometryKind.Cylinder or GeometryKind.Circle && signature.RadiusMm is { } radius =>
-                Length(radius * 2, "analytic_radius_from_resolved_brep", "Diameter derived from actual resolved analytic cylinder/circle radius."),
+                Length(radius * 2, "analytic_radius_from_resolved_brep", "直径由实际解析圆柱/圆的半径推导得出。"),
             MeasurementKind.CylinderRadius when signature.GeometryKind is GeometryKind.Cylinder or GeometryKind.Circle && signature.RadiusMm is { } radius =>
-                Length(radius, "analytic_radius_from_resolved_brep", "Radius read from actual resolved analytic cylinder/circle."),
-            MeasurementKind.AxisPointX when signature.AnchorMm is { } anchor => Length(anchor.X, "resolved_geometry_axis_anchor", "X coordinate of resolved geometry axis/reference anchor."),
-            MeasurementKind.AxisPointY when signature.AnchorMm is { } anchor => Length(anchor.Y, "resolved_geometry_axis_anchor", "Y coordinate of resolved geometry axis/reference anchor."),
-            MeasurementKind.AxisPointZ when signature.AnchorMm is { } anchor => Length(anchor.Z, "resolved_geometry_axis_anchor", "Z coordinate of resolved geometry axis/reference anchor."),
-            MeasurementKind.AxisDirection when signature.Direction is { } direction => Vector(direction, "resolved_analytic_direction", "Direction read from resolved analytic geometry."),
+                Length(radius, "analytic_radius_from_resolved_brep", "从实际解析圆柱/圆上读取的半径。"),
+            MeasurementKind.AxisPointX when signature.AnchorMm is { } anchor => Length(anchor.X, "resolved_geometry_axis_anchor", "X轴上已解决几何轴/参考锚点的坐标。"),
+            MeasurementKind.AxisPointY when signature.AnchorMm is { } anchor => Length(anchor.Y, "resolved_geometry_axis_anchor", "Y轴方向上已解决几何轴/参考锚点的坐标。"),
+            MeasurementKind.AxisPointZ when signature.AnchorMm is { } anchor => Length(anchor.Z, "resolved_geometry_axis_anchor", "Z轴上已解决几何轴/参考锚点的坐标值。"),
+            MeasurementKind.AxisDirection when signature.Direction is { } direction => Vector(direction, "resolved_analytic_direction", "从解析几何解算方向读取。"),
             MeasurementKind.PlaneSeparation => MeasurePlaneSeparation(signature, secondary!.Candidate!.Signature),
             MeasurementKind.FiniteEntityValidity => signature.AreaMm2 is { } area && double.IsFinite(area) && area > 0
-                ? Scalar(1, "resolved_trimmed_entity_area", "Resolved entity has finite positive trimmed area evidence.", DrawingValueUnit.Unitless)
-                : Result(GeometryMeasurementStatus.Unverifiable, "resolved_trimmed_entity_area", "Finite-entity validity requires positive trimmed-area evidence."),
-            _ => Result(GeometryMeasurementStatus.Unsupported, "unsupported_measurement_kind", "Resolved geometry does not expose the analytic data required for this measurement kind.")
+                ? Scalar(1, "resolved_trimmed_entity_area", "已解决实体有有限正剪裁面积的证据。", DrawingValueUnit.Unitless)
+                : Result(GeometryMeasurementStatus.Unverifiable, "resolved_trimmed_entity_area", "有限实体的有效性需要正数剪裁面积的证据。"),
+            _ => Result(GeometryMeasurementStatus.Unsupported, "unsupported_measurement_kind", "解析几何无法提供此测量类型所需的分析数据。")
         };
 
         MeasurementResult MeasurePlaneSeparation(GeometrySignature a, GeometrySignature b)
         {
             if (a.GeometryKind != GeometryKind.Plane || b.GeometryKind != GeometryKind.Plane || a.AnchorMm is not { } p || b.AnchorMm is not { } q ||
                 a.Direction is not { } na || b.Direction is not { } nb || !Finite(na) || !Finite(nb) || Norm(na) <= 1e-12 || Norm(nb) <= 1e-12)
-                return Result(GeometryMeasurementStatus.Unsupported, "analytic_plane_separation", "Plane separation requires two resolved analytic planes with anchors and normals.");
+                return Result(GeometryMeasurementStatus.Unsupported, "analytic_plane_separation", "平面分离需要两个具有锚点和法线的解析平面。");
             var ua = Unit(na); var ub = Unit(nb);
             if (Math.Abs(Dot(ua, ub)) < Math.Cos(.25 * Math.PI / 180))
-                return Result(GeometryMeasurementStatus.InvalidGeometry, "analytic_plane_separation", "Plane-separation query requires parallel planes.");
+                return Result(GeometryMeasurementStatus.InvalidGeometry, "analytic_plane_separation", "分离平面查询需要平行的平面。");
             var delta = new Vector3(q.X - p.X, q.Y - p.Y, q.Z - p.Z);
-            return Length(Math.Abs(Dot(delta, ua)), "analytic_plane_separation", "Perpendicular distance between resolved analytic planes.");
+            return Length(Math.Abs(Dot(delta, ua)), "analytic_plane_separation", "解析平面解析后的垂直距离。");
         }
 
         MeasurementResult Length(double millimeters, string method, string message)
@@ -342,7 +342,7 @@ public static class DirectionalMeasurementEngine
             NumericalUncertainty = query.NumericalTolerance,
             ActualModelSha256 = actualModelSha256,
             ModelReopened = modelReopened,
-            SupportScope = "Resolved analytic B-Rep signature only; no feature-parameter substitution.",
+            SupportScope = "仅解析分析 B-Rep 签名；未进行特征参数替换。",
             Message = message
         };
 
@@ -360,7 +360,7 @@ public static class DirectionalMeasurementEngine
             NumericalUncertainty = query.NumericalTolerance,
             ActualModelSha256 = actualModelSha256,
             ModelReopened = modelReopened,
-            SupportScope = "Resolved analytic B-Rep signature only; no feature-parameter substitution.",
+            SupportScope = "仅解析分析 B-Rep 签名；未进行特征参数替换。",
             Message = message
         };
 
@@ -377,7 +377,7 @@ public static class DirectionalMeasurementEngine
             NumericalUncertainty = query.NumericalTolerance,
             ActualModelSha256 = actualModelSha256,
             ModelReopened = modelReopened,
-            SupportScope = "Fail-closed measurement; unsupported or unresolved geometry is never promoted to a value.",
+            SupportScope = "失败闭合测量；未支持或未解决的几何体永远不会被提升为值。",
             Message = message
         };
     }

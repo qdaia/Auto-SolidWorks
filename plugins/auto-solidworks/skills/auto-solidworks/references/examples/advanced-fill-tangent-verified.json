@@ -1,0 +1,194 @@
+{
+  "name": "fill-tangent-verified",
+  "source_text": "Explicit source fixture for native modeling upgrade acceptance",
+  "expected_solid_body_count": 1,
+  "expected_surface_body_count": 1,
+  "operations": [
+    {
+      "type": "ProfileSketch",
+      "constraints": [],
+      "dimensions": [],
+      "edits": [],
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        }
+      },
+      "plane_id": null,
+      "plane": "Front",
+      "face_attachment": null,
+      "primitives": [
+        {
+          "type": "CenteredRectangle",
+          "width_mm": 20,
+          "height_mm": 20,
+          "role": "Outer",
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ],
+      "id": "profile",
+      "name": "profile",
+      "depends_on": []
+    },
+    {
+      "type": "ExtrudeBoss",
+      "merge": true,
+      "sketch_id": "profile",
+      "depth_mm": 10,
+      "end_condition": "Blind",
+      "end_reference": null,
+      "start_offset_mm": 0,
+      "reverse_start_offset": false,
+      "reverse_direction": false,
+      "id": "base",
+      "name": "base",
+      "depends_on": [
+        "profile"
+      ]
+    },
+    {
+      "type": "NativeFeature",
+      "id": "fill",
+      "name": "fill",
+      "depends_on": [
+        "base"
+      ],
+      "feature": {
+        "kind": "SurfaceFill",
+        "surface": {
+          "fill_boundaries": [
+            {
+              "edge": {
+                "kind": "Edge",
+                "feature_id": "base",
+                "start_point_mm": {
+                  "x": -10,
+                  "y": -10,
+                  "z": 10
+                },
+                "end_point_mm": {
+                  "x": 10,
+                  "y": -10,
+                  "z": 10
+                },
+                "geometry": "Line"
+              },
+              "contact": "Tangent",
+              "support_face": {
+                "kind": "Face",
+                "feature_id": "base",
+                "geometry": "Plane",
+                "position_mm": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 10
+                },
+                "area_mm2": 400
+              }
+            },
+            {
+              "edge": {
+                "kind": "Edge",
+                "feature_id": "base",
+                "start_point_mm": {
+                  "x": 10,
+                  "y": -10,
+                  "z": 10
+                },
+                "end_point_mm": {
+                  "x": 10,
+                  "y": 10,
+                  "z": 10
+                },
+                "geometry": "Line"
+              },
+              "contact": "Tangent",
+              "support_face": {
+                "kind": "Face",
+                "feature_id": "base",
+                "geometry": "Plane",
+                "position_mm": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 10
+                },
+                "area_mm2": 400
+              }
+            },
+            {
+              "edge": {
+                "kind": "Edge",
+                "feature_id": "base",
+                "start_point_mm": {
+                  "x": 10,
+                  "y": 10,
+                  "z": 10
+                },
+                "end_point_mm": {
+                  "x": -10,
+                  "y": 10,
+                  "z": 10
+                },
+                "geometry": "Line"
+              },
+              "contact": "Tangent",
+              "support_face": {
+                "kind": "Face",
+                "feature_id": "base",
+                "geometry": "Plane",
+                "position_mm": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 10
+                },
+                "area_mm2": 400
+              }
+            },
+            {
+              "edge": {
+                "kind": "Edge",
+                "feature_id": "base",
+                "start_point_mm": {
+                  "x": -10,
+                  "y": 10,
+                  "z": 10
+                },
+                "end_point_mm": {
+                  "x": -10,
+                  "y": -10,
+                  "z": 10
+                },
+                "geometry": "Line"
+              },
+              "contact": "Tangent",
+              "support_face": {
+                "kind": "Face",
+                "feature_id": "base",
+                "geometry": "Plane",
+                "position_mm": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 10
+                },
+                "area_mm2": 400
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

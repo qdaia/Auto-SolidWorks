@@ -16,14 +16,14 @@ internal sealed partial class SolidWorksComExecutor
                 Primitives=centers.Select(p=>(ProfilePrimitive)new CircleProfile { CenterXmm=p.Xmm,CenterYmm=p.Ymm,DiameterMm=diameter }).ToArray() };
             return objects[id]=ExecuteSketch(model,sketch,math,objects);
         }
-        var profileId=operation.Name+"_DrillProfile";
+        var profileId=operation.Name+"_钻孔轮廓草图";
         MakeProfile(profileId,o.DiameterMm,frame,o.HoleCenters);
         object result=ExecuteCutExtrude(model,new ExtrudeCutOperation { Id=operation.Id,Name=operation.Name,SketchId=profileId,
             DepthMm=o.DepthMm,ReverseDirection=o.Reverse,EndCondition=o.ThroughAll?ExtrudeEndCondition.ThroughAll:ExtrudeEndCondition.Blind },objects);
         if(o.HoleKind==HoleKind.Counterbore)
         {
-            var counterId=operation.Name+"_CounterboreProfile"; MakeProfile(counterId,o.CounterboreDiameterMm,frame,o.HoleCenters);
-            result=ExecuteCutExtrude(model,new ExtrudeCutOperation { Id=operation.Id,Name=operation.Name+"_Counterbore",SketchId=counterId,
+            var counterId=operation.Name+"_柱形沉孔轮廓草图"; MakeProfile(counterId,o.CounterboreDiameterMm,frame,o.HoleCenters);
+            result=ExecuteCutExtrude(model,new ExtrudeCutOperation { Id=operation.Id,Name=operation.Name+"_柱形沉孔",SketchId=counterId,
                 DepthMm=o.CounterboreDepthMm,ReverseDirection=o.Reverse },objects);
         }
         if(o.HoleKind==HoleKind.Countersink)
@@ -32,11 +32,11 @@ internal sealed partial class SolidWorksComExecutor
             var sign=o.Reverse?-1:1;
             for(var i=0;i<o.HoleCenters.Count;i++)
             {
-                var topId=operation.Name+"_SinkTop"+i; var bottomId=operation.Name+"_SinkBottom"+i;
+                var topId=operation.Name+"_锥形沉孔上轮廓草图"+i; var bottomId=operation.Name+"_锥形沉孔下轮廓草图"+i;
                 MakeProfile(topId,o.CountersinkDiameterMm,frame,[o.HoleCenters[i]]);
                 var p=frame.OriginMm;
                 MakeProfile(bottomId,o.DiameterMm,frame with { OriginMm=new(p.X+sign*n.X*depth,p.Y+sign*n.Y*depth,p.Z+sign*n.Z*depth) },[o.HoleCenters[i]]);
-                result=ExecuteNativeFeature(model,new NativeFeatureOperation { Id=operation.Id,Name=operation.Name+"_Countersink"+i,
+                result=ExecuteNativeFeature(model,new NativeFeatureOperation { Id=operation.Id,Name=operation.Name+"_锥形沉孔"+i,
                     Options=new() { Kind=NativeFeatureKind.LoftCut,ProfileIds=[topId,bottomId] } },objects,math);
             }
         }
@@ -57,15 +57,15 @@ internal sealed partial class SolidWorksComExecutor
                 }
                 catch(InvalidOperationException ex)
                 {
-                    throw new InvalidOperationException($"Tapped hole {i+1} in '{operation.Name}' has no uniquely resolved circular entrance edge. " +
-                        "A curved or open entrance may not support a native cosmetic thread. No thread substitution was applied. " +
-                        "If the user's model may use a nominal thread representation, explicitly recompile a Simple drilled hole " +
-                        "with the thread specification in its name and record that representation in assumptions.",ex);
+                    throw new InvalidOperationException($"已攻丝的孔{i+1}在 '{operation.Name}' 中没有唯一解析的圆形入口边。" +
+                        "曲线或开放的入口可能不支持原生的装饰螺纹。未应用螺纹替换。" +
+                        "如果用户模型可能使用名义螺纹表示，则显式重建一个简单钻孔 '" +
+                        "带有名称中的螺纹规格，并在假设中记录这种表示方式。",ex);
                 }
-                var thread=model.FeatureManager.InsertCosmeticThread2((short)(o.ThroughAll?swCosmeticThreadType_e.swApplyCosmeticThread_ThroughFeature:swCosmeticThreadType_e.swApplyCosmeticThread_Blind),
-                    Mm(o.ThreadMajorDiameterMm),Mm(o.DepthMm),o.ThreadDesignation!)
-                    ?? throw new InvalidOperationException("Native cosmetic thread creation failed.");
-                thread.Name=operation.Name+"_Thread"+i;
+                var thread=model.FeatureManager.InsertCosmeticThread2((short)(o.ThroughAll && o.ThreadDepthMm is null?swCosmeticThreadType_e.swApplyCosmeticThread_ThroughFeature:swCosmeticThreadType_e.swApplyCosmeticThread_Blind),
+                    Mm(o.ThreadMajorDiameterMm),Mm(o.ThreadDepthMm??o.DepthMm),o.ThreadDesignation!)
+                    ?? throw new InvalidOperationException("原生装饰螺纹创建失败。");
+                thread.Name=operation.Name+"_装饰螺纹"+i;
             }
         }
         return result;

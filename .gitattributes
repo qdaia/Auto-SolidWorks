@@ -1,5 +1,5 @@
-* text=auto
-*.ps1 text eol=crlf
-*.py text eol=lf
-*.md text eol=lf
+# Preserve raw bytes used by source/runtime identities and generated contracts.
+* -text whitespace=cr-at-eol
 third-party/** -text -whitespace
+plugins/auto-solidworks/surface/CurvesWB/** -text -whitespace
+plugins/auto-solidworks/skills/coding-tools-auto-solidworks-bridge/SKILL.md whitespace=cr-at-eol,-blank-at-eof

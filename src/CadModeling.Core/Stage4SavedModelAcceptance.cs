@@ -99,7 +99,7 @@ public sealed class Stage4SavedModelAcceptanceWorkflow(IModelingExecutor executo
         };
         var verification=RevolvedFamilyVerifier.Evaluate(profile,observation);
         if(profile.Kind==RevolvedFamilyKind.SteppedShaftWithAxialHole&&!RevolvedAxialScopeMatches(profile,evidence.ConnectivityChecks,inspection.ModelSha256))
-            verification=AppendFailure(verification,"axial-hole-geometry-scope","The T08 producer must measure this rotation axis and the entire source axial interval, not another void in the same model.");
+            verification=AppendFailure(verification,"axial-hole-geometry-scope","该 T08 生产者必须测量这个旋转轴和整个源轴区间，而不是同一模型中的另一个空缺。");
         return PackageResult(nativePath,inspection,observation,verification,cacheHit);
     }
 
@@ -129,7 +129,7 @@ public sealed class Stage4SavedModelAcceptanceWorkflow(IModelingExecutor executo
         var verification=HoleGroupVerifier.Evaluate(profile,observation);
         if(profile.HoleKind==HoleKind.Countersink&&instances.Any(i=>i.CountersinkDiameterMm is null)||
            profile.HoleKind==HoleKind.Tapped&&instances.Any(i=>i.ThreadDesignation is null))
-            verification=AppendFailure(verification,"subtype-acquisition-incomplete","Every hole must have one complete, geometrically bound native cone or cosmetic thread. Missing or ambiguous acquisition remains unverifiable.");
+            verification=AppendFailure(verification,"subtype-acquisition-incomplete","每个孔必须有一个完整的、几何上绑定的原生圆锥或装饰螺纹。缺少或含糊的获取无法验证。");
         return PackageResult(nativePath,inspection,observation,verification,cacheHit);
     }
 
@@ -169,10 +169,10 @@ public sealed class Stage4SavedModelAcceptanceWorkflow(IModelingExecutor executo
         var verification=EdgeTreatmentVerifier.Evaluate(intent,actual);
         if(repair is not null&&repair.Execution.EvidenceMode!="native_executor")
             verification=AppendFailure(verification,"native-repair-execution-required",
-                "Saved native acceptance requires an actual native_executor repair receipt. Synthetic fixtures are restricted to development contract tests.");
+                "保存原生接受需要一个实际的native_executor修复收据。合成夹具仅限于开发合同测试使用。");
         if(intent.TargetEdges.Any(r=>r.InputToFeature is not null&&r.InputToFeature!=binding.FeatureName))
-            verification=AppendFailure(verification,"native-edge-input-scope","Feature-input references must belong to the exact native treatment being certified.");
-        if(feature is null)verification=AppendFailure(verification,"native-feature-missing","The named saved native edge-treatment feature was not found.");
+            verification=AppendFailure(verification,"native-edge-input-scope","特征输入必须参考正在认证的确切原生处理。");
+        if(feature is null)verification=AppendFailure(verification,"native-feature-missing","未找到名为的保存的原生边处理特征。");
         return PackageResult(nativePath,inspection,actual,verification,cacheHit);
     }
 
@@ -188,7 +188,7 @@ public sealed class Stage4SavedModelAcceptanceWorkflow(IModelingExecutor executo
         {
             captured=null;
             verification=AppendFailure(verification,"native-observation-not-serializable",
-                "Native observation contains unavailable/non-finite required measurements; the observation is withheld and acceptance remains unverifiable.");
+                "原生观察包含不可用/有限制的必要测量；观察被拒绝，接受性无法验证。");
         }
         return new(){NativePath=Path.GetFullPath(nativePath),Inspection=inspection,Observation=captured,Verification=verification,InspectionCacheHit=cacheHit};
     }
@@ -196,7 +196,7 @@ public sealed class Stage4SavedModelAcceptanceWorkflow(IModelingExecutor executo
     private async Task<(ModelInspection Inspection,bool CacheHit)> InspectCachedAsync(string nativePath,string sourceRevision,ModelInspectionRequest request,CancellationToken cancellationToken)
     {
         var full=Path.GetFullPath(nativePath);
-        if(!File.Exists(full))return (new(false,"Saved native model does not exist.",full),false);
+        if(!File.Exists(full))return (new(false,"保存的原生模型不存在。",full),false);
         var modelSha=DrawingPlanValidation.FileHash(full);
         var requestFingerprint=Sha(JsonSerializer.Serialize(request,ModelingIrJson.Options));
         var health=await executor.HealthAsync(cancellationToken);

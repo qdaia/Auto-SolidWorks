@@ -1,5 +1,10 @@
 # Local geometry verification
 
+<!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
+Current local integration version: `26.10.07`; revision: `local-integration-20261007`. Incorporates the implemented `.34.validation` optimizations and preserves existing modeling/drawing capabilities. This integration is checked by a fresh build, offline regressions and public MCP compile/dry-run without starting SOLIDWORKS. B01-B06 engineering remains paused and incomplete. Native successes and failures remain bound to their original revisions and bounded fixtures; this version is not natively recertified. Complex Boundary, Curvature Fill/G2, general changed topology, standard thread fits and mechanism limits/couplings remain open. Read the [bundled capability manifest](capability-manifest.json) and `cad_get_capabilities`.
+<!-- Capability manifest SHA256: 04e0dc6afa7d8b14dc5ebde410f73c1ae0b050afaacbde725a504d9aec910ac1 -->
+<!-- AUTO-SOLIDWORKS-CONTRACT:END -->
+
 Use source-derived local checks for intentionally partial/intersecting holes, stepped bores, conical sinks/tips and planar shoulders. These inspect actual trimmed faces in model coordinates before save and after reopening the native file; the same checks work on STEP imports. They supplement the complete-cylinder checks. Do not remove or replace a failed full-cylinder requirement with samples unless the source itself requires a partial wall.
 
 ## Contract
@@ -7,7 +12,8 @@ Use source-derived local checks for intentionally partial/intersecting holes, st
 `verification.surface_samples` contains checks with:
 
 - `id`, `source_literal`, `source_dimension_ids`: same source requirement and binding rules as other checks.
-- `surface_kind`: `Plane`, `Cylinder`, or `Cone`.
+- `surface_kind`: `Plane`, `Cylinder`, `Cone`, `Sphere`, `Torus`, `BSpline`, or `Other`. Torus/BSpline/Other support finite trimmed position/normal probes; there is no claimed analytic torus-radius or spline-continuity certificate.
+- Sphere requires positive `radius_mm` and finite `center_mm:{x,y,z}`. Both are compared with the actual native sphere parameters, in addition to trimmed-face point proximity and material-side normals. Expected points must also lie on the declared expected sphere. A recess has normals directed toward its sphere center. Missing native parameters fail as unverifiable.
 - `points_mm`: nonempty array of `{x,y,z}` in global model mm. Derive these from the source geometry, never from measured output.
 - `outward_normals`: exactly one nonzero vector per point, pointing **out of the material**. On an internal hole the normal points toward the hole axis. Vectors are normalized internally; opposite directions fail.
 - `diameter_mm`: required only for Cylinder, read from actual cylinder parameters.
@@ -17,9 +23,13 @@ Use source-derived local checks for intentionally partial/intersecting holes, st
 
 `verification.boundary_clearances` contains `id`, `source_literal`, `source_dimension_ids`, `points_mm`, `minimum_distance_mm`, and `tolerance_mm` (default 0.01, strictly less than minimum distance). Every point must be at least the specified distance from **all solid faces**. An unread face or missing body inventory fails closed. This check measures distance only: it does **not** distinguish material from void or prove that two cavities connect. Pair it with independently specified wall geometry and material-side normals.
 
-At most 512 local points are accepted per request. All declared points must pass. Results include each point's nearest-boundary distance, candidate face parameters, optional unique-face total area and an explicit scope statement. COM failures produce `unverifiable`; mismatching measured geometry produces `mismatch`. Unsupported analytic/spline surfaces cannot satisfy one of the three declared surface types.
+At most 512 local points are accepted per request. All declared points must pass. Results include each point's nearest-boundary distance, candidate face parameters, optional unique-face total area and an explicit scope statement. COM failures produce `unverifiable`; mismatching measured geometry produces `mismatch`. Unsupported analytic/spline surfaces cannot satisfy a declared analytic surface type.
+
+Sphere source bindings additionally support `radius_mm` and `center_mm.x/y/z`, using length units. The finite samples do not prove an entire surface's topology or continuity.
 
 Source bindings support `points_mm.N.x/y/z`, `diameter_mm`, `cone_half_angle_degrees` and `minimum_distance_mm`. Use length units for coordinates/diameters/distances, Degree for cone angles. The computed read-only binding target `cone_included_angle_degrees` is twice the half angle: bind a source 90-degree countersink directly to this field while declaring `cone_half_angle_degrees:45`. Derived coordinates need corresponding derived source facts when bound. Tolerances and normals cannot masquerade as source dimension bindings. Feature inventory can reference these check IDs just like complete-cylinder checks.
+
+Add `whole_model_checks` for independent complete solid/sheet counts, face/edge/open-edge counts, a full `surface_face_counts` partition and optional `surface_area_mm2`/`volume_mm3`. All visible and hidden solid/sheet bodies are read; native `IBody2.Check3` faults are rejected. Missing enumeration, area, fault-check or adjacency results fail closed. Set `require_whole_model_inventory:true` when finite probes alone are insufficient. Count bindings use Unitless source dimensions; area/volume are independent source requirements with explicit tolerances, not mislabeled linear dimension bindings. See [root hardening](root-hardening.md) for the full scope. Structural inventory does not uniquely identify position/topology or prove complete drawing equivalence.
 
 ## Example: diameter 10 edge half-hole
 

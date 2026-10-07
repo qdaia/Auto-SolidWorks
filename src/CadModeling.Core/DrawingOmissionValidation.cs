@@ -14,7 +14,7 @@ public sealed record DrawingOmissionResult
     public bool Passed => Issues.Count == 0;
     public string Status => Passed ? "declared_review_complete" : "review_incomplete";
     public bool FullDrawingEquivalence => false;
-    public string Scope => "Checks ingestion inventory accounting and declared visual review; does not prove detector recall or that an agent actually viewed every crop.";
+    public string Scope => "检查物料库存记录并审查声明的视觉检查；并不证明探测器召回或表明每个作物都确实被某个代理检查过。";
     public int TotalCandidates { get; init; }
     public int AccountedCandidates { get; init; }
     public int RequiredRegions { get; init; }
@@ -29,21 +29,21 @@ public static partial class DrawingOmissionValidation
     public static DrawingOmissionInventory Load(string path, string? expectedHash = null)
     {
         if (!Path.IsPathFullyQualified(path) || !File.Exists(path))
-            throw new InvalidDataException("Use the absolute omission_inventory_path returned by cad_read_drawing.");
-        if (new FileInfo(path).Length > MaximumInventoryBytes) throw new InvalidDataException("Omission inventory exceeds 32 MiB.");
+            throw new InvalidDataException("使用 cad_read_drawing 返回的绝对值 omission_inventory_path。");
+        if (new FileInfo(path).Length > MaximumInventoryBytes) throw new InvalidDataException("遗漏清单超过32 MiB。");
         var bytes = File.ReadAllBytes(path);
         if (expectedHash is not null && !SameHash(expectedHash, Convert.ToHexString(SHA256.HashData(bytes))))
-            throw new InvalidDataException("Omission inventory changed. Preserve the original inventory and reread the source if needed.");
+            throw new InvalidDataException("遗漏库存已更改。保留原始库存并在需要时重新读取源文件。");
         var inventory = JsonSerializer.Deserialize<DrawingOmissionInventory>(bytes, ModelingIrJson.Options)
-            ?? throw new InvalidDataException("Empty omission inventory.");
+            ?? throw new InvalidDataException("空缺库存。");
         if (inventory.SchemaVersion != "1.0" || inventory.Producer != "auto-solidworks-omission-v1" ||
             inventory.TotalPages is < 1 or > 50 || inventory.Candidates.Count > 50000 || inventory.Regions.Count > 5000 ||
             inventory.Pages.Count != inventory.TotalPages)
-            throw new InvalidDataException("Invalid or unsupported omission inventory structure.");
+            throw new InvalidDataException("无效或不支持的省略库存结构。");
         if (!Unique(inventory.Pages.Select(p => p.PageNumber.ToString(CultureInfo.InvariantCulture))) ||
             inventory.Pages.Any(p => p.PageNumber < 1 || p.PageNumber > inventory.TotalPages) ||
             !Unique(inventory.Candidates.Select(c => c.Id)) || !Unique(inventory.Regions.Select(r => r.Id)))
-            throw new InvalidDataException("Inventory page, candidate and region IDs must be unique and valid.");
+            throw new InvalidDataException("库存页面中，候选和区域ID必须唯一且有效。");
         var regions = inventory.Regions.ToDictionary(r => r.Id, StringComparer.Ordinal);
         var candidateIds = inventory.Candidates.Select(c => c.Id).ToHashSet(StringComparer.Ordinal);
         if (inventory.Candidates.Any(c => !Enum.IsDefined(c.Kind) || !ValidBox(c.Bounds) || c.PageNumber < 1 || c.PageNumber > inventory.TotalPages ||
@@ -51,19 +51,19 @@ public static partial class DrawingOmissionValidation
             c.SecondaryValue is { } s && !double.IsFinite(s) ||
             c.ReviewRegionIds.Count == 0 || c.ReviewRegionIds.Any(id => !regions.TryGetValue(id, out var r) || r.PageNumber != c.PageNumber) ||
             c.RelatedCandidateIds.Any(id => !candidateIds.Contains(id))))
-            throw new InvalidDataException("Invalid candidate geometry, page, quantities or references.");
+            throw new InvalidDataException("无效的候选项几何、页面、量或引用。");
         if (inventory.Regions.Any(r => !ValidBox(r.Bounds) || r.PageNumber < 1 || r.PageNumber > inventory.TotalPages ||
             r.PixelWidth < 1 || r.PixelHeight < 1 || r.InkPixels < 0 || r.ResidualInkPixels < 0 || r.ResidualInkPixels > r.InkPixels))
-            throw new InvalidDataException("Invalid review region.");
+            throw new InvalidDataException("无效的审查区域。");
         if (!Path.IsPathFullyQualified(inventory.SourcePath) || !File.Exists(inventory.SourcePath) ||
             !SameHash(inventory.SourceSha256, DrawingPlanValidation.FileHash(inventory.SourcePath)))
-            throw new InvalidDataException("Source drawing changed or is unavailable.");
+            throw new InvalidDataException("源图纸更改或不可用。");
         var root = Path.GetDirectoryName(Path.GetFullPath(path))!;
         foreach (var page in inventory.Pages.Where(p => p.Ingested))
         {
             CheckArtifact(root, page.ObservationPath, page.ObservationSha256);
             if (!inventory.Regions.Any(r => r.PageNumber == page.PageNumber && r.Purpose == "overview"))
-                throw new InvalidDataException("An ingested page has no full-page review region.");
+                throw new InvalidDataException("读取的页面缺少整页复查区域。");
         }
         foreach (var region in inventory.Regions) CheckArtifact(root, region.ImagePath, region.ImageSha256);
         return inventory;
@@ -74,95 +74,95 @@ public static partial class DrawingOmissionValidation
         try
         {
             if (context.OmissionReview is not { } review)
-                return Failed("DRAWING_OMISSION_MISSING", "Drawing plans require omission_review from cad_read_drawing. Read the source and account for candidates and review regions before compiling.");
-            if (!IsHash(review.InventorySha256)) return Failed("DRAWING_OMISSION_INTEGRITY", "InventorySha256 must be the hash returned by ingestion.");
+                return Failed("DRAWING_OMISSION_MISSING", "绘制计划要求从 cad_read_drawing 中获取 omission_review 。阅读源文件，在编译前考虑候选者和审查区域。");
+            if (!IsHash(review.InventorySha256)) return Failed("DRAWING_OMISSION_INTEGRITY", "InventorySha256 必须是 图纸读取 返回的哈希值。");
             var inventory = Load(review.InventoryPath, review.InventorySha256);
             if (!Path.IsPathFullyQualified(context.SourcePath) || !string.Equals(Path.GetFullPath(context.SourcePath),
                 Path.GetFullPath(inventory.SourcePath), StringComparison.OrdinalIgnoreCase))
-                return Failed("DRAWING_OMISSION_SOURCE", "The review inventory belongs to another source path.");
+                return Failed("DRAWING_OMISSION_SOURCE", "库存审查属于另一条源路径。");
             return EvaluateLoaded(context, inventory, review);
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or JsonException or ArgumentException or NullReferenceException or InvalidOperationException or FormatException or OverflowException)
         {
-            return Failed("DRAWING_OMISSION_INTEGRITY", "Cannot verify omission evidence: " + ex.Message);
+            return Failed("DRAWING_OMISSION_INTEGRITY", "无法验证遗漏证据：" + ex.Message);
         }
     }
 
     private static DrawingOmissionResult EvaluateLoaded(DrawingPlanContext context, DrawingOmissionInventory inventory, DrawingOmissionReview review)
     {
         if(review.Candidates.Any(c=>c.CandidateIds.Count>0 && !string.IsNullOrEmpty(c.CandidateId)))
-            return Failed("DRAWING_OMISSION_IDS","Supply exactly one of candidate_id or an explicit candidate_ids batch.");
+            return Failed("DRAWING_OMISSION_IDS","提供 candidate_id 或一个具体的 candidate_ids 批次之一。");
         var expanded=review.Candidates.SelectMany(c=>c.CandidateIds.Count==0?new[]{c}:c.CandidateIds.Select(id=>c with{CandidateId=id,CandidateIds=[]})).ToArray();
         review=review with{Candidates=expanded};
         var issues = new List<DrawingOmissionIssue>();
         void Issue(string code, string text, DrawingOmissionCandidate? c = null) =>
             issues.Add(new(code, text, c?.Id, null, c?.PageNumber, c?.Bounds));
-        if (!inventory.CompleteExtraction) Issue("DRAWING_OMISSION_EXTRACTION", "Extraction was incomplete or capped. Resolve the ingestion limitations before claiming coverage.");
+        if (!inventory.CompleteExtraction) Issue("DRAWING_OMISSION_EXTRACTION", "提取不完整或被封顶。在解决摄入限制之前，不能声称覆盖范围。");
         foreach (var page in inventory.Pages.Where(p => !p.Ingested))
-            issues.Add(new("DRAWING_OMISSION_PAGE", "Source page was not ingested. Read all source pages; no unexamined page is silently excluded.", PageNumber: page.PageNumber));
+            issues.Add(new("DRAWING_OMISSION_PAGE", "源页面未被摄取。阅读所有源页面；没有未检查的页面会被无声排除。", PageNumber: page.PageNumber));
         if (!Unique(review.Candidates.Select(c => c.CandidateId)) || !Unique(review.Regions.Select(r => r.RegionId)) ||
             !Unique(review.CrossViewChecks.Select(c => c.Id)) || !Unique(review.AdditionalFindings.Select(f => f.Id)) ||
             !Unique(context.Features.Select(f => f.Id)) || !Unique(context.Dimensions.Select(d => d.Id)) || !Unique(context.Views.Select(v => v.Id)))
-            return Failed("DRAWING_OMISSION_IDS", "Review, feature, dimension and view IDs must be nonempty and unique.");
+            return Failed("DRAWING_OMISSION_IDS", "审查、特征、尺寸和视图ID必须非空且唯一。");
         var candidates = inventory.Candidates.ToDictionary(c => c.Id, StringComparer.Ordinal);
         var decisions = review.Candidates.ToDictionary(c => c.CandidateId, StringComparer.Ordinal);
         var features = context.Features.ToDictionary(f => f.Id, StringComparer.Ordinal);
         var dimensions = context.Dimensions.ToDictionary(d => d.Id, StringComparer.Ordinal);
         var views = context.Views.ToDictionary(v => v.Id, StringComparer.Ordinal);
         if(context.Views.Any(v=>v.PageNumber<1||v.PageNumber>inventory.TotalPages))
-            Issue("DRAWING_OMISSION_VIEW","A declared source view is outside the source page range.");
+            Issue("DRAWING_OMISSION_VIEW","声明的源视图超出源页面范围。");
         var regionReviews = review.Regions.ToDictionary(r => r.RegionId, StringComparer.Ordinal);
-        foreach (var id in decisions.Keys.Where(id => !candidates.ContainsKey(id))) Issue("DRAWING_OMISSION_UNKNOWN_ID", "Review names a candidate absent from the immutable inventory: " + id);
+        foreach (var id in decisions.Keys.Where(id => !candidates.ContainsKey(id))) Issue("DRAWING_OMISSION_UNKNOWN_ID", "审查名称，检查候选对象不在不可变库存中：" + id);
         foreach (var r in review.Regions.Where(r => !inventory.Regions.Any(i => i.Id == r.RegionId)))
-            issues.Add(new("DRAWING_OMISSION_UNKNOWN_ID", "Review names a region absent from the inventory.", RegionId: r.RegionId));
+            issues.Add(new("DRAWING_OMISSION_UNKNOWN_ID", "审查名称发现缺少库存中的区域。", RegionId: r.RegionId));
         var accounted = 0;
         foreach (var candidate in inventory.Candidates)
         {
             var before = issues.Count;
             if (!decisions.TryGetValue(candidate.Id, out var decision) || decision.Disposition == DrawingCandidateDisposition.Unresolved)
-            { Issue("DRAWING_OMISSION_UNACCOUNTED", "Candidate has no resolved explanation. Inspect its original crop.", candidate); continue; }
+            { Issue("DRAWING_OMISSION_UNACCOUNTED", "候选没有解析说明。检查其原始裁剪。", candidate); continue; }
             if (!Enum.IsDefined(decision.Disposition) || string.IsNullOrWhiteSpace(decision.Rationale))
-                Issue("DRAWING_OMISSION_EXPLANATION", "Every disposition requires an explicit source-based rationale.", candidate);
+                Issue("DRAWING_OMISSION_EXPLANATION", "每一个安排都需要一个明确的基于来源的理由。", candidate);
             if (decision.CorrectedLiteral is not null && (string.IsNullOrWhiteSpace(decision.CorrectedLiteral) || string.IsNullOrWhiteSpace(decision.CorrectionReason)))
-                Issue("DRAWING_OMISSION_CORRECTION", "An OCR correction needs the actual source literal and a reason; keep the original candidate intact.", candidate);
+                Issue("DRAWING_OMISSION_CORRECTION", "OCR 需要实际的源原文和一个原因；保持原始候选项的完整。", candidate);
             if (candidate.Conflict && (decision.CorrectedLiteral is null || string.IsNullOrWhiteSpace(decision.CorrectionReason)))
-                Issue("DRAWING_OMISSION_CONFLICT", "Conflicting detections require a recorded source-image reading and explanation.", candidate);
+                Issue("DRAWING_OMISSION_CONFLICT", "冲突检测需要记录的源图像读取和解释。", candidate);
             if (decision.FeatureIds.Any(id => !features.ContainsKey(id)) || decision.DimensionIds.Any(id => !dimensions.ContainsKey(id)))
-                Issue("DRAWING_OMISSION_TARGET", "Candidate refers to a feature or dimension missing from the plan.", candidate);
+                Issue("DRAWING_OMISSION_TARGET", "候选项是指计划中缺少的一个特征或尺寸。", candidate);
             switch (decision.Disposition)
             {
                 case DrawingCandidateDisposition.Feature:
-                    if (decision.FeatureIds.Count == 0) Issue("DRAWING_OMISSION_TARGET", "Feature disposition needs target feature IDs.", candidate);
+                    if (decision.FeatureIds.Count == 0) Issue("DRAWING_OMISSION_TARGET", "特征布置需要目标特征ID。", candidate);
                     foreach (var featureId in decision.FeatureIds.Where(features.ContainsKey))
                         if (!features[featureId].ViewIds.Any(id => views.TryGetValue(id, out var v) && v.PageNumber == candidate.PageNumber))
-                            Issue("DRAWING_OMISSION_VIEW", "The mapped feature has no supporting view on this candidate's page.", candidate);
+                            Issue("DRAWING_OMISSION_VIEW", "该映射特征在该候选项页面上没有支撑视图。", candidate);
                     foreach (var dimId in decision.DimensionIds.Where(dimensions.ContainsKey))
                     {
                         var fact = dimensions[dimId];
                         if (!decision.FeatureIds.Any(id => features.TryGetValue(id, out var f) && f.OperationIds.Contains(fact.OperationId, StringComparer.Ordinal)))
-                            Issue("DRAWING_OMISSION_BINDING", "Candidate dimension does not belong to its target feature's operations.", candidate);
+                            Issue("DRAWING_OMISSION_BINDING", "候选尺寸不属于其目标特征的操作。", candidate);
                         if (!fact.ObservationIds.Any(candidate.ObservationIds.Contains))
-                            Issue("DRAWING_OMISSION_BINDING", "Mapped dimensions must cite the candidate's source observation IDs.", candidate);
+                            Issue("DRAWING_OMISSION_BINDING", "映射的尺寸必须引用候选项的源观察ID。", candidate);
                     }
                     CheckQuantities(candidate, decision, dimensions, Issue);
                     break;
                 case DrawingCandidateDisposition.NonModel:
                     if (decision.FeatureIds.Count > 0 || decision.DimensionIds.Count > 0 || decision.DuplicateOf is not null ||
                         decision.NonModelCategory is not ("border" or "title_block" or "dimension_graphic" or "centerline" or "hatch" or "note" or "noise"))
-                        Issue("DRAWING_OMISSION_NONMODEL", "NonModel requires one supported classification and no modeling/duplicate targets.", candidate);
+                        Issue("DRAWING_OMISSION_NONMODEL", "NonModel 需要一个支持的分类，并且没有建模/重复的目标。", candidate);
                     if (candidate.DimensionKind is not null && decision.NonModelCategory is not ("title_block" or "note" or "noise"))
-                        Issue("DRAWING_OMISSION_NONMODEL", "A numeric annotation cannot be dismissed as a line, hatch or border.", candidate);
+                        Issue("DRAWING_OMISSION_NONMODEL", "一个数值标注不能被当作线条、填充或边框来忽略。", candidate);
                     break;
                 case DrawingCandidateDisposition.Duplicate:
                     if (decision.FeatureIds.Count > 0 || decision.DimensionIds.Count > 0 || decision.DuplicateOf is null || decision.DuplicateOf == candidate.Id ||
                         !candidates.TryGetValue(decision.DuplicateOf, out var original) || !decisions.TryGetValue(decision.DuplicateOf, out var originalDecision) ||
                         originalDecision.Disposition is not (DrawingCandidateDisposition.Feature or DrawingCandidateDisposition.NonModel))
-                        Issue("DRAWING_OMISSION_DUPLICATE", "Duplicate must point directly to another accounted candidate; chains and cycles are rejected.", candidate);
+                        Issue("DRAWING_OMISSION_DUPLICATE", "复制必须直接指向另一个已计入的候选项；链和循环被拒绝。", candidate);
                     else if (candidate.PageNumber != original.PageNumber || candidate.Kind != original.Kind ||
                         Overlap(candidate.Bounds, original.Bounds) < 0.2 ||
                         candidate.Kind == DrawingCandidateKind.Annotation && Normalize(decision.CorrectedLiteral ?? candidate.Literal) != Normalize(originalDecision.CorrectedLiteral ?? original.Literal) &&
                         !(original.Provider=="spatial-annotation-assembler"&&candidate.ObservationIds.Count>0&&candidate.ObservationIds.All(original.ObservationIds.Contains)&&original.RelatedCandidateIds.Contains(candidate.Id)))
-                        Issue("DRAWING_OMISSION_DUPLICATE", "Duplicate candidates must overlap on the same page and agree in kind and resolved text.", candidate);
+                        Issue("DRAWING_OMISSION_DUPLICATE", "候选对象必须重叠在同一页面上，并且在种类上一致且文本已解决。", candidate);
                     break;
             }
             if (issues.Count == before) accounted++;
@@ -171,33 +171,33 @@ public static partial class DrawingOmissionValidation
         foreach (var region in inventory.Regions)
         {
             if (!regionReviews.TryGetValue(region.Id, out var inspected) || inspected.State != DrawingReviewState.Reviewed || string.IsNullOrWhiteSpace(inspected.Findings))
-                issues.Add(new("DRAWING_OMISSION_REGION", "Inspect the raw full-page/detail image and record findings, including unrecognized ink.", RegionId: region.Id, PageNumber: region.PageNumber, Bounds: region.Bounds));
+                issues.Add(new("DRAWING_OMISSION_REGION", "检查原始的全页/细节图像，并记录发现，包括未识别的油墨。", RegionId: region.Id, PageNumber: region.PageNumber, Bounds: region.Bounds));
             else if (inspected.FeatureIds.Any(id => !features.ContainsKey(id)))
-                issues.Add(new("DRAWING_OMISSION_TARGET", "Region review found a feature absent from the plan.", RegionId: region.Id, PageNumber: region.PageNumber, Bounds: region.Bounds));
+                issues.Add(new("DRAWING_OMISSION_TARGET", "区域审查发现计划中缺少一个特征。", RegionId: region.Id, PageNumber: region.PageNumber, Bounds: region.Bounds));
             else reviewed++;
         }
         foreach (var check in review.CrossViewChecks)
         {
             if (check.State != DrawingReviewState.Reviewed || string.IsNullOrWhiteSpace(check.Evidence) || check.ViewIds.Distinct().Count() < 2 ||
                 check.ViewIds.Any(id => !views.ContainsKey(id)) || check.FeatureIds.Count == 0 || check.FeatureIds.Any(id => !features.ContainsKey(id)))
-                Issue("DRAWING_OMISSION_CROSS_VIEW", "Unresolved, conflicting or invalid cross-view check: " + check.Id);
+                Issue("DRAWING_OMISSION_CROSS_VIEW", "未解决、冲突或无效的多视图检查：" + check.Id);
             else foreach (var fid in check.FeatureIds)
                 if (!check.ViewIds.All(features[fid].ViewIds.Contains))
-                    Issue("DRAWING_OMISSION_CROSS_VIEW", "Cross-view evidence includes a view not declared by its feature: " + fid);
+                    Issue("DRAWING_OMISSION_CROSS_VIEW", "视图证据包括一个特征未声明的视图：" + fid);
         }
         foreach (var feature in context.Features)
         {
             if (!review.Candidates.Any(c => c.Disposition == DrawingCandidateDisposition.Feature && c.FeatureIds.Contains(feature.Id)) &&
                 !review.AdditionalFindings.Any(f => f.State == DrawingReviewState.Reviewed && f.FeatureIds.Contains(feature.Id)))
-                Issue("DRAWING_OMISSION_FEATURE_EVIDENCE", "Feature has no candidate or localized additional visual finding: " + feature.Id);
+                Issue("DRAWING_OMISSION_FEATURE_EVIDENCE", "特征没有候选项或本地化的其他视觉发现：" + feature.Id);
             if (feature.ViewIds.Distinct().Count() > 1 && !review.CrossViewChecks.Any(c => c.State == DrawingReviewState.Reviewed &&
                 c.FeatureIds.Contains(feature.Id) && feature.ViewIds.All(c.ViewIds.Contains)))
-                Issue("DRAWING_OMISSION_CROSS_VIEW", "Feature needs an explicit consistency review across all its declared source views: " + feature.Id);
+                Issue("DRAWING_OMISSION_CROSS_VIEW", "特征需要在所有声明的源视图中进行显式的连贯性审查：" + feature.Id);
         }
         foreach (var finding in review.AdditionalFindings)
             if (finding.State != DrawingReviewState.Reviewed || string.IsNullOrWhiteSpace(finding.Description) || !ValidBox(finding.Bounds) ||
                 finding.PageNumber < 1 || finding.PageNumber > inventory.TotalPages || finding.FeatureIds.Count == 0 || finding.FeatureIds.Any(id => !features.ContainsKey(id)))
-                issues.Add(new("DRAWING_OMISSION_FINDING", "Additional source finding remains unresolved or is missing from the model: " + finding.Id,
+                issues.Add(new("DRAWING_OMISSION_FINDING", "从模型中未找到或未解决的附加来源发现：" + finding.Id,
                     PageNumber: finding.PageNumber, Bounds: finding.Bounds));
         return new() { TotalCandidates = inventory.Candidates.Count, AccountedCandidates = accounted, RequiredRegions = inventory.Regions.Count,
             ReviewedRegions = reviewed, Issues = issues };
@@ -218,7 +218,7 @@ public static partial class DrawingOmissionValidation
                 kind = match.Groups["angle"].Success ? secondary.HasValue?"chamfer":"angle" : "linear";
             }
             else if (c.NumericValue is not null)
-            { issue("DRAWING_OMISSION_CORRECTION", "A corrected quantitative feature annotation must remain a parseable quantity; unresolved text must not be dropped.", c); return; }
+            { issue("DRAWING_OMISSION_CORRECTION", "修正的定量特征标注必须保持可解析的量；未解决的文本不得被删除。", c); return; }
         }
         if (value is null) return;
         var facts = decision.DimensionIds.Where(dimensions.ContainsKey).Select(id => dimensions[id]).ToArray();
@@ -227,11 +227,11 @@ public static partial class DrawingOmissionValidation
         var plainCount=kind=="linear"&&Regex.IsMatch(decision.CorrectedLiteral??c.Literal,@"^\s*\d+\s*$",RegexOptions.CultureInvariant);
         if (!facts.Any(f => Equal(f.Value, value.Value) && (f.Unit != DrawingValueUnit.Unitless||plainCount) &&
             ((kind is "angle") == (f.Unit == DrawingValueUnit.Degree))))
-            issue("DRAWING_OMISSION_QUANTITY", "Annotation value has no matching source dimension binding; inspect its literal, unit and targets.", c);
+            issue("DRAWING_OMISSION_QUANTITY", "标注值没有匹配的源尺寸绑定；检查其字面值、单位和目标值。", c);
         if (multiplicity is > 1 && !facts.Any(f => f.Unit == DrawingValueUnit.Unitless && Equal(f.Value, multiplicity.Value)))
-            issue("DRAWING_OMISSION_COUNT", "Repeated-feature annotation requires an explicit Unitless count dimension bound to the model and its verification.", c);
+            issue("DRAWING_OMISSION_COUNT", "特征重复标注需要一个明确的无单位计数维度绑定到模型及其验证。", c);
         if(secondary is { } sv && !facts.Any(f=>Equal(f.Value,sv) && (kind=="chamfer"?f.Unit==DrawingValueUnit.Degree:f.Unit!=DrawingValueUnit.Degree&&f.Unit!=DrawingValueUnit.Unitless)))
-            issue("DRAWING_OMISSION_QUANTITY", "Compound annotation's secondary value (pitch, angle or size) has no matching dimension binding.", c);
+            issue("DRAWING_OMISSION_QUANTITY", "标注的次级值（螺距、角度或规格）没有匹配的尺寸绑定。", c);
     }
 
     public static IEnumerable<ModelingDiagnostic> Diagnostics(DrawingPlanContext context)
@@ -239,7 +239,7 @@ public static partial class DrawingOmissionValidation
         if (context.OmissionReview is null && !context.RequireCompleteBindings)
         {
             yield return new("DRAWING_OMISSION_PARTIAL", DiagnosticSeverity.Warning,
-                "Explicitly partial drawing contract: omission review is absent; no completeness claim is supported.", "drawing_context.omission_review");
+                "显式的部分绘制合同：遗漏审查不存在；不支持完整性声明。", "drawing_context.omission_review");
             yield break;
         }
         var result = Evaluate(context);
@@ -248,14 +248,14 @@ public static partial class DrawingOmissionValidation
                 "drawing_context.omission_review." + (issue.CandidateId ?? issue.RegionId ?? "inventory"));
         if (result.Issues.Count > 100)
             yield return new("DRAWING_OMISSION_MORE", DiagnosticSeverity.Error,
-                $"{result.Issues.Count - 100} additional issues. Use cad_review_drawing_coverage for paginated candidates and findings.", "drawing_context.omission_review");
+                $"{result.Issues.Count - 100}有其他问题。使用 cad_review_drawing_coverage 获取分页的候选项和发现。", "drawing_context.omission_review");
     }
 
     private static void CheckArtifact(string root, string? path, string? hash)
     {
         if (path is null || !Path.IsPathFullyQualified(path) || !Path.GetFullPath(path).StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
             !IsHash(hash) || !File.Exists(path) || !SameHash(hash!, DrawingPlanValidation.FileHash(path)))
-            throw new InvalidDataException("A source observation or review image is missing, changed or outside the ingestion directory.");
+            throw new InvalidDataException("缺少或更改了源观察图像或审查图像，且不在摄入目录中。");
     }
     private static DrawingOmissionResult Failed(string code, string message) => new() { Issues = [new(code, message)] };
     private static bool Unique(IEnumerable<string> ids) { var a = ids.ToArray(); return a.All(id => !string.IsNullOrWhiteSpace(id)) && a.Distinct(StringComparer.Ordinal).Count() == a.Length; }

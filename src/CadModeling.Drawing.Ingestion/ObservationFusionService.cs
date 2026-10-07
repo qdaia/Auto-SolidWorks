@@ -24,14 +24,14 @@ public sealed class ObservationFusionService : IObservationFusionService
             if (Normalize(native.RawLiteral) == Normalize(raster.RawLiteral))
             {
                 diagnostics.Add(new() { Code = "ING-FUSION-CORROBORATED", Severity = ContractDiagnosticSeverity.Info,
-                    Message = $"Native and raster text observations corroborate without deduplication: {native.ObservationId}, {raster.ObservationId}.", PageNumber = pageNumber });
+                    Message = $"原生和栅格文本观察结果未经去重证实：{native.ObservationId}，{raster.ObservationId}。", PageNumber = pageNumber });
                 continue;
             }
             var conflictId = IngestionUtilities.StableId("conflict", native.ObservationId, raster.ObservationId);
             Replace(observations, native with { EvidenceStatus = EvidenceStatus.Conflict, CandidateProperties = Add(native.CandidateProperties, "conflict_group", conflictId) });
             Replace(observations, raster with { EvidenceStatus = EvidenceStatus.Conflict, CandidateProperties = Add(raster.CandidateProperties, "conflict_group", conflictId) });
             diagnostics.Add(new() { Code = "ING-FUSION-TEXT-CONFLICT", Severity = ContractDiagnosticSeverity.Warning,
-                Message = $"Overlapping native and raster text differ and were both retained in conflict group {conflictId}.", PageNumber = pageNumber });
+                Message = $"重叠的原生文本和栅格文本不同，两者都被保留到冲突组{conflictId}。", PageNumber = pageNumber });
         }
 
         var views = batches.SelectMany(batch => batch.ViewRegions).GroupBy(view => view.ViewRegionId, StringComparer.Ordinal)

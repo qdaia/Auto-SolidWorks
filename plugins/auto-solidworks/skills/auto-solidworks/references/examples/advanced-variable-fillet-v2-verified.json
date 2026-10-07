@@ -1,0 +1,179 @@
+{
+  "name": "variable-fillet-v2-verified",
+  "source_text": "Explicit source fixture for native modeling upgrade acceptance",
+  "expected_solid_body_count": 1,
+  "expected_surface_body_count": 0,
+  "operations": [
+    {
+      "type": "ProfileSketch",
+      "constraints": [],
+      "dimensions": [],
+      "edits": [],
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        }
+      },
+      "plane_id": null,
+      "plane": "Front",
+      "face_attachment": null,
+      "primitives": [
+        {
+          "type": "CenteredRectangle",
+          "width_mm": 20,
+          "height_mm": 20,
+          "role": "Outer",
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ],
+      "id": "profile",
+      "name": "profile",
+      "depends_on": []
+    },
+    {
+      "type": "ExtrudeBoss",
+      "merge": true,
+      "sketch_id": "profile",
+      "depth_mm": 10,
+      "end_condition": "Blind",
+      "end_reference": null,
+      "start_offset_mm": 0,
+      "reverse_start_offset": false,
+      "reverse_direction": false,
+      "id": "base",
+      "name": "base",
+      "depends_on": [
+        "profile"
+      ]
+    },
+    {
+      "type": "NativeFeature",
+      "id": "fillet",
+      "name": "fillet",
+      "depends_on": [
+        "base"
+      ],
+      "feature": {
+        "spatial_curve": null,
+        "helix": null,
+        "linear_pattern": null,
+        "sweep": null,
+        "loft": null,
+        "variable_fillet": {
+          "edges": [
+            {
+              "edge": {
+                "kind": "Edge",
+                "feature_id": "base",
+                "name": null,
+                "persistent_reference": null,
+                "geometry": "Any",
+                "position_mm": null,
+                "direction": null,
+                "radius_mm": null,
+                "area_mm2": null,
+                "area_tolerance_mm2": 0.1,
+                "length_mm": null,
+                "start_point_mm": {
+                  "x": -10,
+                  "y": -10,
+                  "z": 0
+                },
+                "end_point_mm": {
+                  "x": 10,
+                  "y": -10,
+                  "z": 0
+                },
+                "adjacent_face_count": null,
+                "tolerance_mm": 0.05,
+                "all_matches": false,
+                "selection_mark": 0
+              },
+              "start_point_mm": {
+                "x": -10,
+                "y": -10,
+                "z": 0
+              },
+              "end_point_mm": {
+                "x": 10,
+                "y": -10,
+                "z": 0
+              },
+              "start_radius_mm": 1,
+              "end_radius_mm": 3
+            }
+          ],
+          "curvature_continuous": false
+        },
+        "surface": null,
+        "kind": "Fillet",
+        "selections": [],
+        "frame": null,
+        "sketch_id": null,
+        "path_sketch_id": null,
+        "profile_ids": [],
+        "guide_ids": [],
+        "axis_id": null,
+        "axis_start_mm": null,
+        "axis_end_mm": null,
+        "angle_degrees": 360,
+        "reverse": false,
+        "merge": true,
+        "try_to_form_solid": false,
+        "tangent_propagation": true,
+        "radius_mm": 0,
+        "distance_mm": 0,
+        "second_distance_mm": 0,
+        "thickness_mm": 0,
+        "counterbore_diameter_mm": 0,
+        "counterbore_depth_mm": 0,
+        "countersink_diameter_mm": 0,
+        "countersink_angle_degrees": 90,
+        "thread_major_diameter_mm": 0,
+        "chamfer_mode": "DistanceAngle",
+        "count": 2,
+        "spacing_mm": 0,
+        "boolean_mode": "Union",
+        "translation_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation_degrees": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "copy": false,
+        "hole_kind": "Simple",
+        "diameter_mm": 0,
+        "depth_mm": 0,
+        "through_all": true,
+        "hole_centers": [],
+        "hole_center_count": 0,
+        "thread_designation": null,
+        "profile_path": null,
+        "profile_configuration": null,
+        "weldment_end_condition": "Trim",
+        "k_factor": 0.5,
+        "flattened": true,
+        "dimension_name": null,
+        "dimension_value": 0,
+        "dimension_is_angle": false
+      }
+    }
+  ]
+}

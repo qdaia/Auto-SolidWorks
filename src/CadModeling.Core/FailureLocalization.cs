@@ -121,7 +121,7 @@ public static class FailureLocator
     {
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(signal);
-        if (string.IsNullOrWhiteSpace(signal.FailureId)) throw new ArgumentException("Failure id is required.", nameof(signal));
+        if (string.IsNullOrWhiteSpace(signal.FailureId)) throw new ArgumentException("失败ID是必需的。", nameof(signal));
         foreach (var reference in signal.GeometryReferences) GeometryRefResolver.Validate(reference);
         var operationOrder = plan.Operations.Select((op, index) => (op.Id, index)).ToDictionary(x => x.Id, x => x.index, StringComparer.Ordinal);
         var sourceIds = signal.SourceFactIds.Concat(signal.GeometryReferences.SelectMany(r => r.SourceFactIds)).Where(id => !string.IsNullOrWhiteSpace(id))
@@ -131,9 +131,9 @@ public static class FailureLocator
         var evidenceIds = signal.EvidenceIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.Ordinal).ToArray();
 
         if (operationIds.Length == 0)
-            return Unlocated("No source/GeometryRef evidence identifies an actual operation; random nearest-feature repair is forbidden.");
+            return Unlocated("没有实际操作的源/GeometryRef证据识别；不允许随机最近特征修复。");
         if (sourceIds.Length == 0 && signal.FailureClass is not FailureClass.PlanCompileError and not FailureClass.NativeKernelFailure)
-            return Unlocated("No source lineage is bound to the implicated operation, so the failure cannot be safely localized for repair.");
+            return Unlocated("涉事操作未绑定源关联，因此无法安全定位修复位置。");
 
         var earliest = operationIds.OrderBy(id => operationOrder[id]).First();
         var affected = operationIds.SelectMany(id => Downstream(plan, id)).ToHashSet(StringComparer.Ordinal);
@@ -189,24 +189,24 @@ public static class ModelDiffAnalyzer
         using var timing = CadModeling.Ir.PerformanceTrace.Begin("review.diff");
         ArgumentNullException.ThrowIfNull(input);
         if (!Hash(input.BaselineModelSha256) || !Hash(input.CandidateModelSha256))
-            throw new ArgumentException("ModelDiff requires SHA-256 identities for both actual model files.", nameof(input));
+            throw new ArgumentException("ModelDiff 需要 两者实际模型文件 的 SHA-256 身份。", nameof(input));
         if (!input.BaselineModelReopened || !input.CandidateModelReopened)
-            return Incomparable("ModelDiff requires both baseline and candidate geometry to come from saved and reopened models.");
+            return Incomparable("ModelDiff 需要基准几何体和候选项几何体都来自已保存并重新打开的模型。");
         if (!input.BaselineCaptureComplete || !input.CandidateCaptureComplete ||
             input.BaselineCaptureLimitations.Count > 0 || input.CandidateCaptureLimitations.Count > 0)
-            return Incomparable("Geometry capture is incomplete or has declared limitations; absence of captured change is not evidence of no change.");
+            return Incomparable("几何捕捉不完整或声明有限制；捕捉到的变化缺失并不意味着没有变化。");
         if (input.BaselineCaptureScopeIds.Count == 0 || input.CandidateCaptureScopeIds.Count == 0 ||
             input.BaselineCaptureScopeIds.Any(string.IsNullOrWhiteSpace) || input.CandidateCaptureScopeIds.Any(string.IsNullOrWhiteSpace) ||
             input.BaselineCaptureScopeIds.Distinct(StringComparer.Ordinal).Count() != input.BaselineCaptureScopeIds.Count ||
             input.CandidateCaptureScopeIds.Distinct(StringComparer.Ordinal).Count() != input.CandidateCaptureScopeIds.Count ||
             !input.BaselineCaptureScopeIds.ToHashSet(StringComparer.Ordinal).SetEquals(input.CandidateCaptureScopeIds))
-            return Incomparable("Baseline/candidate geometry capture scopes are missing, invalid, or not identical.");
+            return Incomparable("基准/候选项几何捕捉的范围缺失、无效或不相同。");
         if (input.BaselineGeometry.Count == 0 || input.CandidateGeometry.Count == 0)
-            return Incomparable("Complete supported-part comparison requires actual captured geometry; an empty geometry inventory cannot certify no collateral change.");
+            return Incomparable("完整的支持部件比较需要实际捕获的几何形状；空的几何库存无法证明没有 额外 变化。");
         ValidateRecords(input.BaselineGeometry, "baseline");
         ValidateRecords(input.CandidateGeometry, "candidate");
         if (input.IntendedTargetIds.Any(string.IsNullOrWhiteSpace) || input.IntendedTargetIds.Distinct(StringComparer.Ordinal).Count() != input.IntendedTargetIds.Count)
-            throw new ArgumentException("Intended target ids must be nonempty and unique.", nameof(input));
+            throw new ArgumentException("目标ID必须非空且唯一。", nameof(input));
 
         var changes = new List<ModelDiffChange>();
         var usedCandidate = new HashSet<string>(StringComparer.Ordinal);
@@ -217,27 +217,27 @@ public static class ModelDiffAnalyzer
                 ? input.CandidateGeometry.Where(after => after.SemanticId == before.SemanticId && !usedCandidate.Contains(after.RecordId)).ToArray()
                 : [];
             GeometryShapeRecord? after = null;
-            if (exact.Length > 1) return Incomparable($"Semantic identity '{before.SemanticId}' is duplicated in the candidate model.");
+            if (exact.Length > 1) return Incomparable($"候选模型中的候选对象 '{before.SemanticId}' 有语义重复。");
             if (exact.Length == 1) after = exact[0];
             if (after is null)
             {
                 var equivalent = input.CandidateGeometry.Where(candidate => !usedCandidate.Contains(candidate.RecordId) && Equivalent(before.Signature, candidate.Signature)).ToArray();
-                if (equivalent.Length > 1) return Incomparable($"Geometry '{before.RecordId}' has multiple equivalent candidate matches; topology churn cannot be resolved uniquely.");
+                if (equivalent.Length > 1) return Incomparable($"几何体 ' {before.RecordId} ' 有多重等价候选项；拓扑 变化 无法唯一地解决。");
                 if (equivalent.Length == 1) after = equivalent[0];
             }
             if (after is null)
             {
-                changes.Add(Change(GeometryShapeChangeKind.Removed, before, null, "Baseline geometry is absent from the candidate model."));
+                changes.Add(Change(GeometryShapeChangeKind.Removed, before, null, "基准几何体缺失于候选项模型中。"));
                 continue;
             }
             usedCandidate.Add(after.RecordId);
             if (!Equivalent(before.Signature, after.Signature))
-                changes.Add(Change(GeometryShapeChangeKind.Changed, before, after, "Bound geometry changed shape or placement."));
+                changes.Add(Change(GeometryShapeChangeKind.Changed, before, after, "包围盒中的几何形状改变形状或位置。"));
             else if (before.RecordId != after.RecordId || before.TopologyToken != after.TopologyToken || before.SemanticId != after.SemanticId)
-                changes.Add(Change(GeometryShapeChangeKind.IdentityOnly, before, after, "Persistent/topology identity changed while bounded geometry remained equivalent."));
+                changes.Add(Change(GeometryShapeChangeKind.IdentityOnly, before, after, "持久性/拓扑身份在有界几何体保持等效的情况下发生了改变。"));
         }
         foreach (var after in input.CandidateGeometry.Where(record => !usedCandidate.Contains(record.RecordId)))
-            changes.Add(Change(GeometryShapeChangeKind.Added, null, after, "Candidate model contains additional geometry."));
+            changes.Add(Change(GeometryShapeChangeKind.Added, null, after, "候选模型包含额外的几何特征。"));
 
         var failedRechecks = input.UnaffectedRequirementRechecks
             .Where(r => r.Status != RequirementCheckStatus.Passed).Select(r => r.RequirementId).Distinct(StringComparer.Ordinal).ToArray();
@@ -323,7 +323,7 @@ public static class ModelDiffAnalyzer
     private static void ValidateRecords(IReadOnlyList<GeometryShapeRecord> records, string label)
     {
         if (records.Any(r => string.IsNullOrWhiteSpace(r.RecordId)) || records.Select(r => r.RecordId).Distinct(StringComparer.Ordinal).Count() != records.Count)
-            throw new ArgumentException($"ModelDiff {label} record ids must be nonempty and unique.");
+            throw new ArgumentException($"ModelDiff{label}记录ID必须非空且唯一。");
         foreach (var record in records) GeometryRefResolver.Validate(record.Signature);
     }
     private static bool Hash(string value) => value is { Length: 64 } && value.All(Uri.IsHexDigit);

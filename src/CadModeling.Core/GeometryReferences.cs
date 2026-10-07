@@ -50,6 +50,7 @@ public sealed record GeometryRef
     public IReadOnlyList<string> SourceFactIds { get; init; } = [];
     public string? SourceRevisionId { get; init; }
     public required GeometrySignature Signature { get; init; }
+    public SemanticTopologyReference? Semantic { get; init; }
 }
 
 public sealed record GeometryDocumentIdentity
@@ -76,6 +77,8 @@ public sealed record GeometryCandidate
     public string? NativePersistentReference { get; init; }
     public string? FeatureId { get; init; }
     public string? InputToFeature { get; init; }
+    public string? OwnerFeaturePersistentReference { get; init; }
+    public IReadOnlyList<GeometryOwnerIdentity> OwnerFeatures { get; init; } = [];
     public required GeometrySignature Signature { get; init; }
 }
 
@@ -90,16 +93,18 @@ public sealed record GeometryRefResolution
     public IReadOnlyList<string> CandidateIds { get; init; } = [];
     public IReadOnlyList<string> Evidence { get; init; } = [];
     public string Message { get; init; } = string.Empty;
+    public SemanticTopologyReceipt? SemanticReceipt { get; init; }
 }
 
 public static class GeometryRefResolver
 {
     public static GeometryRefResolution Resolve(GeometryRef reference, GeometryDocumentIdentity document,
-        IReadOnlyList<GeometryCandidate> candidates)
+        IReadOnlyList<GeometryCandidate> candidates, TopologyHistoryCapture? topologyHistory = null)
     {
         Validate(reference);
         Validate(document);
         ArgumentNullException.ThrowIfNull(candidates);
+        if (reference.Semantic is not null) return SemanticTopologyResolver.Resolve(reference,document,candidates,topologyHistory);
 
         var sameRevision = reference.ModelSha256.Equals(document.ModelSha256, StringComparison.OrdinalIgnoreCase) &&
             (reference.DocumentRevision is null || document.DocumentRevision is null || reference.DocumentRevision == document.DocumentRevision);
@@ -108,17 +113,17 @@ public static class GeometryRefResolver
         var invalidCandidates = relevantCandidates.Where(candidate => !TryValidate(candidate, out _)).ToArray();
         if (invalidCandidates.Length > 0)
             return Result(GeometryRefResolutionStatus.Unsupported,
-                $"{invalidCandidates.Length} candidate(s) in the GeometryRef resolution scope contain invalid/non-finite geometry and cannot be certified.",
+                $"{invalidCandidates.Length}候选项在 GeometryRef 解决方案范围内的几何无效或非有限，无法认证。",
                 ids: invalidCandidates.Select(candidate => candidate.CandidateId).ToArray());
 
         if (reference.SourceRevisionId is { Length: > 0 } expectedSourceRevision &&
             !expectedSourceRevision.Equals(document.SourceRevisionId, StringComparison.Ordinal))
-            return Result(GeometryRefResolutionStatus.Stale, "Source-fact revision changed; geometry reference requires revalidation before reuse.");
+            return Result(GeometryRefResolutionStatus.Stale, "源特征修订更改；几何参考需在再次使用前重新验证。");
 
         if (!reference.DocumentId.Equals(document.DocumentId, StringComparison.Ordinal) ||
             reference.DocumentPath is { Length: > 0 } expectedPath && document.DocumentPath is { Length: > 0 } actualPath &&
             !Path.GetFullPath(expectedPath).Equals(Path.GetFullPath(actualPath), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-            return Result(GeometryRefResolutionStatus.WrongDocument, "Geometry reference belongs to a different saved document.");
+            return Result(GeometryRefResolutionStatus.WrongDocument, "几何参考属于不同的保存文档。");
         var native = reference.NativePersistentReference is null ? null : candidates.FirstOrDefault(candidate =>
             candidate.NativePersistentReference is not null && candidate.NativePersistentReference.Equals(reference.NativePersistentReference, StringComparison.Ordinal));
 
@@ -126,24 +131,24 @@ public static class GeometryRefResolver
         {
             if (!Matches(reference, native))
                 return Result(GeometryRefResolutionStatus.Stale,
-                    "Native persistent reference recovered an object whose geometry signature no longer matches; refusing silent retargeting.", native,
+                    "原生持久参考恢复了一个几何签名不再匹配的对象；拒绝无声重定向。", native,
                     nativeRecovered: true);
-            return Result(GeometryRefResolutionStatus.Resolved, "Native persistent reference and geometry signature both match.", native,
+            return Result(GeometryRefResolutionStatus.Resolved, "原生持久参考和几何签名都匹配。", native,
                 nativeRecovered: true);
         }
 
         var matches = candidates.Where(candidate => Matches(reference, candidate)).ToArray();
         if (matches.Length == 0)
             return Result(sameRevision ? GeometryRefResolutionStatus.Missing : GeometryRefResolutionStatus.Stale,
-                sameRevision ? "No object matches the frozen geometry signature." : "Document revision changed and the referenced object cannot be uniquely recovered.",
+                sameRevision ? "没有对象匹配已锁定几何图形签名。" : "文档修订更改，且引用的对象无法唯一恢复。",
                 native, nativeRecovered: native is not null);
         if (matches.Length > 1)
             return Result(GeometryRefResolutionStatus.Ambiguous,
-                $"Geometry signature matches {matches.Length} objects; automatic first-match rebinding is forbidden.",
+                $"几何签名匹配{matches.Length}对象；自动首匹配重绑定被禁止。",
                 native, matches.Select(item => item.CandidateId).ToArray(), nativeRecovered: native is not null);
 
         return Result(GeometryRefResolutionStatus.Resolved,
-            sameRevision ? "A unique geometry-signature match resolved the reference." : "A changed document revision was uniquely rebound by the frozen geometry signature.",
+            sameRevision ? "一个独特的几何特征匹配解决了参考问题。" : "一个更改的文档修订版被冻结的几何签名唯一重建。",
             matches[0], matches.Select(item => item.CandidateId).ToArray(), rebound: native != matches[0] || !sameRevision, nativeRecovered: native is not null);
 
         GeometryRefResolution Result(GeometryRefResolutionStatus status, string message, GeometryCandidate? candidate = null,
@@ -162,6 +167,28 @@ public static class GeometryRefResolver
     }
 
     public static bool Matches(GeometryRef reference, GeometryCandidate candidate)
+        => reference.Semantic is null && MatchesFrozen(reference,candidate);
+
+    public static bool IsVerifiedResolution(GeometryRefResolution resolution) => resolution.Reference.Semantic is not null
+        ? SemanticTopologyResolver.VerifyReceipt(resolution)
+        : resolution.Status==GeometryRefResolutionStatus.Resolved && resolution.Candidate is not null && MatchesFrozen(resolution.Reference,resolution.Candidate);
+
+    public static EntityQuery SelectionQuery(GeometryRefResolution resolution)
+    {
+        if(!IsVerifiedResolution(resolution)||resolution.Candidate is not {} candidate||resolution.CandidateIds.Count!=1)
+            throw new ArgumentException("几何选择需通过重验的唯一解析回执。");
+        var signature=candidate.Signature;
+        return new()
+        {
+            Kind=signature.EntityKind,FeatureId=candidate.FeatureId,PersistentReference=candidate.NativePersistentReference,
+            RequirePersistentIdentity=resolution.Reference.Semantic is not null,Geometry=signature.GeometryKind,
+            PositionMm=signature.AnchorMm,Direction=signature.Direction,RadiusMm=signature.RadiusMm,
+            AreaMm2=signature.EntityKind==EntityKind.Face?signature.AreaMm2:null,AreaToleranceMm2=signature.AreaToleranceMm2,
+            ToleranceMm=signature.PositionToleranceMm,AllMatches=false
+        };
+    }
+
+    internal static bool MatchesFrozen(GeometryRef reference, GeometryCandidate candidate)
     {
         if (!TryValidate(candidate, out _)) return false;
         if (!string.Equals(reference.InputToFeature,candidate.InputToFeature,StringComparison.Ordinal)) return false;
@@ -171,7 +198,7 @@ public static class GeometryRefResolver
             return false;
         if (reference.Signature.GeometryKind != GeometryKind.Any && candidate.Signature.GeometryKind != reference.Signature.GeometryKind)
             return false;
-        if (reference.FeatureId is { Length: > 0 } feature && !feature.Equals(candidate.FeatureId, StringComparison.Ordinal))
+        if (reference.FeatureId is { Length: > 0 } feature && !GeometryOwnership.HasFeature(candidate,feature))
             return false;
         var expected = reference.Signature;
         var actual = candidate.Signature;
@@ -182,8 +209,8 @@ public static class GeometryRefResolver
         {
             if (actual.Direction is not { } actualDirection || !Finite(direction) || !Finite(actualDirection)) return false;
             var a = Norm(direction); var b = Norm(actualDirection);
-            if (a <= 1e-12 || b <= 1e-12) return false;
-            var cosine = Math.Clamp(Math.Abs(Dot(direction, actualDirection) / (a * b)), -1, 1);
+            if (!double.IsFinite(a) || !double.IsFinite(b) || a <= 1e-12 || b <= 1e-12) return false;
+            var cosine = Math.Clamp(Math.Abs(direction.X/a*(actualDirection.X/b)+direction.Y/a*(actualDirection.Y/b)+direction.Z/a*(actualDirection.Z/b)), -1, 1);
             var degrees = Math.Acos(cosine) * 180 / Math.PI;
             if (degrees > expected.DirectionToleranceDegrees) return false;
         }
@@ -193,40 +220,33 @@ public static class GeometryRefResolver
     public static string Fingerprint(GeometryRef reference)
     {
         Validate(reference);
-        var signature = reference.Signature;
-        static string V(Vector3? value) => value is null ? "" : string.Join(",", new[] { value.X, value.Y, value.Z }
-            .Select(x => x.ToString("R", System.Globalization.CultureInfo.InvariantCulture)));
-        static string D(double? value) => value?.ToString("R", System.Globalization.CultureInfo.InvariantCulture) ?? "";
-        var canonical = string.Join("|", new[]
+        static Vector3? Zero(Vector3? v) => v is null ? null : new(v.X==0?0:v.X,v.Y==0?0:v.Y,v.Z==0?0:v.Z);
+        var canonical = reference with
         {
-            reference.Contract, reference.RefId, reference.DocumentId, reference.DocumentPath ?? "", reference.DocumentRevision ?? "",
-            reference.ModelSha256.ToUpperInvariant(), reference.NativePersistentReference ?? "", reference.EntityKind.ToString(), reference.GeometryKind.ToString(),
-            reference.FeatureId ?? "", reference.OperationId ?? "", reference.SourceRevisionId ?? "", reference.InputToFeature ?? "",
-            string.Join(",", reference.SourceFactIds.Order(StringComparer.Ordinal)), signature.EntityKind.ToString(), signature.GeometryKind.ToString(),
-            V(signature.AnchorMm), V(signature.Direction), D(signature.RadiusMm), D(signature.AreaMm2),
-            signature.PositionToleranceMm.ToString("R", System.Globalization.CultureInfo.InvariantCulture),
-            signature.RadiusToleranceMm.ToString("R", System.Globalization.CultureInfo.InvariantCulture),
-            signature.AreaToleranceMm2.ToString("R", System.Globalization.CultureInfo.InvariantCulture),
-            signature.DirectionToleranceDegrees.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
-        });
-        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
+            ModelSha256=reference.ModelSha256.ToUpperInvariant(),SourceFactIds=reference.SourceFactIds.Order(StringComparer.Ordinal).ToArray(),
+            Signature=reference.Signature with {AnchorMm=Zero(reference.Signature.AnchorMm),Direction=Zero(reference.Signature.Direction)},
+            Semantic=reference.Semantic is null?null:reference.Semantic with {AllowedOperationIds=reference.Semantic.AllowedOperationIds.Order(StringComparer.Ordinal).ToArray()}
+        };
+        return Convert.ToHexString(SHA256.HashData(SemanticTopologyResolver.CanonicalBytes(canonical)));
     }
 
     public static void Validate(GeometryRef reference)
     {
         ArgumentNullException.ThrowIfNull(reference);
         if (string.IsNullOrWhiteSpace(reference.RefId) || string.IsNullOrWhiteSpace(reference.DocumentId) || !Sha(reference.ModelSha256))
-            throw new ArgumentException("GeometryRef requires ref id, document id and a SHA-256 model fingerprint.", nameof(reference));
-        if (reference.Signature.EntityKind != reference.EntityKind ||
+            throw new ArgumentException("GeometryRef 需要参考 ID、文档 ID 和 SHA-256 模型指纹。", nameof(reference));
+        if (reference.Contract != GeometryRef.ContractVersion || !Enum.IsDefined(reference.EntityKind) || !Enum.IsDefined(reference.GeometryKind)
+            || reference.Signature.EntityKind != reference.EntityKind ||
             reference.GeometryKind != GeometryKind.Any && reference.Signature.GeometryKind != GeometryKind.Any && reference.Signature.GeometryKind != reference.GeometryKind)
-            throw new ArgumentException("GeometryRef entity/geometry kinds must agree with its signature.", nameof(reference));
+            throw new ArgumentException("GeometryRef 特征/几何种类必须与签名一致。", nameof(reference));
         Validate(reference.Signature);
         if(reference.InputToFeature is not null&&(string.IsNullOrWhiteSpace(reference.InputToFeature)||reference.EntityKind!=EntityKind.Edge))
-            throw new ArgumentException("Feature-input geometry requires an edge and an explicit native feature name.",nameof(reference));
+            throw new ArgumentException("特征输入的几何需要一个边和一个明确的原生特征名称。",nameof(reference));
         if (reference.SourceFactIds.Any(string.IsNullOrWhiteSpace) || reference.SourceFactIds.Distinct(StringComparer.Ordinal).Count() != reference.SourceFactIds.Count)
-            throw new ArgumentException("GeometryRef source fact ids must be nonempty and unique.", nameof(reference));
+            throw new ArgumentException("GeometryRef 源事实 ID 必须非空且唯一。", nameof(reference));
         if (reference.SourceFactIds.Count > 0 && string.IsNullOrWhiteSpace(reference.SourceRevisionId))
-            throw new ArgumentException("GeometryRef values derived from source facts must bind the source revision id.", nameof(reference));
+            throw new ArgumentException("GeometryRef 从源事实推导出的值必须绑定源修订ID。", nameof(reference));
+        SemanticTopologyResolver.Validate(reference);
     }
 
     public static void Validate(GeometrySignature signature)
@@ -235,16 +255,18 @@ public static class GeometryRefResolver
         static bool Positive(double value) => double.IsFinite(value) && value > 0;
         if (!Positive(signature.PositionToleranceMm) || !Positive(signature.RadiusToleranceMm) || !Positive(signature.AreaToleranceMm2) ||
             !Positive(signature.DirectionToleranceDegrees) || signature.DirectionToleranceDegrees >= 90)
-            throw new ArgumentException("Geometry signature tolerances must be finite, positive and bounded.", nameof(signature));
-        if (signature.AnchorMm is { } anchor && !Finite(anchor) || signature.Direction is { } direction && (!Finite(direction) || Norm(direction) <= 1e-12) ||
+            throw new ArgumentException("几何签名公差必须是有限的、正数且有界的。", nameof(signature));
+        if (!Enum.IsDefined(signature.EntityKind) || !Enum.IsDefined(signature.GeometryKind)
+            || signature.AnchorMm is { } anchor && !Finite(anchor) || signature.Direction is { } direction && (!Finite(direction) || !double.IsFinite(Norm(direction)) || Norm(direction) <= 1e-12) ||
             signature.RadiusMm is { } radius && !Positive(radius) || signature.AreaMm2 is { } area && !Positive(area))
-            throw new ArgumentException("Geometry signature contains invalid geometric values.", nameof(signature));
+            throw new ArgumentException("几何签名包含无效的几何值。", nameof(signature));
     }
 
     public static bool TryValidate(GeometryCandidate candidate, out string? error)
     {
-        if (candidate is null) { error = "Candidate is null."; return false; }
-        if (string.IsNullOrWhiteSpace(candidate.CandidateId)) { error = "Candidate id is required."; return false; }
+        if (candidate is null) { error = "候选项为空。"; return false; }
+        if (string.IsNullOrWhiteSpace(candidate.CandidateId)) { error = "候选ID是必需的。"; return false; }
+        if (!GeometryOwnership.TryValidate(candidate,out error)) return false;
         try { Validate(candidate.Signature); }
         catch (ArgumentException ex) { error = ex.Message; return false; }
         error = null;
@@ -265,7 +287,7 @@ public static class GeometryRefResolver
     {
         ArgumentNullException.ThrowIfNull(document);
         if (string.IsNullOrWhiteSpace(document.DocumentId) || !Sha(document.ModelSha256))
-            throw new ArgumentException("Document identity requires document id and model SHA-256.", nameof(document));
+            throw new ArgumentException("文档标识需要文档ID和模型SHA-256。", nameof(document));
     }
 
     private static IReadOnlyList<string> BuildEvidence(GeometryRef reference, GeometryDocumentIdentity document, GeometryCandidate? candidate,

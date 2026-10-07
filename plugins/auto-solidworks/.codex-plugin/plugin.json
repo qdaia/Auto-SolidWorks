@@ -1,7 +1,7 @@
 {
   "name": "auto-solidworks",
-  "version": "0.6.0",
-  "description": "Local typed SolidWorks modeling with drawing coverage review, native projection/section capture, bounded family verification and constrained repair checks.",
+  "version": "26.10.07",
+  "description": "本地 SolidWorks 参数化建模，默认简体中文设计树、工程图、诊断与工具说明；支持图纸覆盖复查和原生几何验证。",
   "author": {
     "name": "csj17"
   },

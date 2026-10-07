@@ -55,12 +55,12 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
                 ? await nativePdf.GetPageCountAsync(inputPath, token)
                 : await rasterInput.GetPageCountAsync(inputPath, inputKind, token);
             if (pageCount <= 0 || pageCount > request.Limits.MaximumPageCount)
-                throw new IngestionRejectedException("ING-PAGE-LIMIT", $"Page count {pageCount} is outside the permitted range 1..{request.Limits.MaximumPageCount}.");
+                throw new IngestionRejectedException("ING-PAGE-LIMIT", $"页面计数{pageCount}超出了允许的范围 1..{request.Limits.MaximumPageCount}。");
             var pageNumbers = request.PageNumbers.Count == 0
                 ? Enumerable.Range(1, pageCount).ToArray()
                 : request.PageNumbers.Distinct().OrderBy(number => number).ToArray();
             if (pageNumbers.Any(number => number < 1 || number > pageCount))
-                throw new IngestionRejectedException("ING-PAGE-RANGE", $"Requested page numbers must be within 1..{pageCount}.");
+                throw new IngestionRejectedException("ING-PAGE-RANGE", $"请求的页码必须在 1..{pageCount}之间。");
             if (inputKind != DrawingInputKind.Pdf)
                 foreach (var number in pageNumbers)
                 {
@@ -147,8 +147,8 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
                     Category = "unreadable_text",
                     Blocking = false,
                     Reason = item.Message,
-                    MinimumQuestion = "Readable OCR text is unavailable; inspect the source image or configure local OCR.",
-                    SuggestedEvidence = "Original drawing image, native PDF text or local Tesseract language data."
+                    MinimumQuestion = "无法读取光学字符识别文本；检查源图像或配置本地光学字符识别。",
+                    SuggestedEvidence = "原图、原生PDF文本或本地Tesseract语言数据。"
                 }).ToArray();
                 var observation = new DrawingObservationDocument
                 {
@@ -269,7 +269,7 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
                     Code = "ING-RUNTIME-LIMIT",
                     Severity = ContractDiagnosticSeverity.Error,
                     Blocking = true,
-                    Message = $"Drawing ingestion exceeded the {request.Limits.MaximumRuntimeSeconds} second runtime limit."
+                    Message = $"图形摄入超过了{request.Limits.MaximumRuntimeSeconds}秒的运行时间限制。"
                 }]
             };
         }
@@ -322,12 +322,12 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
     {
         var frames = new List<CoordinateFrame>
         {
-            new() { FrameId = source.CoordinateFrameId, Space = CoordinateSpace.SourcePixel, Unit = MeasurementUnit.Pixel, ArtifactId = source.ArtifactId, OriginDescription = "Top-left pixel center; x right, y down.", AxisLabels = ["x", "y"] },
-            new() { FrameId = normalized.CoordinateFrameId, Space = CoordinateSpace.NormalizedPixel, Unit = MeasurementUnit.Pixel, ArtifactId = normalized.ArtifactId, OriginDescription = "Top-left pixel center after recorded preprocessing; x right, y down.", AxisLabels = ["x", "y"] }
+            new() { FrameId = source.CoordinateFrameId, Space = CoordinateSpace.SourcePixel, Unit = MeasurementUnit.Pixel, ArtifactId = source.ArtifactId, OriginDescription = "左上像素中心；x向右，y向下。", AxisLabels = ["x", "y"] },
+            new() { FrameId = normalized.CoordinateFrameId, Space = CoordinateSpace.NormalizedPixel, Unit = MeasurementUnit.Pixel, ArtifactId = normalized.ArtifactId, OriginDescription = "顶部左像素中心在记录预处理后；x向右，y向下。", AxisLabels = ["x", "y"] }
         };
         if (native is not null)
             frames.Add(new() { FrameId = $"page-{pageNumber:D4}-pdf-user-space", Space = CoordinateSpace.SheetSpace, Unit = MeasurementUnit.PdfPoint,
-                ArtifactId = "source-copy", OriginDescription = "Native PDF user space, preserved numerically in PDF points; bottom-left origin, x right, y up.", AxisLabels = ["x_pdf_point", "y_pdf_point"] });
+                ArtifactId = "source-copy", OriginDescription = "原生PDF用户空间，以PDF点的形式保留数值；左下角原点，x向右，y向上。", AxisLabels = ["x_pdf_point", "y_pdf_point"] });
         return frames;
     }
 
@@ -394,13 +394,13 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
     private static void ValidateRequest(DrawingIngestionRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.InputPath) || !File.Exists(request.InputPath))
-            throw new IngestionRejectedException("ING-INPUT-MISSING", "Input_path must identify an existing local file.");
+            throw new IngestionRejectedException("ING-INPUT-MISSING", "Input_path 必须标识一个现有的本地文件。");
         if (new FileInfo(request.InputPath).Length > request.Limits.MaximumFileBytes)
-            throw new IngestionRejectedException("ING-FILE-LIMIT", $"Input exceeds the {request.Limits.MaximumFileBytes} byte limit.");
+            throw new IngestionRejectedException("ING-FILE-LIMIT", $"输入超出{request.Limits.MaximumFileBytes}字节限制。");
         if (request.RenderDpi < request.Limits.MinimumDpi || request.RenderDpi > request.Limits.MaximumDpi)
-            throw new IngestionRejectedException("ING-DPI-LIMIT", $"Render DPI must be within {request.Limits.MinimumDpi}..{request.Limits.MaximumDpi}.");
+            throw new IngestionRejectedException("ING-DPI-LIMIT", $"渲染 DPI 必须在{request.Limits.MinimumDpi}..{request.Limits.MaximumDpi}。");
         if (string.IsNullOrWhiteSpace(request.ArtifactRoot))
-            throw new IngestionRejectedException("ING-ARTIFACT-ROOT", "Artifact_root is required.");
+            throw new IngestionRejectedException("ING-ARTIFACT-ROOT", "需要 Artifact_root。");
         _ = Path.GetFullPath(request.ArtifactRoot);
     }
 
@@ -416,7 +416,7 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
             Starts(0xFF, 0xD8, 0xFF) ? DrawingInputKind.Jpeg :
             Starts(0x42, 0x4D) ? DrawingInputKind.Bmp :
             Starts(0x49, 0x49, 0x2A, 0x00) || Starts(0x4D, 0x4D, 0x00, 0x2A) ? DrawingInputKind.Tiff :
-            throw new IngestionRejectedException("ING-MEDIA-SIGNATURE", "Unsupported or corrupt drawing media signature.");
+            throw new IngestionRejectedException("ING-MEDIA-SIGNATURE", "不支持或损坏的绘图媒体签名。");
         var allowedExtensions = detected switch
         {
             DrawingInputKind.Pdf => new[] { ".pdf" }, DrawingInputKind.Png => new[] { ".png" },
@@ -424,7 +424,7 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
             DrawingInputKind.Tiff => new[] { ".tif", ".tiff" }, _ => []
         };
         if (!allowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
-            throw new IngestionRejectedException("ING-MEDIA-MISMATCH", $"File extension '{extension}' does not match detected media '{detected}'.");
+            throw new IngestionRejectedException("ING-MEDIA-MISMATCH", $"文件扩展名 '{extension}' 不匹配检测到的媒体 '{detected}'。");
         return detected;
     }
 
@@ -453,18 +453,18 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
             Directory.CreateDirectory(candidate);
             return candidate;
         }
-        throw new IOException("No available versioned ingestion output directory remained.");
+        throw new IOException("没有可用的版本化摄入输出目录剩余。");
     }
     private static string Sanitize(string value) => string.Concat(value.Select(character => Path.GetInvalidFileNameChars().Contains(character) ? '_' : character));
     private static void EnsurePixels(int width, int height, DrawingIngestionLimits limits)
     {
         if (width <= 0 || height <= 0 || (long)width * height > limits.MaximumPixelsPerPage)
-            throw new IngestionRejectedException("ING-PIXEL-LIMIT", $"Page dimensions {width}x{height} exceed the {limits.MaximumPixelsPerPage} pixel limit.");
+            throw new IngestionRejectedException("ING-PIXEL-LIMIT", $"页面尺寸{width}x{height}超出了像素限制{limits.MaximumPixelsPerPage}。");
     }
     private static void EnforceArtifactLimit(string directory, long maximumBytes)
     {
         var total = Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories).Sum(path => new FileInfo(path).Length);
-        if (total > maximumBytes) throw new IngestionRejectedException("ING-ARTIFACT-LIMIT", $"Generated artifacts exceed the {maximumBytes} byte limit.");
+        if (total > maximumBytes) throw new IngestionRejectedException("ING-ARTIFACT-LIMIT", $"生成的 工件 超过了 {maximumBytes} 字节的限制。");
     }
 }
 

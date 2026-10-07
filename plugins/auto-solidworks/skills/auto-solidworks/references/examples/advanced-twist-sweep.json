@@ -1,0 +1,137 @@
+{
+  "name": "twist-sweep",
+  "source_text": "Explicit source fixture for native modeling upgrade acceptance",
+  "expected_solid_body_count": 2,
+  "expected_surface_body_count": 0,
+  "operations": [
+    {
+      "type": "ProfileSketch",
+      "constraints": [],
+      "dimensions": [],
+      "edits": [],
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        }
+      },
+      "plane_id": null,
+      "plane": "Front",
+      "face_attachment": null,
+      "primitives": [
+        {
+          "type": "CenteredRectangle",
+          "width_mm": 20,
+          "height_mm": 20,
+          "role": "Outer",
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ],
+      "id": "profile",
+      "name": "profile",
+      "depends_on": []
+    },
+    {
+      "type": "ExtrudeBoss",
+      "merge": true,
+      "sketch_id": "profile",
+      "depth_mm": 10,
+      "end_condition": "Blind",
+      "end_reference": null,
+      "start_offset_mm": 0,
+      "reverse_start_offset": false,
+      "reverse_direction": false,
+      "id": "base",
+      "name": "base",
+      "depends_on": [
+        "profile"
+      ]
+    },
+    {
+      "type": "ProfileSketch",
+      "id": "section",
+      "name": "section",
+      "frame": {
+        "origin_mm": {
+          "x": 50,
+          "y": 0,
+          "z": 0
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "CenteredRectangle",
+          "width_mm": 4,
+          "height_mm": 2,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "NativeFeature",
+      "id": "path",
+      "name": "path",
+      "depends_on": [],
+      "feature": {
+        "kind": "SpatialCurve",
+        "spatial_curve": {
+          "curve_kind": "Polyline",
+          "points_mm": [
+            {
+              "x": 50,
+              "y": 0,
+              "z": 0
+            },
+            {
+              "x": 50,
+              "y": 0,
+              "z": 40
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "twist",
+      "name": "twist",
+      "depends_on": [
+        "section",
+        "path"
+      ],
+      "feature": {
+        "kind": "SweepBoss",
+        "sketch_id": "section",
+        "path_sketch_id": "path",
+        "merge": false,
+        "sweep": {
+          "orientation": "TwistAlongPath",
+          "twist_angle_degrees": 180
+        }
+      }
+    }
+  ]
+}

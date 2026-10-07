@@ -25,9 +25,9 @@ public sealed class PageLayoutObservationProvider : ILayoutObservationProvider
         foreach(var hint in context.ViewHints)
         {
             if(string.IsNullOrWhiteSpace(hint.Id) || !double.IsFinite(hint.Left+hint.Top+hint.Right+hint.Bottom) || hint.Left<0 || hint.Top<0 || hint.Right>1 || hint.Bottom>1 || hint.Right<=hint.Left || hint.Bottom<=hint.Top || hint.OcrRotationClockwise is not (0 or 90 or 180 or 270) || hint.OcrPageSegmentationMode is not (6 or 7 or 11 or 13))
-                throw new ArgumentException("Drawing regions require unique IDs, ordered bounds in [0,1], and OCR rotation 0/90/180/270.");
+                throw new ArgumentException("绘制区域需要唯一的ID，在[0,1]中按顺序排列边界，并且需要OCR旋转0/90/180/270。");
             var id=$"page-{raster.PageNumber:D4}-view-{hint.Id}";
-            if(regions.Any(r=>r.RegionId==id)) throw new ArgumentException("Drawing view IDs must be unique on each page.");
+            if(regions.Any(r=>r.RegionId==id)) throw new ArgumentException("图纸视图ID在每一页上必须是唯一的。");
             regions.Add(region with { RegionId=id,Polygon=Rectangle(raster.CoordinateFrameId,hint.Left*raster.PixelWidth,hint.Top*raster.PixelHeight,hint.Right*raster.PixelWidth,hint.Bottom*raster.PixelHeight) });
             views.Add(new() { ViewRegionId=id,SourceRegionId=id,ViewTypeHint=hint.ViewType,AssignmentBasis="agent_image_interpretation" });
         }
@@ -74,7 +74,7 @@ public sealed class LocalTextObservationProvider : ITextObservationProvider
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             return ObserveUnreadableGlyphCandidates(page, context, cancellationToken, "ING-OCR-TIMEOUT",
-                $"Local OCR exceeded the configured {configuration.TimeoutSeconds} second provider timeout and was terminated.",
+                $"本地 OCR 超过了配置的{configuration.TimeoutSeconds}秒提供者超时时间并被终止。",
                 Provenance(check, context));
         }
         catch (InvalidDataException exception)
@@ -85,12 +85,12 @@ public sealed class LocalTextObservationProvider : ITextObservationProvider
                     ? "ING-OCR-PROCESS-FAILED"
                     : "ING-OCR-PROVIDER-FAILED";
             return ObserveUnreadableGlyphCandidates(page, context, cancellationToken, code,
-                $"Local OCR failed closed: {exception.Message}", Provenance(check, context));
+                $"本地 OCR 失败关闭：{exception.Message}", Provenance(check, context));
         }
         catch (IOException exception)
         {
             return ObserveUnreadableGlyphCandidates(page, context, cancellationToken, "ING-OCR-PROVIDER-FAILED",
-                $"Local OCR failed closed: {exception.Message}", Provenance(check, context));
+                $"本地 OCR 失败关闭：{exception.Message}", Provenance(check, context));
         }
     }
 
@@ -105,7 +105,7 @@ public sealed class LocalTextObservationProvider : ITextObservationProvider
         var raster=RasterBuffer.Load(input);
         var regions=new List<DrawingViewRegionHint> { new() { Id="page" } };
         regions.AddRange(context.ViewHints);
-        if(regions.Count>17) throw new ArgumentException("At most 16 OCR view/annotation regions are supported per page.");
+        if(regions.Count>17) throw new ArgumentException("页面上最多支持 16 OCR 视图/标注区域。");
         var observations=new List<ObservationEntity>();
         for(var tileIndex=0;tileIndex<regions.Count;tileIndex++)
         {
@@ -121,7 +121,7 @@ public sealed class LocalTextObservationProvider : ITextObservationProvider
                 "--oem",configuration.OcrEngineMode.ToString(CultureInfo.InvariantCulture),"--psm",(tileIndex==0?configuration.PageSegmentationMode:region.OcrPageSegmentationMode).ToString(CultureInfo.InvariantCulture),
                 "-c","preserve_interword_spaces=1","tsv" };
             var result=await IngestionUtilities.RunProcessAsync(check.ExecutablePath!,args,configuration.TimeoutSeconds,cancellationToken);
-            if(result.ExitCode!=0) throw new InvalidDataException($"ING-OCR-PROCESS-FAILED: exit={result.ExitCode}; {result.StandardError.Trim()}");
+            if(result.ExitCode!=0) throw new InvalidDataException($"ING-OCR-PROCESS-FAILED：OCR 工作进程失败，exit={result.ExitCode}；{result.StandardError.Trim()}");
             LocatedPoint2 Back(double x,double y)
             {
                 x/=scale;y/=scale;
@@ -144,9 +144,9 @@ public sealed class LocalTextObservationProvider : ITextObservationProvider
             }
         }
         var diagnostics=new List<IngestionDiagnostic>();
-        if(observations.Count==0) diagnostics.Add(new() { Code="ING-OCR-NO-TEXT",Severity=ContractDiagnosticSeverity.Warning,Message="Local OCR returned no readable text candidates.",PageNumber=context.PageNumber,ProviderName="tesseract-local" });
+        if(observations.Count==0) diagnostics.Add(new() { Code="ING-OCR-NO-TEXT",Severity=ContractDiagnosticSeverity.Warning,Message="本地 OCR 返回无可读文本候选项。",PageNumber=context.PageNumber,ProviderName="tesseract-local" });
         else if(observations.Average(o=>o.Confidence)<.65 || Math.Max(raster.Width,raster.Height)<1000)
-            diagnostics.Add(new() { Code="ING-OCR-LOW-RELIABILITY",Severity=ContractDiagnosticSeverity.Warning,Message="Low-resolution or low-confidence OCR: inspect the source image before using numeric candidates. Cropping/upscaling does not recover missing detail.",PageNumber=context.PageNumber,ProviderName="tesseract-local" });
+            diagnostics.Add(new() { Code="ING-OCR-LOW-RELIABILITY",Severity=ContractDiagnosticSeverity.Warning,Message="低分辨率或低置信度的OCR：在使用数值候选之前检查源图像。裁剪/放大无法恢复缺失的细节。",PageNumber=context.PageNumber,ProviderName="tesseract-local" });
         return new() { PageNumber=context.PageNumber,Modality=ObservationModality.RasterText,Observations=observations,Provenance=Provenance(check,context),Diagnostics=diagnostics };
     }
 
@@ -213,7 +213,7 @@ public sealed class LocalTextObservationProvider : ITextObservationProvider
             {
                 Code = diagnosticCode,
                 Severity = ContractDiagnosticSeverity.Warning,
-                Message = diagnosticMessage + " Glyph clusters are retained as unreadable low-confidence text candidates; no numeric value is inferred.",
+                Message = diagnosticMessage + "图形簇被保留为不可读的低置信度文本候选项；未推断出任何数值值。",
                 PageNumber = context.PageNumber,
                 ProviderName = provenance.ProviderName
             }]

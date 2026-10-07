@@ -1,0 +1,192 @@
+{
+  "name": "BowedBoundary",
+  "source_text": "Explicit millimeter surface development fixture; native acceptance not run.",
+  "expected_solid_body_count": 0,
+  "expected_surface_body_count": 1,
+  "operations": [
+    {
+      "type": "ProfileSketch",
+      "id": "p0",
+      "name": "p0",
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Spline",
+          "points": [
+            {
+              "xmm": 0,
+              "ymm": 0
+            },
+            {
+              "xmm": 20,
+              "ymm": 5
+            },
+            {
+              "xmm": 40,
+              "ymm": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ProfileSketch",
+      "id": "p1",
+      "name": "p1",
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 20
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Spline",
+          "points": [
+            {
+              "xmm": 0,
+              "ymm": 0
+            },
+            {
+              "xmm": 20,
+              "ymm": 8
+            },
+            {
+              "xmm": 40,
+              "ymm": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ProfileSketch",
+      "id": "g0",
+      "name": "g0",
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "normal": {
+          "x": 0,
+          "y": -1,
+          "z": 0
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Spline",
+          "points": [
+            {
+              "xmm": 0,
+              "ymm": 0
+            },
+            {
+              "xmm": 0,
+              "ymm": 10
+            },
+            {
+              "xmm": 0,
+              "ymm": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ProfileSketch",
+      "id": "g1",
+      "name": "g1",
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "normal": {
+          "x": 0,
+          "y": -1,
+          "z": 0
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Spline",
+          "points": [
+            {
+              "xmm": 40,
+              "ymm": 0
+            },
+            {
+              "xmm": 40,
+              "ymm": 10
+            },
+            {
+              "xmm": 40,
+              "ymm": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "NativeFeature",
+      "id": "surface",
+      "name": "BowedBoundary",
+      "feature": {
+        "kind": "SurfaceBoundary",
+        "profile_ids": [
+          "p0",
+          "p1"
+        ],
+        "guide_ids": [
+          "g0",
+          "g1"
+        ],
+        "surface": {
+          "require_boundary_corner_match": true,
+          "connection_tolerance_mm": 0.01
+        }
+      }
+    }
+  ]
+}

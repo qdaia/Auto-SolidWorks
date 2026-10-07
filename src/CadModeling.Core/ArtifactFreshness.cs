@@ -107,10 +107,10 @@ public static class ArtifactFreshness
     {
         ArgumentNullException.ThrowIfNull(completed);
         if(!completed.SourceRevisionId.Equals(currentSourceRevisionId,StringComparison.Ordinal))
-        {reason="completion belongs to an older/different source revision";return false;}
+        {reason="完成属于较旧/不同的源修订版本";return false;}
         if(completed.RequestSequence<currentRequestSequence)
-        {reason="older request completed after a newer request became current";return false;}
-        reason="current revision/request owns this completion";return true;
+        {reason="更早的请求在新请求成为当前请求后才完成";return false;}
+        reason="当前修订/请求拥有此完成";return true;
     }
 
     private static Dictionary<string,string> Unique(IReadOnlyList<ArtifactDependency> values,string side,List<string> reasons)
@@ -158,7 +158,7 @@ public sealed class ArtifactCacheStore
         {
             if(_current.TryGetValue(slot,out var prior)&&
                (requestSequence<prior.Sequence||requestSequence==prior.Sequence&&!prior.Revision.Equals(sourceRevisionId,StringComparison.Ordinal)))
-                throw new InvalidOperationException("Cannot move an artifact slot back to an older generation or reuse one generation for another source revision.");
+                throw new InvalidOperationException("无法将艺术插槽移动到较早的世代或重复使用一个世代作为另一个源修订版本。");
             _current[slot]=(sourceRevisionId,requestSequence);
         }
     }
@@ -169,7 +169,7 @@ public sealed class ArtifactCacheStore
         lock(_gate)
         {
             if(!_current.TryGetValue(slot,out var current))
-            {reason="artifact slot has no current request generation";return false;}
+            {reason="工件槽当前没有当前的请求生成";return false;}
             if(!ArtifactFreshness.CanPublishCompletion(completed,current.Revision,current.Sequence,out reason))return false;
             _published[slot]=completed;return true;
         }
@@ -181,7 +181,7 @@ public sealed class ArtifactCacheStore
         lock(_gate)
         {
             if(!_current.TryGetValue(slot,out var current))
-            {reason="artifact slot has no current request generation";return false;}
+            {reason="工件槽当前没有当前的请求生成";return false;}
             if(!ArtifactFreshness.CanPublishCompletion(completed,current.Revision,current.Sequence,out reason))return false;
             _published[slot]=completed;_payloads[slot]=payload;return true;
         }

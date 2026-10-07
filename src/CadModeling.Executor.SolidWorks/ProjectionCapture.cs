@@ -25,13 +25,13 @@ internal sealed partial class SolidWorksComExecutor
         {
             if (!Path.IsPathFullyQualified(request.NativePath) || !File.Exists(request.NativePath) ||
                 !Path.GetExtension(request.NativePath).Equals(".sldprt", StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException("Projection capture requires an existing absolute .SLDPRT path.");
+                throw new ArgumentException("捕捉投影需要现有的绝对 .SLDPRT 路径。");
             if (request.SourceDrawingSha256.Length != 64 || !request.SourceDrawingSha256.All(Uri.IsHexDigit))
-                throw new ArgumentException("Projection capture requires the independent source drawing SHA-256.");
+                throw new ArgumentException("捕捉投影需要独立的源图纸 SHA-256。");
             if (string.IsNullOrWhiteSpace(request.ViewId) || string.IsNullOrWhiteSpace(request.CoordinateFrameId))
-                throw new ArgumentException("Projection capture requires view and coordinate-frame IDs.");
+                throw new ArgumentException("捕捉投影需要视图和坐标框架ID。");
             if (!double.IsFinite(request.OriginXmm) || !double.IsFinite(request.OriginYmm))
-                throw new ArgumentException("Projection frame translation must be finite.");
+                throw new ArgumentException("投影框架的平移必须是有限的。");
 
             var sourceHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(request.NativePath)));
             app = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application", true)!)!;
@@ -44,38 +44,39 @@ internal sealed partial class SolidWorksComExecutor
                 ownedSource = source is not null && Path.GetFullPath(source.GetPathName()).Equals(Path.GetFullPath(request.NativePath), StringComparison.OrdinalIgnoreCase);
             }
             if (source is null || !Path.GetFullPath(source.GetPathName()).Equals(Path.GetFullPath(request.NativePath), StringComparison.OrdinalIgnoreCase))
-                throw new IOException($"Could not reopen exact saved model (errors={errors}).");
-            if (source.GetSaveFlag()) throw new InvalidOperationException("Projection capture refuses a model with unsaved in-memory changes.");
+                throw new IOException($"无法重新打开已保存的精确模型（errors={errors}）。");
+            if (source.GetSaveFlag()) throw new InvalidOperationException("捕捉投影拒绝了包含未保存的内存更改的模型。");
 
-            stage = "create temporary drawing view";
+            stage = "创建临时绘图视图";
             var template = FindDrawingTemplate(app);
             drawingDocument = (IModelDoc2?)app.NewDocument(template, (int)swDwgPaperSizes_e.swDwgPaperA3size, 0.420, 0.297)
-                ?? throw new IOException("Could not create temporary drawing for projection capture.");
+                ?? throw new IOException("无法为投影捕捉创建临时图纸。");
             var drawing = (IDrawingDoc)drawingDocument;
-            if (!drawing.SetupSheet6("Projection", (int)swDwgPaperSizes_e.swDwgPaperA3size, (int)swDwgTemplates_e.swDwgTemplateNone,
+            if (!drawing.SetupSheet6("投影视图", (int)swDwgPaperSizes_e.swDwgPaperA3size, (int)swDwgTemplates_e.swDwgTemplateNone,
                     1, 1, true, "", 0.420, 0.297, "", true, 0, 0, 0, 0, 0, 0))
-                throw new IOException("Could not initialize temporary projection sheet.");
+                throw new IOException("无法初始化临时投影表单。");
             var modelViewNames = (string[])source.GetModelViewNames();
             var requested = OrientationNames(request.Orientation);
             var nativeOrientation = modelViewNames.FirstOrDefault(name => requested.Contains(name, StringComparer.OrdinalIgnoreCase))
-                ?? throw new IOException($"Requested model orientation '{request.Orientation}' is unavailable.");
+                ?? throw new IOException($"请求的模型方向 '{request.Orientation}' 不可用。");
             var view = (IView?)drawing.CreateDrawViewFromModelView3(request.NativePath, nativeOrientation, .210, .1485, 0)
-                ?? throw new IOException("Could not create projection view.");
+                ?? throw new IOException("无法创建投影视图。");
             view.UseSheetScale = 0;
             view.ScaleDecimal = 1;
+            view.SetName2("投影视图");
             // HLV is required here: GetPolylines7 exposes the display-level segmentation and font/style that
             // distinguishes visible from obscured portions. HLR would discard the hidden evidence T09 needs.
             view.SetDisplayMode3(false, (int)swDisplayMode_e.swHIDDEN_GREYED, false, true);
             drawingDocument.ForceRebuild3(false);
 
-            stage = "read actual projected edges";
-            var transform = view.ModelToViewTransform ?? throw new IOException("Drawing view exposes no model-to-view transform.");
+            stage = "读回实际的投影边";
+            var transform = view.ModelToViewTransform ?? throw new IOException("绘制视图不显示模型到视图的变换。");
             var math = (IMathUtility)app.GetMathUtility();
             var origin = TransformPoint(math, transform, 0, 0, 0);
             // GetPolylines7 returns view-local geometry, while ModelToViewTransform includes
             // the view's sheet placement. Remove only that known placement from the origin;
             // never fit/recenter captured geometry to the expected source.
-            var viewPosition = ToDoubles(view.Position, 2, "projection view sheet position");
+            var viewPosition = ToDoubles(view.Position, 2, "投影视图平面上的位置");
             origin[0] -= viewPosition[0];
             origin[1] -= viewPosition[1];
             var primitives = new List<ProjectionPrimitive>();
@@ -83,11 +84,11 @@ internal sealed partial class SolidWorksComExecutor
             var index = 0;
             CaptureDisplayedProjection(view, drawing, origin, request, primitives, limitations, ref index);
             if (sourceHash != Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(request.NativePath))))
-                throw new IOException("Native model changed while projection was captured.");
+                throw new IOException("原生模型在捕捉投影时被更改。");
             var complete = limitations.Count == 0;
             var message = complete
-                ? $"Captured {primitives.Count} unique supported visible/hidden primitives from reopened native model."
-                : $"Captured {primitives.Count} supported visible/hidden primitives, but projection capture is incomplete ({limitations.Count} limitation(s)).";
+                ? $"捕获了{primitives.Count}个唯一的原生模型重新打开时可见/不可见的基础元素。"
+                : $"捕获了{primitives.Count}支撑可见/不可见的基本体，但投影捕捉不完整（{limitations.Count}限制）。";
             return new(true, message)
             {
                 Complete = complete,
@@ -147,12 +148,12 @@ internal sealed partial class SolidWorksComExecutor
         try { rawEdges = view.GetPolylines7(1, out polylineBuffer); }
         catch (Exception ex)
         {
-            limitations.Add("SOLIDWORKS display polyline capture failed: " + ex.Message);
+            limitations.Add("SOLIDWORKS 显示多段线捕捉失败：" + ex.Message);
             return;
         }
         if (polylineBuffer is not double[] data || data.Length == 0)
         {
-            limitations.Add("SOLIDWORKS drawing view returned no display polyline data.");
+            limitations.Add("SOLIDWORKS 绘图视图返回无显示多段线数据。");
             return;
         }
 
@@ -174,7 +175,7 @@ internal sealed partial class SolidWorksComExecutor
                 var style = ResolveProjectionLineStyle(drawing, record.LineStyleToken, record.LineFontToken);
                 if (style is null)
                 {
-                    limitations.Add($"Projected polyline {records} has an unrecognized line font/style and was not accepted as visible/hidden/center geometry.");
+                    limitations.Add($"投影 折线 {records} 有未识别的线型/线样式，并且未被接受为可见/隐藏/中心几何。");
                     continue;
                 }
 
@@ -183,12 +184,12 @@ internal sealed partial class SolidWorksComExecutor
                 {
                     if (geometry.Count != 0 || !Collinear(points, 1e-4))
                     {
-                        limitations.Add($"Projected {style} polyline {records} is a non-straight tessellated curve (ellipse/spline/free curve), outside T09 scope.");
+                        limitations.Add($"投影{style}多段线{records}是非直线的细分曲线（椭圆/样条/自由曲线），超出 T09 范围。");
                         continue;
                     }
                     if (Distance(points[0], points[^1]) <= 1e-9)
                     {
-                        limitations.Add($"Projected {style} line {records} collapsed to zero length.");
+                        limitations.Add($"投影的{style}线{records}收缩到零长度。");
                         continue;
                     }
                     primitive = new()
@@ -201,7 +202,7 @@ internal sealed partial class SolidWorksComExecutor
                 {
                     if (geometry.Count < 12)
                     {
-                        limitations.Add($"Projected circular record {records} has incomplete center/start/end/normal geometry data.");
+                        limitations.Add($"投影圆形记录{records}有不完整的中心/起始/结束/法线几何数据。");
                         continue;
                     }
                     var center = Local([geometry[0], geometry[1], geometry[2]], origin, request);
@@ -210,7 +211,7 @@ internal sealed partial class SolidWorksComExecutor
                     var normalLength=Math.Sqrt(geometry[9]*geometry[9]+geometry[10]*geometry[10]+geometry[11]*geometry[11]);
                     if(!double.IsFinite(normalLength)||normalLength<=1e-12)
                     {
-                        limitations.Add($"Projected circular record {records} has no finite normal.");
+                        limitations.Add($"投影的圆形记录{records}无有限法向量。");
                         continue;
                     }
                     var normalZ=Math.Abs(geometry[11])/normalLength;
@@ -223,18 +224,18 @@ internal sealed partial class SolidWorksComExecutor
                             AddUnique(primitives,new(){Id=$"model-line-{++index:D4}",Kind=ProjectionPrimitiveKind.Line,
                                 Start=Local([a.X,a.Y,a.Z],origin,request),End=Local([b.X,b.Y,b.Z],origin,request),LineStyle=style});
                         }
-                        catch(InvalidDataException ex){limitations.Add($"Projected edge-on circle {records}: {ex.Message}");}
+                        catch(InvalidDataException ex){limitations.Add($"投影正视圆{records}:{ex.Message}");}
                         continue;
                     }
                     if(Math.Abs(normalZ-1)>1e-8)
                     {
-                        limitations.Add($"Projected circular record {records} is an oblique ellipse outside the supported circle/line scope.");
+                        limitations.Add($"投影圆形记录{records}是一个外椭圆，超出支持的圆/线的范围。");
                         continue;
                     }
                     var radius = Distance(center, start);
                     if (!center.IsFinite || !start.IsFinite || !end.IsFinite || !double.IsFinite(radius) || radius <= 1e-9)
                     {
-                        limitations.Add($"Projected circular record {records} contains invalid center/endpoints/radius.");
+                        limitations.Add($"投影的圆形记录{records}包含无效的中心/端点/半径。");
                         continue;
                     }
                     if (Distance(start, end) <= 1e-5)
@@ -249,14 +250,14 @@ internal sealed partial class SolidWorksComExecutor
                     {
                         if (points.Length < 3)
                         {
-                            limitations.Add($"Projected arc record {records} lacks an interior display point needed to determine signed sweep.");
+                            limitations.Add($"投影弧记录{records}缺少一个内部显示点，该点用于确定带有符号的扫描。");
                             continue;
                         }
                         var mid = points[points.Length / 2];
                         var radialResidual = Math.Max(Math.Abs(Distance(center, mid) - radius), Math.Abs(Distance(center, end) - radius));
                         if (radialResidual > 1e-3)
                         {
-                            limitations.Add($"Projected circular record {records} has {radialResidual:0.######} mm radial inconsistency.");
+                            limitations.Add($"投影圆盘记录{records}有{radialResidual:0.######}毫米径向不一致。");
                             continue;
                         }
                         var sweep = SweepThrough(center, start, mid, end);
@@ -269,17 +270,17 @@ internal sealed partial class SolidWorksComExecutor
                 }
                 else
                 {
-                    limitations.Add($"Projected record {records} has unsupported display geometry type {record.Type}.");
+                    limitations.Add($"投影记录{records}有不支持的显示几何类型{record.Type}。");
                     continue;
                 }
                 AddUnique(primitives, primitive);
             }
             if (rawEdges is Array edges && edges.Length != displayRecords.Count)
-                limitations.Add($"Projection polyline/edge inventory count differs ({displayRecords.Count} polyline records vs {edges.Length} edge slots). Silhouette/segmentation identity is incomplete.");
+                limitations.Add($"轮廓/边线库存计数不同 ({displayRecords.Count}轮廓记录 vs{edges.Length}边槽记录). 轮廓/分割身份不完整.");
         }
         catch (Exception ex)
         {
-            limitations.Add("SOLIDWORKS display polyline buffer is invalid or unsupported: " + ex.Message);
+            limitations.Add("SOLIDWORKS 显示多段线缓冲区无效或不支持：" + ex.Message);
         }
     }
 
@@ -309,7 +310,7 @@ internal sealed partial class SolidWorksComExecutor
         var a = Angle(center, start); var m = Angle(center, mid); var b = Angle(center, end);
         var positive = Ccw(a, b); var sweep = Ccw(a, m) <= positive + 1e-7 ? positive : positive - 360;
         if (!double.IsFinite(sweep) || Math.Abs(sweep) <= 1e-7 || Math.Abs(sweep) >= 360 - 1e-7)
-            throw new InvalidOperationException("Projected arc sweep is degenerate or indistinguishable from a full circle.");
+            throw new InvalidOperationException("投影弧扫描是退化了的，或者与完整的圆难以区分。");
         return sweep;
     }
 

@@ -16,7 +16,7 @@ public sealed class SchemaMigrator
         try
         {
             root = JsonNode.Parse(json)?.AsObject()
-                ?? throw new JsonException("Migration input is empty.");
+                ?? throw new JsonException("迁移输入为空。");
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException)
         {
@@ -26,16 +26,16 @@ public sealed class SchemaMigrator
         var documentId = root["document_id"]?.GetValue<string>() ?? string.Empty;
         var sourceVersion = root["schema_version"]?.GetValue<string>();
         if (string.IsNullOrWhiteSpace(sourceVersion))
-            return Failed("MIG002", "schema_version is required; old documents are never interpreted using current semantics silently.", documentId, "schema_version");
+            return Failed("MIG002", "schema_version 是必需的；旧文档不会静默地使用当前语义进行解释。", documentId, "schema_version");
         if (targetVersion != DrawingContractSchema.CurrentVersion)
-            return Failed("MIG003", $"Unsupported migration target '{targetVersion}'.", documentId, "schema_version");
+            return Failed("MIG003", $"不支持的目标迁移 '{targetVersion}'。", documentId, "schema_version");
         if (sourceVersion == targetVersion)
             return new(DrawingContractJson.SerializeDeterministic(root), []);
         if (sourceVersion != DrawingContractSchema.LegacyVersion)
-            return Failed("MIG004", $"No explicit migration is registered for '{sourceVersion}' -> '{targetVersion}'.", documentId, "schema_version");
+            return Failed("MIG004", $"没有为 '{sourceVersion}' -> '{targetVersion}' 注册显式的迁移。", documentId, "schema_version");
 
         if (root["source_hash"] is null)
-            return Failed("MIG005", "Legacy 0.9.0 document requires source_hash for the explicit migration.", documentId, "source_hash");
+            return Failed("MIG005", "legacy 0.9.0 文档需要 source_hash 进行明确的迁移。", documentId, "source_hash");
 
         root["source_sha256"] = root["source_hash"]!.DeepClone();
         root.Remove("source_hash");
@@ -47,7 +47,7 @@ public sealed class SchemaMigrator
             ["to_version"] = targetVersion,
             ["migrator_name"] = "drawing-contracts-0.9.0-to-1.0.0",
             ["migrated_at"] = migratedAt,
-            ["rationale"] = "Explicitly rename source_hash to source_sha256; no fact or evidence status is changed."
+            ["rationale"] = "显式地将source_hash重命名为source_sha256；事实或证据的状态没有改变。"
         });
         root["migration_history"] = history;
         return new(DrawingContractJson.SerializeDeterministic(root), []);

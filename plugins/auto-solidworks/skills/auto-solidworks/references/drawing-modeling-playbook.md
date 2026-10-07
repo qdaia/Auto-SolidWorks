@@ -27,7 +27,7 @@ Verify a new entrance orientation, pattern seed or topology-sensitive feature be
 For each group retain count, axis/position, drill diameter, cylindrical drill depth, effective thread depth, thread designation and tip angle where relevant. Thread depth and drill depth are different values.
 
 - Simple creates the explicitly supplied cylindrical cut.
-- Tapped adds native cosmetic threads; depth_mm controls both cylindrical and cosmetic depth in one operation. For distinct depths, use a verified staged sequence and inspect annotations after changing the cylindrical cut.
+- Tapped adds native cosmetic threads. `depth_mm` is cylindrical drill depth; optional `thread_depth_mm` sets independent effective thread depth and must not exceed blind drill depth. Omit it to preserve legacy equal-depth behavior. Saved annotation readback checks depth and mode.
 - Cosmetic threads require a uniquely selectable circular entrance edge. Curved entrances and matching half-holes may not have one.
 - When the user's requested deliverable permits nominal thread geometry, explicitly compile a Simple hole, preserve designation/effective depth in its name and assumptions, and disclose that representation in the final result. Never report a failed cosmetic thread as created. Preserve explicit requirements for native annotations or physical helical teeth.
 - Never guess the drill diameter from an unrecognized thread designation. If noncritical allowances or tip angles are needed, mark the chosen values Assumed.

@@ -30,6 +30,7 @@ public enum ExtrudeEndCondition { Blind, MidPlane, UpToSurface, ThroughAll, UpTo
 
 public sealed record ModelingPlan
 {
+    public ExecutionDeadlineOptions ExecutionDeadline { get; init; } = new();
     public ModelVerificationSpec Verification { get; init; } = new();
     public ModelingRecoveryOptions Recovery { get; init; } = new();
     public string? DrawingBindingDigest { get; init; }
@@ -42,10 +43,18 @@ public sealed record ModelingPlan
     public LengthUnit LengthUnit { get; init; } = LengthUnit.Millimeter;
     public string SourceText { get; init; } = string.Empty;
     public string? SourceModelPath { get; init; }
+    public DesignIntentSpec? DesignIntent { get; init; }
+    public BoxEdgeHistorySpec? BoxEdgeHistory { get; init; }
     public IReadOnlyList<string> Assumptions { get; init; } = [];
     public required IReadOnlyList<ModelingOperation> Operations { get; init; }
     public OutputSpec Output { get; init; } = new();
     public AcceptanceSpec Acceptance { get; init; } = new();
+}
+
+public sealed record ExecutionDeadlineOptions
+{
+    public int DeadlineMilliseconds { get; init; } = 300_000;
+    public int PauseAcknowledgementMilliseconds { get; init; } = 1000;
 }
 
 public sealed record OutputSpec
@@ -92,6 +101,8 @@ public abstract record ModelingOperation
 
 public sealed record ProfileSketchOperation : ModelingOperation
 {
+    public bool AutoDimensionPrimitives { get; init; }
+    public bool RequireFullyDefined { get; init; }
     public IReadOnlyList<SketchConstraintSpec> Constraints { get; init; } = [];
     public IReadOnlyList<SketchDimensionSpec> Dimensions { get; init; } = [];
     public IReadOnlyList<SketchEditSpec> Edits { get; init; } = [];
@@ -228,7 +239,7 @@ public static class ModelingIrJson
 
     public static ModelingPlan Deserialize(string json) =>
         JsonSerializer.Deserialize<ModelingPlan>(json, Options)
-        ?? throw new JsonException("Modeling IR document was empty.");
+        ?? throw new JsonException("建模 IR 文档为空。");
 
     private static JsonSerializerOptions CreateOptions() => new(JsonSerializerDefaults.Web)
     {

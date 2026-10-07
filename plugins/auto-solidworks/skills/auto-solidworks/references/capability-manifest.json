@@ -1,0 +1,456 @@
+{
+  "version": "26.10.07",
+  "revision": "local-integration-20261007",
+  "development_validation": "current_local_integration_offline_validation",
+  "current_native_acceptance": "not_recertified_local_integration_engineering_paused",
+  "native_evidence_policy": "All native evidence is historical and bound to its original engineering revision. 26.10.07 integrates the final34 implementation with fresh offline checks; no native SOLIDWORKS recertification is claimed. B01-B06 remains paused and incomplete.",
+  "semantic_topology": {
+    "source_implementation": true,
+    "reference_field": "geometryReferences[].semantic",
+    "core": "root_entity_source_facts_revision_configuration_and_owner_persistent_identity; complete_Unchanged_Modified_Generated_Split_Merged_Deleted_history; current_independent_source_signature; unique_live_inventory_match; no_frozen_signature_or_nearest_fallback",
+    "receipt": "full_history_digest_and_reference_fingerprint_replay_before_repair_or_edge_acceptance; delimiter_safe_typed_JSON_and_signed_zero_normalization",
+    "native_history_backend": "production_durable_native-controlled-box-edge-history/v1; source-dimension-bound_root_on_actual_target_copy; complete_resize_native_identity_bijection; selected-single-edge_four-generated-successor_causality; immutable_saved_checkpoints; authenticated_local_record_and_live_endpoint_inventory; generic_changed_history_still_unsupported",
+    "native_acceptance": "bounded_production_native_pass; generic_changed_history_not_certified",
+    "limits": [
+      "single_configuration_analytic_axis_aligned_rectangular_base_only",
+      "two_explicit_operations_SetDimension_then_constant_single_edge_Fillet_without_tangent_propagation",
+      "independent_source_driving_dimension_bindings_required",
+      "no_general_boolean_split_merge_topology_provider",
+      "feature_input_BRep_semantic_history_unsupported",
+      "local_MAC_does_not_defend_against_same_user_key_or_process_control"
+    ],
+    "reference": "skills/auto-solidworks/references/semantic-topology.md",
+    "saved_revision_certification": "bounded_analytic_plane_cylinder_sphere_parts; spheres_require_actual_center_radius_orientation_and_face_edge_incidence; bounded_native_BSURF_nonperiodic_single_outer_loop_faces_and_open_nonperiodic_Bcurve_edges_require_complete_control_nets_knots_weights_orientation_ordered_coedge_identities_native_SP_trim_data_and_full_3D_edge_inventory; no_conversion_of_blend_offset_or_general_surfaces; full_body_face_edge_native_identity_bijection_and_all_owners; parameter_equation_configuration_state; clean_saved_reopen_and_dirty_guard_retained; no_periodic_multiloop_or_general_changed_topology_certificate",
+    "saved_revision_native_acceptance": "historical34_bounded_spline6_sphere4_durable_box23_entity_public_pass; current_release_requires_fresh_native_acceptance; general_changed_topology_not_certified",
+    "controlled_history_native_acceptance": "bounded_production_native_pass: controlled-production-final-28-01; historical34_new_client_durable_recheck_pass; current_release_requires_identity_bound_native_revalidation",
+    "saved_revision_spline_limits": [
+      "native_BSURF_only; blend_offset_and_other_converted_surfaces_rejected",
+      "one_outer_loop; no_inner_loops_or_periodic_seams",
+      "8192_control_points; order_2_to_16; complete_native_knots_coordinates_and_positive_rational_weights",
+      "SP_trim_curves_are_kernel_representation; exact_3D_edge_splines_are_required_separately; no_sample_only_shape_equivalence_or_G2_claim",
+      "rational_surface_and_curve_data_are_supported_by_contract; native_rational_fixture_requires_additional_acceptance"
+    ]
+  },
+  "offline_modeling_boundaries": {
+    "bounded_text_features": "center_flat_bottom_blind_plate_and_cylinder_hole; centered_cylinder_through_cut; explicit_open_top_or_closed_inward_rectangular_or_cylinder_shell; unit_normalization; driving_sketch; independent_volume_wall_floor_and_opening_contracts",
+    "text_limits": [
+      "explicit_single_hole_diameter_center_and_depth",
+      "top_entry_minus_Z_only",
+      "no_inferred_drill_tip",
+      "no_shell_hole_or_shell_fillet_combination",
+      "no_automatic_standard_physical_thread"
+    ],
+    "assembly_mobility_contract": "source_bound_relative_instantaneous_translation_rotation_screw_basis_up_to_six_dimensions; assembly_frame_axis_point_and_mm_per_radian_pitch; orthogonal_projector_distance_invariant_under_basis_change; completeness_regularity_instance_configuration_and_saved_identity_guards",
+    "assembly_native_mobility_adapter": "fixed_or_fully_constrained_pair_zero_motion; complete_grounded_concentric_tree_relative_spatial_basis_2_to_32_resolved_top_level_parts; native_concentric_plus_optional_axis_normal_coincident_end_planes; shared_upstream_motion_cancellation; structural_duplicate_guard_and_relative_projection_regularity_guard; unsupported_closed_loops_limits_and_couplings_unavailable_and_rejected",
+    "native_acceptance": "historical26_bounded_text_and_historical30_spatial_tree_native_pass; current_release_not_natively_recertified",
+    "full_goal_status": "progress_B01_B02_B03_B04_extensions_B05_physical_threads_B06_native_motion_mapping_still_open",
+    "reference": "skills/auto-solidworks/references/offline-text-and-mobility.md"
+  },
+  "design_intent_authoring": {
+    "draft_field": "design_intent",
+    "source_implementation": true,
+    "native_acceptance": "historical26_bounded_authoring_configurations_functions_suppression_save_reopen_pass; current_release_not_natively_recertified",
+    "equations": "bounded_typed_joint_variable_dimension_dependency_graph; explicit_mm_degree_unitless; independent_per_configuration_expected_values",
+    "configuration_dimensions": "explicit_reuse_or_create_from_existing; ThisConfiguration_SI_write_and_readback; existing_unspecified_config_values_preserved",
+    "readback": "equation_target_type_scope_disabled_state_Value_Status_and_definition; driving_dimension_native_type_and_system_value; all_declared_configuration_rebuild_Check3_geometry_and_sketch_definition; saved_configuration_inventory_and_active_state",
+    "global_value_unit_boundary": "native_Value_raw_units_not_certified; raw_value_finite_Status_and_saved_stability_only; controlled_dimensions_independently_checked_in_SI",
+    "reference": "skills/auto-solidworks/references/design-intent.md",
+    "limits": [
+      "current_release_native_authoring_save_reopen_not_recertified",
+      "no_external_equation_files_or_design_tables",
+      "multi_configuration_existing_equation_replacement_requires_native_Add3_compatibility",
+      "configuration_creation_inheritance_not_natively_certified",
+      "no_arbitrary_native_equation_strings_or_compound_dimensions",
+      "native_function_semantics_beyond_historical26_bounded_calibration_not_certified",
+      "raw_global_Value_units_not_certified",
+      "suppression_requires_readable_complete_feature_inventory_and_persistent_ids",
+      "suppressed_dimension_owners_and_required_sketches_rejected",
+      "current_release_feature_suppression_not_recertified;general_cascade_semantics_not_certified",
+      "models_with_disabled_equations_rejected_before_mutation_due_active_only_inventory"
+    ],
+    "configuration_expressions": "scoped_global_expressions; 15_fixed_functions; declared_read_only_dimension_inputs; independent_input_inheritance_preflight_before_mutation",
+    "expression_limits": "256_nodes_per_expression; depth32; dependency_depth256; rendered_expression16384_chars; finite_values_and_explicit_domains",
+    "solve_order": "dimension_references_and_configuration_variables_require_AutomaticSolveOrder_before_mutation_and_after_reopen; no_setting_mutation",
+    "angular_mode": "trig_and_inverse_trig_require_Degrees_before_mutation_and_after_reopen",
+    "feature_suppression": "ordered_exact_feature_states_per_configuration; complete_feature_inventory_and_opaque_native_identity; explicit_cascade_only; preserved_unspecified_configurations; saved_receipt_replay",
+    "feature_inventory_scope": "all_model_reference_and_body_features; exact_presentation_tree_types_excluded; unknown_types_retained; no_duplicate_name_or_persistent_identity"
+  },
+  "engineering_reliability": {
+    "dimension_units": "infer_length_mm_angle_degree_integer_unitless_from_native_parameter_type; optional_explicit_dimension_unit; finite_integral_count_and_rebuild_saved_readback",
+    "final_part_readback": "always_close_reopen_rebuild_verify_geometry_features_native_body_faults_and_requested_driving_values_even_without_source_checks",
+    "native_body_validity": "mandatory_Check3_on_all_visible_and_hidden_solid_and_sheet_bodies_before_save_and_on_readback; unavailable_or_faults_fail_closed",
+    "text_template_dimensions": "plate_width_height_and_optional_hole_diameter; cylinder_diameter; driving_and_fully_defined_before_build_and_after_save",
+    "thread_depth": "optional_thread_depth_mm_separate_from_depth_mm_drill; blind_thread_depth_cannot_exceed_blind_drill; persisted_cosmetic_annotation_readback; no_physical_helix",
+    "text_radius_shorthand": "plain_extrusion_all_edges_fillet_R2_compiles_without_unconsumed_r_token; unsupported_requirements_still_rejected",
+    "assembly_interference": "reject_unapproved_interference_true_by_default; allowed_interferences_exact_component_ids_and_maximum_volume_mm3; check_interference_false_or_reject_unapproved_interference_false_are_explicit_opt_outs",
+    "assembly_constraints": "optional_require_fully_constrained_components; component_path_configuration_transform_fixed_state_and_mate_type_distance_angle_readback; exact_saved_endpoint_instance_entity_persistent_identity; aligned_anti_aligned_retention; concentric_rotation_lock_retention; public_mate_readbacks",
+    "assembly_mate_validation": "unique_nonempty_names_defined_kinds_single_geometric_endpoints_or_whole_component_lock; rotation_flag_only_concentric; numeric_values_only_distance_angle; angle_0_to_180; unsupported_flags_fail_before_COM",
+    "spatial_curve_creation": "disable_native_inference_with_AddToDB_restore_both_sketch_preferences; native_polyline_and_interpolating_spline_input_coordinates_verified_at_0_01_and_100_view_scale_and_after_save_reopen",
+    "new_native_fixture_scope": [
+      "distance_100",
+      "angle_45",
+      "anti_aligned_distance",
+      "concentric_free_rotation",
+      "concentric_locked_rotation",
+      "whole_component_lock",
+      "locked_rotation_free_axial_motion_rejected_when_fully_constrained_required",
+      "wrong_instance_face_alignment_lock_negative_readbacks",
+      "spatial_polyline_and_spline_saved_reopen_at_two_scales"
+    ],
+    "surface_failure_reproduction": "bowed_2x2_Boundary_and_equivalent_spatial_curve_Boundary_native_creation_failed; planar_Curvature_Fill_control_assignment_failed; Tangent_Fill_saved_reopen_passed; no_fallback_or_G2_claim",
+    "native_fixture_scope": [
+      "plate_driving_width_trial_restore",
+      "cylinder",
+      "plate_center_through_hole",
+      "planar_sheet_Check3",
+      "square_seed_3_body_pattern",
+      "integer_edit_3_to_5_body_pattern",
+      "integer_rejects_mm",
+      "blind_drill_14_thread_10",
+      "overlap_reject_before_save",
+      "explicit_overlap_allowance_save_reopen",
+      "floating_component_reject"
+    ],
+    "assembly_native_test_boundary": "serial_STA_kernel_without_drawing_export; public_assembly_drawing_facade_not_recertified",
+    "reference": "skills/auto-solidworks/references/engineering-reliability.md",
+    "remaining_limits": [
+      "semantic_topology_core_history_only_native_changed_history_unavailable",
+      "text_grammar_still_bounded",
+      "equation_global_variable_configuration_authoring_source_and_offline_tests_only_native_not_run",
+      "cosmetic_threads_only",
+      "Boundary_native_factory_and_Curvature_Fill_assignment_still_fail",
+      "G2_only_declared_analytic_seam_fixtures_no_global_certificate",
+      "advanced_definition_readback_subset_only_no_support_face_binding_proof"
+    ],
+    "persistent_identity_equality": "native_IsSamePersistentID_swObjectSame_required_when_opaque_bytes_differ; no_geometry_fallback_for_identity",
+    "advanced_definition_save_readback": "post_final_Save3_baseline_then_readonly_reopen; created_Boundary_curves_end_conditions_Fill_boundary_contacts_spatial_curve_points_helix_pattern_sweep_controls; native_persistent_identity_and_exact_retained_controls; does_not_prove_support_face_or_G2",
+    "sampled_g2_geometry": "explicit_require_curvature_continuity_and_curvature_tolerance_per_mm; uniform_native_seam_samples; Evaluate_2_2_derivatives; normal_aligned_second_fundamental_form_spectral_difference_in_inverse_mm; missing_unsupported_singular_nonfinite_derivatives_fail_unverifiable; not_global_surface_certificate",
+    "new_surface_fixture_scope": [
+      "two_coplanar_faces_knit_merge_disabled_G0_G1_G2_33_samples_curvature_difference_0",
+      "plane_R2_cylinder_G0_G1_pass_G2_mismatch_33_samples_curvature_difference_0_5_per_mm",
+      "saved_Tangent_Fill_control_identity_positive_and_wrong_contact_type_boundary_negatives"
+    ]
+  },
+  "surface_modeling": {
+    "revision": "root-hardening-20261001",
+    "added_features": [
+      "SurfaceBoundary",
+      "SurfaceFill",
+      "SurfaceSweep",
+      "SurfaceOffset"
+    ],
+    "boundary_selection_contract": "InsertNetBlend2 按起点、终点和内部曲线顺序设置选择标记",
+    "boundary_directions": [
+      "profile_ids",
+      "guide_ids"
+    ],
+    "boundary_end_conditions": [
+      "None",
+      "NormalToProfile"
+    ],
+    "fill_continuity": "草图支持接触；边线接触／相切需要相邻支撑面并检查约束保留；曲率连续原生验收未通过",
+    "sweep_orientation": [
+      "FollowPath",
+      "KeepNormalConstant",
+      "FollowFirstGuide",
+      "FollowTwoGuides",
+      "TwistAlongPath",
+      "TwistWithConstantNormal"
+    ],
+    "offline_corner_check": "可选检查明确二维坐标系或开放三维端点组成的 2×2 网络；不证明求解、内部网络或 G1／G2 连续性",
+    "current_native_acceptance": "edge_Contact_and_Tangent_fixtures_passed; Curvature_rejected; Boundary_not_rerun",
+    "previous_fixture_version": "0.6.0+surface.20261001.1",
+    "previous_fixture_status": {
+      "boundary": "failed_bowed_2x2",
+      "fill": "passed_contact_patch",
+      "sweep": "passed_follow_path",
+      "offset": "passed_planar_sheet"
+    },
+    "acceptance_reference": "skills/auto-solidworks/references/advanced-modeling.md",
+    "g1_g2_surface_certification": false,
+    "arbitrary_nurbs_reconstruction": false
+  },
+  "drawing_export": {
+    "default_projection": "FirstAngle",
+    "projection_options": [
+      "FirstAngle",
+      "ThirdAngle"
+    ],
+    "default_sheet_mm": [
+      420,
+      297
+    ],
+    "sheet_size_range_mm": [
+      210,
+      2000
+    ],
+    "standard_views": [
+      "Front",
+      "Top",
+      "Left",
+      "Right",
+      "Bottom",
+      "Back",
+      "Isometric"
+    ],
+    "parameter_schedule": "geometry_based_pagination_no_44_parameter_cap",
+    "all_schedule_pages_in_pdf": true,
+    "schedule_saved_readback": true,
+    "requires_placed_dimensions": true,
+    "complete_manufacturing_definition": false,
+    "current_native_acceptance": "chinese_part_and_assembly_drawing_fixtures; broader_layout_cases_not_rerun"
+  },
+  "local_geometry": {
+    "maximum_sample_points": 512,
+    "surface_kinds": [
+      "Plane",
+      "Cylinder",
+      "Cone",
+      "Sphere",
+      "Torus",
+      "BSpline",
+      "Other"
+    ],
+    "whole_model_inventory": "visible_and_hidden_solid_sheet_bodies_faces_edges_open_edges_surface_kind_partition",
+    "independent_global_metrics": [
+      "surface_area_mm2",
+      "volume_mm3"
+    ],
+    "require_whole_model_inventory": "fails_closed_without_independent_whole_model_checks",
+    "native_body_validity": "Check3_faults_reject_whole_model_verification",
+    "scope": "零件整体清单与全局度量、完整剪裁边线长度，以及有限局部／接缝采样；不证明精确 BREP 等价或 G2 连续性",
+    "shape_checks": [
+      "trimmed_edge_length_and_endpoints",
+      "uniform_parameter_sampled_two_face_seam_G0_G1"
+    ]
+  },
+  "execution_deadline": {
+    "default_ms": 300000,
+    "maximum_ms": 3600000,
+    "pause_acknowledgement_ms": 1000,
+    "blocking_com": "bounded_client_wait_safe_boundary_cancellation_and_busy_rejection",
+    "force_abort_solidworks": false,
+    "request_status_tool": "cad_execution_status",
+    "pause_tool": "cad_pause_execution",
+    "durable_receipts": true,
+    "cross_process_native_lease": true,
+    "unfinished_native_lease": "blocks_automatic_replay",
+    "direct_cli_deadline": true
+  },
+  "text_input": {
+    "default_unit": "mm",
+    "length_units": [
+      "mm",
+      "cm",
+      "m",
+      "in"
+    ],
+    "unsupported_or_unconsumed_requirements": "error_no_executable_plan",
+    "fillet_scope": "plain_extrusion_all_edges_explicit_radius_only"
+  },
+  "modeling_upgrade": {
+    "revision": "modeling-upgrade-20261001",
+    "advanced_controls": [
+      "variable_fillet_endpoint_radii",
+      "linear_pattern_two_directions",
+      "sweep_twist_orientation",
+      "loft_normal_end_conditions"
+    ],
+    "spatial_curve": [
+      "Polyline",
+      "InterpolatingSpline"
+    ],
+    "helix": "native_constant_pitch_cylinder_circle_sketch",
+    "selection_filters": [
+      "trimmed_edge_length",
+      "unordered_edge_endpoints",
+      "edge_adjacent_face_count",
+      "face_area"
+    ],
+    "verification": [
+      "trimmed_edge_length_and_endpoints",
+      "sampled_two_face_G0_G1_seam"
+    ],
+    "native_fixture_scope": [
+      "variable_straight_edge_fillet",
+      "3x3_body_pattern",
+      "3D_spline_and_native_helix",
+      "180_degree_boss_sweep",
+      "solid_helix_coil",
+      "normal_end_boss_loft",
+      "edge_contact_fill",
+      "edge_tangent_fill",
+      "edge_shape_readback",
+      "33_sample_G1_seam"
+    ],
+    "curvature_fill": "requested_control_rejected_in_tested_planar_and_cylindrical_fixtures_no_downgrade",
+    "g2_geometry_certificate": false,
+    "curve_only_delivery": false,
+    "reference": "skills/auto-solidworks/references/advanced-modeling.md"
+  },
+  "complex_modeling": {
+    "revision": "complex-modeling-20261001",
+    "loft_controls": [
+      "centerline_id",
+      "guide_influence",
+      "start_tangent_length_mm",
+      "end_tangent_length_mm",
+      "reverse_start_tangent",
+      "reverse_end_tangent"
+    ],
+    "boundary_corner_check": "explicit_open_3D_curve_endpoints; offline_only; new_boundary_native_case_failed",
+    "surface_trim": "unique_trimmed_face_interior_point; boundary_and_nonfinite_rejection; original_target_point_commit",
+    "body_scope": "generated_faces_then_affected_faces_then_proven_native_body_feature_membership",
+    "native_acceptance": "five_new_complex_fixtures_created_rebuilt_saved_and_reopened_with_native_definition_checks",
+    "previous_fixture_policy": "reuse_previous_evidence; no_repeat_of_previous_10_models",
+    "g2_certification": false,
+    "reference": "skills/auto-solidworks/references/complex-modeling.md",
+    "native_fixture_scope": [
+      "three_section_spatial_centerline_loft",
+      "two_guide_global_influence_asymmetric_loft",
+      "four_section_coaxial_12_18_mm_tangent_lengths",
+      "three_section_roof_standard_trim_then_1.2_mm_thicken",
+      "0.8_mm_centerline_hollow_duct_with_two_open_ends"
+    ],
+    "surface_loft_complex_controls": "rejected_before_native_execution; new SurfaceLoft centerline native definition was unverifiable"
+  },
+  "localization": {
+    "default_language": "zh-CN",
+    "feature_tree_names": "中文默认名称；显式用户名称按原样保留",
+    "drawing_text": "中文页名、视图、标题、参数标签、单位与备注",
+    "drawing_font": "Microsoft YaHei",
+    "tool_descriptions": "简体中文",
+    "diagnostics": "简体中文；错误码与技术标识保留",
+    "protocol_identifiers": "invariant",
+    "source_model_renamed": false,
+    "assembly_component_filename_sync": "disabled_after_success_to_preserve_saved_instance_names; restored_on_build_failure",
+    "existing_artifacts_migrated": false,
+    "validation": "offline_core_managed_adapters_public_mcp_and_build_identity",
+    "native_acceptance": "part_assembly_drawing_save_reopen_pdf_and_source_preservation_fixtures",
+    "validation_reference": "skills/auto-solidworks/references/chinese-default-output.md",
+    "previous_modeling_evidence_version": "0.6.0+modeling.20261001.4"
+  },
+  "fill_surface_contract": {
+    "source_implementation": true,
+    "core": "complete_boundary_inventory_contact_and_support_owner_binding; persisted_definition_identity_equivalence_and_reorder; no_G2_downgrade; setter_commit_then_fresh_readback",
+    "native_adapter": "bounded_native_Contact_Tangent_and_Curvature_diagnostics; unique_external_input_edge_adjacent_support_face_and_source_owner; ambiguous_two_source_faces_unavailable_and_rejected",
+    "native_acceptance": "historical30_32_bounded_Contact_Tangent_pass_Curvature_failed; current_release_not_natively_recertified",
+    "geometric_G2_acceptance": "failed_historical32_Curvature_independent_G2; current_release_not_run; retained_control_is_not_geometric_continuity",
+    "limits": [
+      "native_per_boundary_Curvature_support_getter_unavailable",
+      "two_source_face_support_observer_still_required",
+      "current_release_kernel_creation_rebuild_save_reopen_not_recertified"
+    ],
+    "reference": "skills/auto-solidworks/references/fill-support.md"
+  },
+  "boundary_surface_contract": {
+    "source_implementation": true,
+    "core": "ordered_complete_source_curve_alias_and_single_segment_identity; pre_factory_actual_selection_identity_mark_order; exact_InsertNetBlend2_surface_arguments; retained_end_condition_draft_tangent_and_available_direction_controls; saved_source_receipt_replay; complete_before_after_NetBlend_inventory_unique_new_result_binding_when_native_return_pointer_null; old_multiple_error_warning_suppressed_incomplete_results_rejected",
+    "native_adapter": "bounded_native_implementation: bounded_owned_native_editor_for_two_planar_single_spline_profiles; actual_trimmed_edge_source_samples_and_normal_geometry_required; saved_controls_from_byte_identical_no_parameter_edit_copy; native_feature_curve_identity_file_hash_and_original_dirty_state_guards; no_Fill_substitution",
+    "native_acceptance": "historical33_bounded_two_planar_single_spline_normal_native_and_public_pass; current_release_requires_fresh_native_acceptance; complex_boundaries_not_certified",
+    "fixture_evidence": "historical33_matrix_and_public_Normal_Normal; final34_new_creation_not_started; 26.10.07_requires_new_native_creation_rebuild_save_reopen_and_independent_STEP",
+    "limits": [
+      "TrimByD2_getter_unavailable; second_direction_trim_not_certified",
+      "GlobalInfluence_method_prose_0_vs_installed_enum_and_official_example_32_unresolved_natively",
+      "no_general_connectors_or_internal_curve_intersection_contract",
+      "normal_editor_creation_other_curve_counts_multisegment_3D_or_second_direction_unsupported",
+      "native_editor_GUI_layout_and_revision33.0.0_only;other_native_revisions_not_certified",
+      "finite_normal_samples_not_general_G1_G2_or_all_boundary_designs",
+      "normal_tangent_length_default1_read_back_in_bounded_saved_cases;other_lengths_draft_reverse_controls_not_certified",
+      "bounded_creation_rebuild_save_reopen_verified_at_revision31;no_general_G1_G2_or_complex_design_certificate",
+      "dirty_rebuilt_document_control_values_not_inferred_from_clean_copy;source_inventory_and_actual_normal_geometry_checked_separately"
+    ],
+    "reference": "skills/auto-solidworks/references/boundary-adapter.md",
+    "saved_control_readback": {
+      "implementation": "native_editor_byte_identical_unsaved_copy",
+      "numeric_precision": "native_definition_values_after_no_parameter_edit;not_rounded_UI_strings",
+      "source_mutation": "rejected;original_document_dirty_state_and_source_copy_file_hashes_must_remain_unchanged",
+      "scope": "existing_unique_SOLIDWORKS_2025_SP0_revision_33.0.0;feature_and_ordered_curve_persistent_IDs_preserved"
+    },
+    "normal_creation_scope": "two_whole_planar_single_spline_sketch_features;zero_direction2_curves;None_or_NormalToProfile_each_end;64_interior_source_samples_per_normal_profile;single_trimmed_face_four_edges",
+    "validation_basis": {
+      "evidence_revision": "0.6.0+engineering.20261005.31.validation",
+      "audit": "artifacts/native-acceptance-20261005/resume-03/boundary-production-audit-31.json",
+      "audit_sha256": "f43fc6fde69025ba6925a967eea1c7b98d1c7c6eb04ad95d05824775409ec9d2",
+      "source_runtime_identity_sha256": "0adaabab006573a1721c70461884b6bf3f0451344ab37df6f6921103eff50380",
+      "executor_dll_sha256": "cce757026a52359a9a71d9e25cfc2a8964a0fd59f82032f38c991567c2418279",
+      "source_code_changes_since_evidence": "34 added complete bounded nonperiodic BSURF/Bcurve saved revision certification; 26.10.07 changes release metadata and historical evidence labels only; frozen31 native evidence remains historical only",
+      "condition": "frozen31 evidence is historical only for this changed executor; current native acceptance requires new identity-bound evidence"
+    }
+  },
+  "native_validation_session": "artifacts/native-acceptance-20261005",
+  "physical_thread_contract": {
+    "source_implementation": true,
+    "native_acceptance": "bounded_nominal_internal_external_production_native_pass: physical-thread-production-native-29-01; final_manifest_identity_revalidation_required; fit_tolerance_uncertified",
+    "scope": "single_start_nominal_external_metric_die_or_internal_metric_tap_native_pinned_profile; explicit_designation_major_diameter_pitch_length_axis_handedness_runout; internal_requires_independent_bore_and_actual_maximum_cut_diameter_and_native_inward_wall; actual_trimmed_helical_edge_sampling_and_saved_definition_identity; geometric_duplicate_helixes_do_not_count_twice",
+    "limits": [
+      "nominal_internal_external_only; standard_fit_and_general_profile_certification_unavailable",
+      "fit_classes_and_manufacturing_tolerances_not_certified",
+      "typed_draft_only_no_automatic_standard_text_thread",
+      "profile_library_sha256_required"
+    ]
+  },
+  "native_execution_lifetime": {
+    "client_disposal": "cooperative_parent_shutdown_no_process_kill",
+    "server_shutdown": "await_all_accepted_native_delegates_and_durable_receipts_without_fixed_timeout",
+    "offline_regression": "NativeLifetimeRegression",
+    "native_acceptance": "not_run"
+  },
+  "concentric_pair_mobility": {
+    "source_implementation": true,
+    "native_acceptance": "not_run",
+    "evidence": "complete_native_active_mate_inventory_and_IMateEntity2_EntityParams_in_assembly_coordinates; fixed_reference_and_actual_concentric_rotation_lock",
+    "limits": [
+      "exactly_two_resolved_top_level_parts",
+      "exactly_one_active_concentric_cylinder_mate",
+      "multi_mate_and_articulated_mechanisms_unavailable_and_rejected"
+    ]
+  },
+  "concentric_tree_mobility": {
+    "source_implementation": true,
+    "native_acceptance": "bounded_kernel_native_pass: concentric-tree-native-30-01; assembly_drawing_public_route_not_run; later_source_revisions_require_identity_bound_revalidation",
+    "evidence": "complete_native_active_mate_inventory_reconciled_with_each_component_mate_list; native_endpoint_instance_identity_and_assembly_frame_cylinder_axes_and_end_planes; saved_receipts_recompute_relative_span",
+    "limits": [
+      "2_to_32_resolved_top_level_parts_exactly_one_fixed_ground",
+      "tree_only_each_component_pair_exactly_one_concentric_and_at_most_one_axis_normal_coincident_plane_mate",
+      "near_rank_deficiency_and_unproved_relative_projection_singularity_rejected",
+      "closed_loops_general_mates_limits_gear_screw_and_other_couplings_unavailable_and_rejected"
+    ]
+  },
+  "local_integration": {
+    "source_engineering_version": "0.6.0+engineering.20261005.34.validation",
+    "source_build_identity_sha256": "099430ea4f26827a469042cdccc50077b18b96eace690699ae916da3565d6c22",
+    "engineering_goal_status": "paused",
+    "full_task_complete": false,
+    "native_recertification": "not_run_for_26.10.07",
+    "verification_scope": "fresh_build_offline_regressions_public_MCP_schema_compile_dry_run_and_local_install_identity",
+    "release_notes": "skills/auto-solidworks/references/local-integration-26.10.07.md",
+    "completed_implementation": [
+      "bounded_Boundary_native_normal_creation_and_saved_controls",
+      "bounded_Contact_Tangent_Fill_and_independent_continuity_checks",
+      "durable_controlled_box_resize_fillet_history",
+      "complete_nonperiodic_single_outer_loop_BSURF_Bcurve_saved_revision_certification",
+      "analytic_sphere_saved_revision_certification",
+      "typed_design_expressions_configurations_suppression_and_readback",
+      "bounded_text_blind_holes_shells_units_and_unconsumed_requirement_rejection",
+      "nominal_internal_external_right_left_physical_threads",
+      "bounded_spatial_concentric_tree_mobility_and_motion_verification"
+    ],
+    "historical_native_evidence": {
+      "26": "representative_models_functions_units_configurations_fully_constrained_sketches_mates",
+      "29": "four_nominal_internal_external_right_left_threads_and_independent_STEP;fit_tolerance_uncertified",
+      "30": "four_component_spatial_chain_five_component_branch_actual_2mm_10deg_motion;limits_screw_coupling_failed",
+      "33": "bounded_Boundary_creation_rebuild_save_reopen_public_Normal_Normal_and_independent_STEP",
+      "34": "current_spline6_sphere4_durable_box23_entity_revision_and_three_public_positive_four_negative_workflows"
+    },
+    "remaining": [
+      "B01_complex_Boundary_and_final_revision_native_creation",
+      "B02_retained_Curvature_support_and_strict_independent_G2_positive",
+      "B03_periodic_multiloop_closed_rational_native_multiconfiguration_and_general_changed_split_merge_history",
+      "B04_broader_complex_parameter_configuration_design_intent_coverage",
+      "B05_standard_6g_6H_thread_fit_full_tooth_geometry_and_broader_text",
+      "B06_general_multimate_closed_loop_limits_gear_screw_coupling"
+    ],
+    "historical_handoff": "artifacts/native-acceptance-20261005/resume-03/handoff-20261005-144321/acceptance-progress-normalized-paused.json"
+  }
+}

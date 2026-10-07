@@ -110,7 +110,7 @@ public sealed record ProjectionReport
     public IReadOnlyList<ProjectionRequirementResult> Requirements { get; init; } = [];
     public IReadOnlyList<string> CaptureLimitations { get; init; } = [];
     public IReadOnlyList<string> SupportedGeometry { get; init; } = ["visible_line", "hidden_line", "center_line_classification", "circle", "arc"];
-    public string Scope { get; init; } = "Orthographic line/circle/arc projection in fixed millimeter coordinates with preserved visible/hidden/center line class; no free scale, reflection, arbitrary curve or section acceptance.";
+    public string Scope { get; init; } = "正交线/圆/弧在固定毫米坐标系下的投影；保留可见线/隐藏线/中心线类；无自由缩放、反射、任意曲线或剖面接受。";
 }
 
 public static class ProjectionVerifier
@@ -125,13 +125,13 @@ public static class ProjectionVerifier
         Validate(source, nameof(source));
         Validate(model, nameof(model));
         if (!source.ViewId.Equals(model.ViewId, StringComparison.Ordinal))
-            throw new ArgumentException("Source and model snapshots must describe the same frozen view.");
+            throw new ArgumentException("源和模型快照必须描述相同的已锁定视图。");
         if (!source.CoordinateFrameId.Equals(model.CoordinateFrameId, StringComparison.Ordinal))
-            throw new ArgumentException("Projection comparison requires one already-calibrated millimeter coordinate frame; the verifier does not align or rescale frames.");
+            throw new ArgumentException("投影比较需要一个已经校准的毫米坐标框架；验证器不会对框架进行对齐或缩放。");
         if (!source.SourceSha256.Equals(model.SourceSha256, StringComparison.OrdinalIgnoreCase))
-            throw new ArgumentException("Source and model projection snapshots must carry the same independent source drawing SHA-256.");
+            throw new ArgumentException("源图和模型投影快照必须携带相同的独立源图SHA-256。");
         if (string.IsNullOrWhiteSpace(model.NativeModelSha256) || !IsSha256(model.NativeModelSha256))
-            throw new ArgumentException("Model projection must carry the actual saved native model SHA-256.", nameof(model));
+            throw new ArgumentException("模型投影必须携带实际保存的原生模型SHA-256。", nameof(model));
 
         var result = CompareCore(source.Primitives, model.Primitives, options, includeExtras: true);
         var requiredPrimitives = source.Primitives.Where(item => item.Required).ToArray();
@@ -145,7 +145,7 @@ public static class ProjectionVerifier
                 Kind = ProjectionDifferenceKind.Unsupported,
                 SourcePrimitiveId = skipped.Id,
                 RequirementId = skipped.RequirementId,
-                Message = $"Required primitive '{skipped.Id}' with line style '{skipped.LineStyle}' is outside the configured verification scope."
+                Message = $"需要的原始 '{skipped.Id}' 与线样式 '{skipped.LineStyle}' 处于配置的验证范围之外。"
             });
         }
         if (requiredPrimitives.Length == 0)
@@ -154,12 +154,12 @@ public static class ProjectionVerifier
             {
                 DifferenceId = NextId(result.Differences.Count),
                 Kind = ProjectionDifferenceKind.Unsupported,
-                Message = "Projection verification has no required source primitives; an empty required scope cannot pass."
+                Message = "投影验证没有必需的源基本体；空的必需范围无法通过。"
             });
         }
         if (!model.CaptureComplete)
         {
-            foreach (var limitation in model.CaptureLimitations.DefaultIfEmpty("Model projection capture is incomplete."))
+            foreach (var limitation in model.CaptureLimitations.DefaultIfEmpty("模型投影捕捉不完整。"))
             {
                 result.Differences.Add(new()
                 {
@@ -171,7 +171,7 @@ public static class ProjectionVerifier
         }
         if (!source.CaptureComplete)
         {
-            foreach (var limitation in source.CaptureLimitations.DefaultIfEmpty("Source projection capture is incomplete."))
+            foreach (var limitation in source.CaptureLimitations.DefaultIfEmpty("源投影捕捉不完整。"))
             {
                 result.Differences.Add(new()
                 {
@@ -194,7 +194,7 @@ public static class ProjectionVerifier
                 {
                     DifferenceId = NextId(result.Differences.Count),
                     Kind = ProjectionDifferenceKind.MirrorDetected,
-                    Message = "Reflecting the model about the frozen source X axis would match required primitives. Reflection is forbidden and the original model remains failed."
+                    Message = "关于已锁定的源 X 轴反射模型将匹配所需的原生特征。反射被禁止，原始模型仍然失败。"
                 });
             }
         }
@@ -241,8 +241,8 @@ public static class ProjectionVerifier
             CheckedRequiredPrimitiveCount = checkedRequiredPrimitives.Length,
             Differences = result.Differences,
             Requirements = requirements,
-            CaptureLimitations = source.CaptureLimitations.Select(item => "source: " + item)
-                .Concat(model.CaptureLimitations.Select(item => "model: " + item)).ToArray()
+            CaptureLimitations = source.CaptureLimitations.Select(item => "源：" + item)
+                .Concat(model.CaptureLimitations.Select(item => "模型：" + item)).ToArray()
         };
     }
 
@@ -266,7 +266,7 @@ public static class ProjectionVerifier
                 .ToArray();
             if (compatible.Length == 0)
             {
-                Add(ProjectionDifferenceKind.Missing, expected, null, null, null, "Required projected primitive is absent.");
+                Add(ProjectionDifferenceKind.Missing, expected, null, null, null, "所需的投影原生对象缺失。");
                 continue;
             }
             var best = compatible[0];
@@ -278,11 +278,11 @@ public static class ProjectionVerifier
             // position mismatch instead of reporting an unrelated extra plus missing pair.
             used.Add(best.index);
             if (!positionOk) Add(ProjectionDifferenceKind.PositionMismatch, expected, best.item, best.error.Position, best.error.Size,
-                $"Projected primitive position differs by {best.error.Position:0.###} mm.");
+                $"投影原始位置相差{best.error.Position:0.###}mm。");
             else if (!sizeOk) Add(ProjectionDifferenceKind.SizeMismatch, expected, best.item, best.error.Position, best.error.Size,
-                $"Projected primitive size differs by {best.error.Size:0.###} mm.");
+                $"投影原始的尺寸相差{best.error.Size:0.###}mm。");
             else if (!parameterOk) Add(ProjectionDifferenceKind.ParameterMismatch, expected, best.item, best.error.Position, best.error.Size,
-                $"Projected arc sweep differs by {best.error.ParameterDegrees:0.###} degrees.", best.error.ParameterDegrees);
+                $"弧投影扫掠差异为{best.error.ParameterDegrees:0.###}度。", best.error.ParameterDegrees);
         }
         if (includeExtras)
         {
@@ -294,7 +294,7 @@ public static class ProjectionVerifier
                     DifferenceId = NextId(differences.Count),
                     Kind = ProjectionDifferenceKind.Extra,
                     ModelPrimitiveId = pair.item.Id,
-                    Message = "Model projection contains an unmatched extra primitive."
+                    Message = "模型投影包含一个未匹配的额外基本体。"
                 });
             }
         }
@@ -357,37 +357,37 @@ public static class ProjectionVerifier
     {
         static void Tolerance(double value, string name)
         {
-            if (!double.IsFinite(value) || value < 0) throw new ArgumentOutOfRangeException(name, "Projection tolerances must be finite and non-negative.");
+            if (!double.IsFinite(value) || value < 0) throw new ArgumentOutOfRangeException(name, "投影公差必须是有限且非负的。");
         }
         Tolerance(options.PositionToleranceMm, nameof(options.PositionToleranceMm));
         Tolerance(options.RadiusToleranceMm, nameof(options.RadiusToleranceMm));
         Tolerance(options.LineLengthToleranceMm, nameof(options.LineLengthToleranceMm));
         Tolerance(options.ArcSweepToleranceDegrees, nameof(options.ArcSweepToleranceDegrees));
         if (options.DiagnoseMirror && !double.IsFinite(options.MirrorAxisXmm))
-            throw new ArgumentOutOfRangeException(nameof(options.MirrorAxisXmm), "Mirror diagnostic axis must be finite.");
+            throw new ArgumentOutOfRangeException(nameof(options.MirrorAxisXmm), "对镜像诊断轴必须是有限的。");
     }
 
     private static void Validate(ProjectionSnapshot snapshot, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(snapshot.ViewId) || string.IsNullOrWhiteSpace(snapshot.CoordinateFrameId) || !IsSha256(snapshot.SourceSha256))
-            throw new ArgumentException("Projection snapshot requires view, coordinate frame and SHA-256 source fingerprint.", parameterName);
+            throw new ArgumentException("截面快照需要视图、坐标框架和SHA-256源指纹。", parameterName);
         if (snapshot.Primitives.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != snapshot.Primitives.Count)
-            throw new ArgumentException("Projection primitive IDs must be unique.", parameterName);
+            throw new ArgumentException("投影原语的ID必须唯一。", parameterName);
         foreach (var primitive in snapshot.Primitives)
         {
-            if (string.IsNullOrWhiteSpace(primitive.Id)) throw new ArgumentException("Projection primitive id is required.", parameterName);
+            if (string.IsNullOrWhiteSpace(primitive.Id)) throw new ArgumentException("投影原语ID是必需的。", parameterName);
             if (primitive.LineStyle is not ("visible" or "hidden" or "center"))
-                throw new ArgumentException($"Primitive '{primitive.Id}' has unsupported line style '{primitive.LineStyle}'.", parameterName);
+                throw new ArgumentException($"基本体 '{primitive.Id}' 不支持线条样式 '{primitive.LineStyle}'.", parameterName);
             if (primitive.Kind == ProjectionPrimitiveKind.Line && (!primitive.Start.IsFinite || !primitive.End.IsFinite || Distance(primitive.Start, primitive.End) <= 1e-12))
-                throw new ArgumentException($"Line '{primitive.Id}' is invalid.", parameterName);
+                throw new ArgumentException($"直线 '{primitive.Id}' 无效。", parameterName);
             if (primitive.Kind == ProjectionPrimitiveKind.Circle && (!primitive.Center.IsFinite || !double.IsFinite(primitive.RadiusMm) || primitive.RadiusMm <= 0))
-                throw new ArgumentException($"Circle '{primitive.Id}' is invalid.", parameterName);
+                throw new ArgumentException($"圆 '{primitive.Id}' 无效。", parameterName);
             if (primitive.Kind == ProjectionPrimitiveKind.Arc && (!primitive.Center.IsFinite || !primitive.Start.IsFinite || !primitive.End.IsFinite ||
                 !double.IsFinite(primitive.RadiusMm) || primitive.RadiusMm <= 0 || !double.IsFinite(primitive.SweepDegrees) ||
                 Math.Abs(primitive.SweepDegrees) <= 1e-9 || Math.Abs(primitive.SweepDegrees) >= 360 - 1e-7 ||
                 Math.Abs(Distance(primitive.Center, primitive.Start) - primitive.RadiusMm) > 1e-4 ||
                 Math.Abs(Distance(primitive.Center, primitive.End) - primitive.RadiusMm) > 1e-4 || !ArcSweepConsistent(primitive)))
-                throw new ArgumentException($"Arc '{primitive.Id}' is invalid.", parameterName);
+                throw new ArgumentException($"圆弧{primitive.Id}无效。", parameterName);
         }
     }
 

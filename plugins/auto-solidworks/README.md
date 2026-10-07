@@ -1,6 +1,13 @@
 # Auto SolidWorks 0.6.0
 
-当前版本为0.6.0，整合此前优化，提供15个公共工具。新增图纸覆盖复查、原生投影/平面剖面采集、旋转件/孔组/边处理验证，并补强受约束修复、暂停恢复和默认关闭的内部计时。独立真实工程图最终验收尚未完成。完整公告见发布包的 `docs/release-0.6.0.zh-CN.md`。
+<!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
+当前本地整合版本：`26.10.07`；修订：`local-integration-20261007`。整合 `.34.validation` 已实现的优化，保留原有建模与工程图能力；本轮验证范围为重新构建、离线回归及公开 MCP 编译／预演，不启动 SolidWorks。B01–B06 工程任务保持暂停且未全部完成。原生成功与失败按原工程修订和限定案例保留，不自动认证此版本；复杂 Boundary、Curvature Fill／G2、一般拓扑历史、标准螺纹配合及机构限位／耦合仍有缺口。详见[随包能力清单](skills/auto-solidworks/references/capability-manifest.json)及 `cad_get_capabilities`。
+<!-- Capability manifest SHA256: 04e0dc6afa7d8b14dc5ebde410f73c1ae0b050afaacbde725a504d9aec910ac1 -->
+<!-- AUTO-SOLIDWORKS-CONTRACT:END -->
+
+当前本地修复版完善文本单位和需求检查、Boundary 原生接口契约、独立整件几何验证、工程图布局分页与执行截止。能力和验收边界见 [根因修复说明](skills/auto-solidworks/references/root-hardening.md)。本次不启动 SolidWorks，修改后的原生功能未重新验收。
+
+当前修复版提供 18 个公共工具，包括无需启动 SolidWorks 的 `cad_execution_status` 和 `cad_pause_execution`。Gordon 路径保留固定版本 CurvesWB/TiGL 和 FreeCAD/OCC 内核。公开的 0.6.0 发布版仍是原有 15 个工具；本修复版仅本地安装，未发布。
 
 本地 SolidWorks 参数化零件与装配建模插件。默认单位 mm，使用本机 SolidWorks，直接返回模型和指定导出文件。
 
@@ -29,7 +36,7 @@ cad_get_capabilities → cad_read_drawing（有图时）→ cad_create_model_pla
 
 0.5.1 将复杂图纸任务中的分阶段建模、孔深与螺纹表达、失败特征修复和保存后检查整理为随包工作流程。执行器关闭自动捕捉创建有类型草图，自动隐藏构造几何并保存等轴视图；`cad_inspect_model` 新增 STEP/STP 隔离导入检查，恢复应用设置并将临时副本移至回收站。
 
-建模成功表示原生特征已创建、重建、测量和保存。低分辨率 OCR 可能错读数字，须结合原图解释；不宣称自动证明模型与任意图纸等价。Tapped 孔使用底孔和原生装饰螺纹；曲面孔口等不支持标注的情况会明确失败。如交付允许名义螺纹表达，需要显式重新规划为 Simple 孔并保留规格及说明。未生成物理螺旋牙型。当前不完整解释任意 GD&T，也不包含 SolidWorks 所有高级特征选项。
+建模成功表示原生特征已创建、重建、测量和保存。低分辨率 OCR 可能错读数字，须结合原图解释；不宣称自动证明模型与任意图纸等价。Tapped 孔使用底孔和原生装饰螺纹；曲面孔口等不支持标注的情况会明确失败。如交付允许名义螺纹表达，需要显式重新规划为 Simple 孔并保留规格及说明。本地 26.10.07 增加结构化输入的有界名义内外实体螺纹；标准配合及完整牙型认证尚未完成。当前不完整解释任意 GD&T，也不包含 SolidWorks 所有高级特征选项。
 
 安装包只含运行程序、建模技能和简明参数说明。源代码、开发回归样件和报告保留在独立开发目录。更新后在新任务中调用插件，以加载新版工具和技能。
 

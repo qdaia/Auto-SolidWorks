@@ -143,10 +143,10 @@ public static class ConnectivityVerifier
         Validate(query.Requirement);
         if (string.IsNullOrWhiteSpace(query.QueryId) || query.GeometryRefs.Count == 0 ||
             query.GeometryRefs.Select(item => item.RefId).Distinct(StringComparer.Ordinal).Count() != query.GeometryRefs.Count)
-            throw new ArgumentException("Connectivity inspection requires a nonempty query id and unique GeometryRefs.", nameof(query));
+            throw new ArgumentException("连接性检查需要非空的查询ID并且唯一地对应GeometryRefs。", nameof(query));
         if (query.EndProbeCount < 3 || query.EndProbeCount > 32 || !FinitePositive(query.ProbeInsetMm) ||
             !FinitePositive(query.NumericalToleranceMm) || query.NumericalToleranceMm >= query.ProbeInsetMm)
-            throw new ArgumentException("Connectivity probe count/tolerances are outside the bounded supported range.", nameof(query));
+            throw new ArgumentException("连接性探测计数/公差超出限定支持范围。", nameof(query));
     }
 
     public static ConnectivityCheck Evaluate(ConnectivityRequirement requirement, ConnectivityObservation observation)
@@ -154,18 +154,18 @@ public static class ConnectivityVerifier
         Validate(requirement);
         Validate(observation);
         if (observation.GeometryResolutions.Count == 0)
-            return Result(ConnectivityStatus.Unverifiable, "Connectivity check has no resolved geometry scope.");
+            return Result(ConnectivityStatus.Unverifiable, "连接性检查没有解决几何范围。");
         if (observation.GeometryResolutions.Any(item => item.Status != GeometryRefResolutionStatus.Resolved))
-            return Result(ConnectivityStatus.Unverifiable, "At least one geometry reference is stale, missing, ambiguous, unsupported, or belongs to another document.");
+            return Result(ConnectivityStatus.Unverifiable, "至少一个几何参考过时、缺失、模棱两可、不被支持，或者属于另一个文档。");
         if (observation.GeometryResolutions.Any(item => !item.ResolvedModelSha256.Equals(observation.ActualModelSha256, StringComparison.OrdinalIgnoreCase)))
-            return Result(ConnectivityStatus.Unverifiable, "Connectivity geometry references were resolved against a different model fingerprint.");
+            return Result(ConnectivityStatus.Unverifiable, "几何参照已与不同的模型指纹连接。");
         if (observation.GeometryResolutions.Any(item => item.Reference.SourceRevisionId is { Length: > 0 } revision &&
             !revision.Equals(requirement.SourceRevisionId, StringComparison.Ordinal)))
-            return Result(ConnectivityStatus.Unverifiable, "Connectivity GeometryRef evidence belongs to a different source revision than the current requirement.");
+            return Result(ConnectivityStatus.Unverifiable, "连接性 GeometryRef 证据属于当前要求的不同源修订版本。");
         if (!observation.ModelReopened)
-            return Result(ConnectivityStatus.Unverifiable, "Connectivity evidence was not captured from a saved and reopened model.");
+            return Result(ConnectivityStatus.Unverifiable, "从保存并重新打开的模型中未捕捉连接性证据。");
         if (!observation.Complete)
-            return Result(ConnectivityStatus.Unverifiable, observation.Error ?? "Connectivity evidence is incomplete.");
+            return Result(ConnectivityStatus.Unverifiable, observation.Error ?? "连接性证据不完整。");
 
         return requirement.Kind switch
         {
@@ -174,56 +174,56 @@ public static class ConnectivityVerifier
             ConnectivityKind.SteppedHole => EvaluateStepped(),
             ConnectivityKind.InternalCavity => EvaluateCavity(),
             ConnectivityKind.SolidConnection => EvaluateConnection(),
-            _ => Result(ConnectivityStatus.Unsupported, "Connectivity kind is outside the supported first-stage topology scope.")
+            _ => Result(ConnectivityStatus.Unsupported, "连接类型超出了当前第一阶段拓扑范围的支持范围。")
         };
 
         ConnectivityCheck EvaluateHole(bool expectThrough)
         {
             if (!ValidAxis(observation.Axis) || observation.AxialInterval is not { } interval || !FinitePositive(interval.LengthMm) ||
                 observation.StartEvidence is not { } start || observation.EndEvidence is not { } end)
-                return Result(ConnectivityStatus.Unverifiable, "Axial hole verification requires a finite axis, interval, and both end probes.");
+                return Result(ConnectivityStatus.Unverifiable, "轴向孔验证需要有限的轴、区间以及两端探针。");
             var passageProblem = ValidatePassage(interval, requireRadiusSteps: false);
             if (passageProblem is not null) return passageProblem;
             var a = ClassifyEnd(start); var b = ClassifyEnd(end);
             if (a == EndState.Unknown || b == EndState.Unknown)
-                return Result(ConnectivityStatus.Unverifiable, "End probing is incomplete or mixed; one-point ray inference is not accepted.");
+                return Result(ConnectivityStatus.Unverifiable, "端探针不完整或混合；单点射线推断不被接受。");
             if (expectThrough)
             {
                 if (a == EndState.Open && b == EndState.Open)
-                    return Result(ConnectivityStatus.Passed, "Both axial ends are open under bounded multi-point material probes.");
-                return Result(ConnectivityStatus.Failed, "A required through hole has residual material at one or both axial ends.");
+                    return Result(ConnectivityStatus.Passed, "两端在限定的多点材料探针下是开放的。");
+                return Result(ConnectivityStatus.Failed, "一个所需的通孔在轴向的一端或两端存在残留材料。");
             }
             if ((a == EndState.Open && b == EndState.Closed) || (a == EndState.Closed && b == EndState.Open))
-                return Result(ConnectivityStatus.Passed, "Exactly one axial end is open and the opposite end has material-bottom evidence.");
-            return Result(ConnectivityStatus.Failed, "Blind-hole topology requires exactly one opening and one material bottom.");
+                return Result(ConnectivityStatus.Passed, "只有一个轴向端口是开放的，而相反的端口有材料底部的证据。");
+            return Result(ConnectivityStatus.Failed, "盲孔拓扑要求恰好一个开口和一个材料底面。");
         }
 
         ConnectivityCheck EvaluateStepped()
         {
             if (observation.AxialInterval is not { } interval || !FinitePositive(interval.LengthMm))
-                return Result(ConnectivityStatus.Unverifiable, "Stepped-hole verification requires a bounded axial interval.");
+                return Result(ConnectivityStatus.Unverifiable, "验证阶梯孔需要限定的轴向区间。");
             var passageProblem = ValidatePassage(interval, requireRadiusSteps: true);
             if (passageProblem is not null) return passageProblem;
             // Reuse end evidence without pretending the step count alone proves through/blind intent.
             if (observation.StartEvidence is null || observation.EndEvidence is null)
-                return Result(ConnectivityStatus.Unverifiable, "Stepped-hole wall segments were measured, but end topology was not checked.");
+                return Result(ConnectivityStatus.Unverifiable, "测量了阶梯孔壁段，但端部拓扑未被检查。");
             if (ClassifyEnd(observation.StartEvidence) == EndState.Unknown || ClassifyEnd(observation.EndEvidence) == EndState.Unknown)
-                return Result(ConnectivityStatus.Unverifiable, "Stepped-hole end topology probes are incomplete, mixed, or below numerical confidence.");
-            return Result(ConnectivityStatus.Passed, "Stepped-hole wall intervals are contiguous and both end states were explicitly probed.");
+                return Result(ConnectivityStatus.Unverifiable, "阶梯孔端部拓扑探针不完整、混合或低于数值信心。");
+            return Result(ConnectivityStatus.Passed, "阶梯孔壁的间隔是连续的，两端状态都进行了明确探测。");
         }
 
         ConnectivityCheck EvaluateCavity()
         {
             if (observation.VoidGroupIds.Count == 0)
-                return Result(ConnectivityStatus.Failed, "No bounded void/cavity group was observed.");
+                return Result(ConnectivityStatus.Failed, "未观察到有界空腔组。");
             if (observation.AxialInterval is not { } interval)
-                return Result(ConnectivityStatus.Unverifiable, "Internal-cavity verification requires a bounded axial interval in the supported scope.");
+                return Result(ConnectivityStatus.Unverifiable, "内部腔体验证需要在受支持的范围内有一个限定的轴向区间。");
             var passageProblem = ValidatePassage(interval, requireRadiusSteps: false);
             if (passageProblem is not null) return passageProblem;
             if (ClassifyEnd(observation.StartEvidence ?? EmptyEnd("start")) != EndState.Closed ||
                 ClassifyEnd(observation.EndEvidence ?? EmptyEnd("end")) != EndState.Closed)
-                return Result(ConnectivityStatus.Unverifiable, "Internal cavity requires independently measured closed ends in this bounded axial scope.");
-            return Result(ConnectivityStatus.Passed, "At least one explicitly measured void group exists in the scoped cavity check.");
+                return Result(ConnectivityStatus.Unverifiable, "内部空腔需要在这个限定的轴向范围中独立测量闭合端口。");
+            return Result(ConnectivityStatus.Passed, "至少在一个受范围检查的盲腔中存在一个明确测量的空腔组。");
         }
 
         ConnectivityCheck? ValidatePassage(AxialInterval interval, bool requireRadiusSteps)
@@ -232,51 +232,51 @@ public static class ConnectivityVerifier
                 passage.BlockedInteriorSampleCount < 0 || passage.BlockedInteriorSampleCount > passage.SampleCount ||
                 !double.IsFinite(passage.CoverageStartMm) || !double.IsFinite(passage.CoverageEndMm) ||
                 !double.IsFinite(passage.NumericalUncertaintyMm) || passage.NumericalUncertaintyMm < 0)
-                return Result(ConnectivityStatus.Unverifiable, "Axial void continuity was not completely measured across the supported passage.");
+                return Result(ConnectivityStatus.Unverifiable, "轴向空腔连续性在支撑通道中未能完全测量。");
             var expectedMin = Math.Min(interval.StartMm, interval.EndMm);
             var expectedMax = Math.Max(interval.StartMm, interval.EndMm);
             var actualMin = Math.Min(passage.CoverageStartMm, passage.CoverageEndMm);
             var actualMax = Math.Max(passage.CoverageStartMm, passage.CoverageEndMm);
             if (actualMin > expectedMin + requirement.ContactToleranceMm || actualMax < expectedMax - requirement.ContactToleranceMm)
-                return Result(ConnectivityStatus.Unverifiable, "Axial passage probes do not cover the complete declared hole/cavity interval.");
+                return Result(ConnectivityStatus.Unverifiable, "轴向通孔探针无法覆盖声明的孔/腔完整间隔。");
             if (!passage.BodyScopeComplete || passage.BodyIds.Count == 0 || passage.BodyIds.Any(string.IsNullOrWhiteSpace))
-                return Result(ConnectivityStatus.Unverifiable, "Axial passage evidence does not freeze the complete participating solid-body scope.");
+                return Result(ConnectivityStatus.Unverifiable, "轴向通道证据无法冻结参与的完整固体体范围。");
             if (!passage.LateralOutletExcluded)
-                return Result(ConnectivityStatus.Unverifiable, "A lateral outlet/branch cannot be excluded from the supported axial void scope.");
+                return Result(ConnectivityStatus.Unverifiable, "侧向出口/分支不能排除在受支持的轴向空腔范围之外。");
             if (passage.BlockedInteriorSampleCount > 0)
-                return Result(ConnectivityStatus.Failed, "Material intersects the interior axial passage between the declared end conditions.");
+                return Result(ConnectivityStatus.Failed, "材料穿过声明的端条件之间的内轴通道。");
 
             var details = observation.AxialSegmentDetails.OrderBy(segment => Math.Min(segment.StartMm, segment.EndMm)).ToArray();
             if (details.Length == 0)
-                return Result(ConnectivityStatus.Unverifiable, "Axial passage has no radius/body segment evidence.");
+                return Result(ConnectivityStatus.Unverifiable, "轴向通道没有径向/段体证据。");
             if (details.Any(segment => string.IsNullOrWhiteSpace(segment.SegmentId) || string.IsNullOrWhiteSpace(segment.BodyId) ||
                 !FinitePositive(segment.LengthMm) || !FinitePositive(segment.RadiusMm) || !segment.LateralBoundaryExcluded))
-                return Result(ConnectivityStatus.Unverifiable, "Axial segment evidence is incomplete, non-finite, or has unresolved lateral trimming.");
+                return Result(ConnectivityStatus.Unverifiable, "轴向段证据不完整、非有限或存在未解决的侧向剪裁。");
             var bodyScope = passage.BodyIds.ToHashSet(StringComparer.Ordinal);
             if (details.Any(segment => !bodyScope.Contains(segment.BodyId)))
-                return Result(ConnectivityStatus.Unverifiable, "Axial segment evidence references a body outside the frozen complete passage body scope.");
+                return Result(ConnectivityStatus.Unverifiable, "轴向段证据参考了冻结完全体范围外的另一个体。");
             for (var i = 1; i < details.Length; i++)
             {
                 var priorEnd = Math.Max(details[i - 1].StartMm, details[i - 1].EndMm);
                 var nextStart = Math.Min(details[i].StartMm, details[i].EndMm);
                 if (nextStart - priorEnd > requirement.ContactToleranceMm)
-                    return Result(ConnectivityStatus.Failed, "Axial wall segments contain a material gap/discontinuity inside the declared void passage.");
+                    return Result(ConnectivityStatus.Failed, "轴向壁段内包含一个材料间隙/不连续性，位于声明的空腔通道内部。");
                 if (nextStart < priorEnd - requirement.ContactToleranceMm)
                     return Result(ConnectivityStatus.Unverifiable,
-                        "Overlapping axial wall segments do not establish an ordered hole profile; nested/coextensive radii cannot be promoted to a step.");
+                        "轴向壁段重叠不能建立有序的孔轮廓；嵌套/共轭的半径不能提升为一个步骤。");
             }
             var detailMin = details.Min(segment => Math.Min(segment.StartMm, segment.EndMm));
             var detailMax = details.Max(segment => Math.Max(segment.StartMm, segment.EndMm));
             if (detailMin > expectedMin + requirement.ContactToleranceMm || detailMax < expectedMax - requirement.ContactToleranceMm)
-                return Result(ConnectivityStatus.Unverifiable, "Measured cylindrical wall segments do not cover the declared axial interval.");
+                return Result(ConnectivityStatus.Unverifiable, "测量的圆柱壁段未覆盖声明的轴向区间。");
             if (requireRadiusSteps)
             {
                 if (details.Length < Math.Max(2, requirement.MinimumAxialSegments))
-                    return Result(ConnectivityStatus.Failed, "Required stepped hole does not contain the declared number of independently measured axial segments.");
+                    return Result(ConnectivityStatus.Failed, "所需的阶梯孔不包含声明的独立测量轴段的数量。");
                 var distinctRadii = details.Select(segment => segment.RadiusMm).Order().Aggregate(new List<double>(), (list, radius) =>
                 { if (list.Count == 0 || Math.Abs(list[^1] - radius) > requirement.ContactToleranceMm) list.Add(radius); return list; });
                 if (distinctRadii.Count < 2)
-                    return Result(ConnectivityStatus.Failed, "Multiple intervals without a measured radius change do not prove a stepped hole.");
+                    return Result(ConnectivityStatus.Failed, "多个没有测量半径变化的间隔不能证明有阶梯孔。");
             }
             return null;
         }
@@ -284,20 +284,20 @@ public static class ConnectivityVerifier
         ConnectivityCheck EvaluateConnection()
         {
             if (observation.MaterialGroupIds.Count == 0)
-                return Result(ConnectivityStatus.Unverifiable, "No material connectivity groups were measured.");
+                return Result(ConnectivityStatus.Unverifiable, "没有测量到任何材料连通组。");
             var distinct = observation.MaterialGroupIds.Distinct(StringComparer.Ordinal).Count();
             if (requirement.RequireConnectedMaterial)
             {
-                if (distinct == 1) return Result(ConnectivityStatus.Passed, "All scoped entities belong to one connected solid-material group.");
+                if (distinct == 1) return Result(ConnectivityStatus.Passed, "所有受范围限制的实体属于一个连通的固体材料组。");
                 return Result(ConnectivityStatus.Failed, observation.MinimumGapMm is { } gap
-                    ? $"Scoped material is split into {distinct} groups; measured minimum gap is {gap:G6} mm."
-                    : $"Scoped material is split into {distinct} disconnected solid groups.");
+                    ? $"指定范围的材料分成{distinct}组；测得的最小间隙为{gap:G6}毫米。"
+                    : $"指定范围的材料分成{distinct}个互不连接的实体组。");
             }
             if (distinct > 1 && !requirement.AllowMultipleBodies)
-                return Result(ConnectivityStatus.Failed, "Multiple solid bodies are present but the source requirement does not allow them.");
+                return Result(ConnectivityStatus.Failed, "存在多个实体体，但源要求不允许它们存在。");
             return Result(ConnectivityStatus.Passed, distinct > 1
-                ? "Multiple solid bodies are explicitly allowed; body count alone is not treated as a failure."
-                : "Scoped material is valid for the declared non-connectivity requirement.");
+                ? "多个实体体被明确允许；仅实体数量本身不被视为失败。"
+                : "限定材料符合声明的非连接性要求。");
         }
 
         EndState ClassifyEnd(AxialOpeningEvidence evidence)
@@ -400,7 +400,7 @@ public static class ConnectivityVerifier
         if (string.IsNullOrWhiteSpace(requirement.RequirementId) || string.IsNullOrWhiteSpace(requirement.SourceFactId) || string.IsNullOrWhiteSpace(requirement.SourceRevisionId) || !Sha(requirement.SourceFactFingerprint) ||
             requirement.SourceSha256 is { Length: > 0 } sourceSha && !Sha(sourceSha) ||
             requirement.MinimumAxialSegments < 1 || !FinitePositive(requirement.SealDetectionThresholdMm) || !FinitePositive(requirement.ContactToleranceMm))
-            throw new ArgumentException("Connectivity requirement contains missing identity or invalid thresholds.", nameof(requirement));
+            throw new ArgumentException("连接性要求缺少身份或无效的阈值。", nameof(requirement));
     }
 
     public static string Fingerprint(ConnectivityRequirement requirement)
@@ -421,16 +421,16 @@ public static class ConnectivityVerifier
     {
         ArgumentNullException.ThrowIfNull(observation);
         if (string.IsNullOrWhiteSpace(observation.CheckId) || observation.ActualModelSha256.Length != 64 || !observation.ActualModelSha256.All(Uri.IsHexDigit))
-            throw new ArgumentException("Connectivity observation requires check id and actual model SHA-256.", nameof(observation));
+            throw new ArgumentException("连接性观察需要检查ID和实际模型SHA-256。", nameof(observation));
         if (observation.MinimumGapMm is { } gap && (!double.IsFinite(gap) || gap < 0))
-            throw new ArgumentException("Connectivity minimum gap must be finite and non-negative.", nameof(observation));
+            throw new ArgumentException("连通性最小间隙必须有限且非负。", nameof(observation));
         if (observation.AxisOriginMm is { } axisOrigin && !Finite(axisOrigin))
-            throw new ArgumentException("Connectivity axial-coordinate origin must be finite when supplied.", nameof(observation));
+            throw new ArgumentException("连接轴坐标原点必须为有限值，当提供时。", nameof(observation));
         if (observation.AxialSegments.Any(segment => !double.IsFinite(segment.StartMm) || !double.IsFinite(segment.EndMm) || segment.LengthMm <= 0))
-            throw new ArgumentException("Connectivity axial segments must be finite and nonzero.", nameof(observation));
+            throw new ArgumentException("轴向段的连通性必须是有限且非零的。", nameof(observation));
         if (observation.AxialSegmentDetails.Any(segment => !double.IsFinite(segment.StartMm) || !double.IsFinite(segment.EndMm) ||
             !FinitePositive(segment.LengthMm) || !FinitePositive(segment.RadiusMm)))
-            throw new ArgumentException("Connectivity axial segment details must contain finite nonzero intervals and radii.", nameof(observation));
+            throw new ArgumentException("连通性轴向分段详情必须包含有限、非零长度的区间及半径。", nameof(observation));
     }
 
     private enum EndState { Open, Closed, Unknown }

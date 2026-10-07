@@ -45,12 +45,12 @@ public static class DrawingViewMapBuilder
     public static DrawingViewMapDocument Build(DrawingViewMapBuildRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.Pages.Count == 0) throw new ArgumentException("At least one observation page is required.", nameof(request));
+        if (request.Pages.Count == 0) throw new ArgumentException("至少需要一个观察页面。", nameof(request));
         var projection = ProjectionConventionResolver.Resolve(request.ProjectionEvidence);
         if (request.ModelAnchors.GroupBy(item => item.ViewId, StringComparer.Ordinal).Any(group => group.Count() > 1))
-            throw new ArgumentException("Model anchors must be unique per view.", nameof(request));
+            throw new ArgumentException("模型锚点在每个视图中必须唯一。", nameof(request));
         if (request.ScaleCalibrations.GroupBy(item => item.ViewId, StringComparer.Ordinal).Any(group => group.Count() > 1))
-            throw new ArgumentException("Drawing-scale calibrations must be unique per view.", nameof(request));
+            throw new ArgumentException("图纸比例校准必须每视图唯一。", nameof(request));
         var anchors = request.ModelAnchors.ToDictionary(item => item.ViewId, StringComparer.Ordinal);
         var scales = request.ScaleCalibrations.ToDictionary(item => item.ViewId, StringComparer.Ordinal);
         var artifactManifest = request.Pages.SelectMany(item => item.ArtifactManifest)
@@ -76,7 +76,7 @@ public static class DrawingViewMapBuilder
                 Space = CoordinateSpace.SolidworksModel,
                 Unit = MeasurementUnit.Millimeter,
                 ArtifactId = modelArtifactId,
-                OriginDescription = "SolidWorks model origin; right-handed x/y/z, millimeters.",
+                OriginDescription = "模型原点，SolidWorks，右手坐标系，毫米。",
                 AxisLabels = ["x_mm", "y_mm", "z_mm"]
             });
 
@@ -87,18 +87,18 @@ public static class DrawingViewMapBuilder
         {
             var pageNumber = pageDocument.SourceRegions.Select(item => item.PageNumber).Where(item => item > 0).DefaultIfEmpty(1).Min();
             var page = request.SourceManifest.Pages.SingleOrDefault(item => item.PageNumber == pageNumber)
-                ?? throw new InvalidOperationException($"Source manifest has no page {pageNumber}.");
+                ?? throw new InvalidOperationException($"源manifest没有页{pageNumber}。");
             foreach (var observedView in pageDocument.ViewRegions)
             {
                 var region = pageDocument.SourceRegions.SingleOrDefault(item => item.RegionId == observedView.SourceRegionId);
                 if (region is null || region.Polygon.Count < 3) continue;
                 var sourceFrameId = region.Polygon[0].CoordinateFrameId;
                 if (region.Polygon.Any(point => point.CoordinateFrameId != sourceFrameId))
-                    throw new InvalidOperationException($"View region '{region.RegionId}' mixes coordinate frames.");
+                    throw new InvalidOperationException($"视图区域 '{region.RegionId}' 混合了坐标框架。");
                 var sourceFrame = frames.SingleOrDefault(item => item.FrameId == sourceFrameId)
-                    ?? throw new InvalidOperationException($"Coordinate frame '{sourceFrameId}' is absent.");
+                    ?? throw new InvalidOperationException($"坐标系 '{sourceFrameId}' 不存在。");
                 if (sourceFrame.Unit is not (MeasurementUnit.Pixel or MeasurementUnit.PdfPoint))
-                    throw new InvalidOperationException($"View source frame '{sourceFrameId}' is not a page-space frame.");
+                    throw new InvalidOperationException($"视图源框架 '{sourceFrameId}' 不是一个页面空间框架。");
 
                 var bounds = Bounds(region.Polygon);
                 var pageWidthMm = ToMillimeters(page.PhysicalWidth, page.PhysicalUnit);
@@ -111,7 +111,7 @@ public static class DrawingViewMapBuilder
                 var validScale = scaleCalibration is not null && double.IsFinite(drawingScale) && drawingScale > 0 &&
                     !string.IsNullOrWhiteSpace(scaleCalibration.EvidenceId);
                 if (!double.IsFinite(sheetSx) || !double.IsFinite(sheetSy) || sheetSx <= 0 || sheetSy <= 0)
-                    throw new InvalidOperationException($"View '{observedView.ViewRegionId}' has invalid physical calibration.");
+                    throw new InvalidOperationException($"视图 '{observedView.ViewRegionId}' 有无效的物理校准。");
                 var sx = sheetSx * drawingScale;
                 var sy = sheetSy * drawingScale;
 
@@ -122,7 +122,7 @@ public static class DrawingViewMapBuilder
                     Space = CoordinateSpace.ViewLocal,
                     Unit = MeasurementUnit.Millimeter,
                     ArtifactId = sourceFrame.ArtifactId,
-                    OriginDescription = "View crop bottom-left; x right, y up; coordinates are model millimeters after explicit drawing-scale calibration.",
+                    OriginDescription = "视窗裁剪左下；x方向向右，y方向向上；坐标是经过显式绘图比例校准的模型毫米。",
                     AxisLabels = ["u_mm", "v_mm"]
                 });
                 var sourceToViewId = observedView.ViewRegionId + "-source-to-view-mm";
@@ -194,12 +194,12 @@ public static class DrawingViewMapBuilder
                     ModelFrameId = modelFrameId,
                     SourceToViewTransformId = sourceToViewId,
                     ViewToModelTransformId = viewToModelId,
-                    CalibrationBasis = $"Page physical calibration from source manifest; drawing scale: {(validScale ? scaleCalibration!.Basis : "unresolved")}; model anchor: {(validAnchor ? anchor!.Basis : "unresolved")}.",
+                    CalibrationBasis = $"页面物理校准来自源清单；图纸比例：{(validScale ? scaleCalibration!.Basis : "unresolved")}；模型锚点：{(validAnchor ? anchor!.Basis : "unresolved")}。",
                     PositionUncertaintyMm = Math.Max(sx, sy),
                     Status = viewStatus,
                     Fact = viewStatus == ViewMapStatus.Resolved
                         ? new() { Status = FactStatus.Derived, SourceIds = [scaleCalibration!.EvidenceId, anchor!.EvidenceId], Rationale = $"{scaleCalibration.Basis}; {anchor.Basis}" }
-                        : new() { Status = FactStatus.Unknown, Rationale = "Drawing scale and model origin must both be independently established before this view can drive model-space geometry." }
+                        : new() { Status = FactStatus.Unknown, Rationale = "绘图比例和模型原点必须独立建立后，此视图才能驱动模型空间几何。" }
                 });
             }
         }
@@ -223,7 +223,7 @@ public static class DrawingViewMapBuilder
             ProjectionConvention = projection.Convention,
             ProjectionFact = projection.Fact,
             DrawingUnit = MeasurementUnit.Millimeter,
-            UnitFact = new() { Status = FactStatus.Derived, SourceIds = [request.SourceManifest.DocumentId], Rationale = "Page coordinates are physically calibrated from the source manifest; per-view drawing scale is separately required before model-space use." },
+            UnitFact = new() { Status = FactStatus.Derived, SourceIds = [request.SourceManifest.DocumentId], Rationale = "页面坐标从源manifest物理校准；视图绘制比例在模型空间使用前需要单独指定。" },
             Views = views
         };
     }
@@ -259,7 +259,7 @@ public static class DrawingViewMapBuilder
         if (sourceFrame.Unit == MeasurementUnit.PdfPoint)
             return (pageWidthMm / 25.4 * 72d, pageHeightMm / 25.4 * 72d);
         if (sourceFrame.Unit != MeasurementUnit.Pixel || page.PixelWidth <= 0 || page.PixelHeight <= 0)
-            throw new InvalidOperationException($"Cannot derive full-page extent for frame '{sourceFrame.FrameId}' with unit '{sourceFrame.Unit}'.");
+            throw new InvalidOperationException($"无法为框架 '{sourceFrame.FrameId}' 使用单位 '{sourceFrame.Unit}' 得到页面全尺寸。");
         if (sourceFrame.Space == CoordinateSpace.SourcePixel)
             return (page.PixelWidth, page.PixelHeight);
 
@@ -270,7 +270,7 @@ public static class DrawingViewMapBuilder
             // In that case the manifest pixel dimensions are the only authoritative page extent.
             if (document.CoordinateFrames.Count(item => item.Unit == MeasurementUnit.Pixel) == 1)
                 return (page.PixelWidth, page.PixelHeight);
-            throw new InvalidOperationException($"Normalized frame '{sourceFrame.FrameId}' has no source-pixel frame from which to derive full-page extent.");
+            throw new InvalidOperationException($"标准化框架 '{sourceFrame.FrameId}' 没有从其中推导出全页范围的源像素框架。");
         }
         var corners = new[]
         {
@@ -283,13 +283,13 @@ public static class DrawingViewMapBuilder
         foreach (var corner in corners)
         {
             if (!DrawingOmissionInventoryBuilder.TryTransform(corner, sourceFrame.FrameId, document.Transforms, out var point))
-                throw new InvalidOperationException($"Cannot transform full source-page extent into frame '{sourceFrame.FrameId}'.");
+                throw new InvalidOperationException($"无法将源页面的完整范围转换到框架 '{sourceFrame.FrameId}'。");
             mapped.Add(point);
         }
         var width = mapped.Max(item => item.X) - mapped.Min(item => item.X);
         var height = mapped.Max(item => item.Y) - mapped.Min(item => item.Y);
         if (!double.IsFinite(width) || !double.IsFinite(height) || width <= 0 || height <= 0)
-            throw new InvalidOperationException($"Derived page extent for frame '{sourceFrame.FrameId}' is invalid.");
+            throw new InvalidOperationException($"从框架 '{sourceFrame.FrameId}' 获取的衍生页长无效。");
         return (width, height);
     }
 
@@ -297,7 +297,7 @@ public static class DrawingViewMapBuilder
     {
         MeasurementUnit.Millimeter => value,
         MeasurementUnit.Inch => value * 25.4,
-        _ => throw new InvalidOperationException($"Physical source page unit '{unit}' cannot be converted to millimeters.")
+        _ => throw new InvalidOperationException($"物理源页面单位 '{unit}' 无法转换为毫米。")
     };
 
     private static string HexSha256(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));

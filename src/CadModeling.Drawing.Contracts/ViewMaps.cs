@@ -56,12 +56,12 @@ public static class ProjectionConventionResolver
             .ToArray();
         if (explicitKnown.Any(item => item.Convention == ProjectionConvention.Mirrored))
             return new(ProjectionConvention.Unknown,
-                new() { Status = FactStatus.Unknown, Rationale = "Mirrored projection evidence is not accepted as a projection convention." },
+                new() { Status = FactStatus.Unknown, Rationale = "投影证据被镜像后不被接受为投影惯例。" },
                 ViewMapStatus.Conflict, explicitKnown.Select(item => item.EvidenceId).ToArray());
         var conventions = explicitKnown.Select(item => item.Convention).Distinct().ToArray();
         if (conventions.Length > 1)
             return new(ProjectionConvention.Unknown,
-                new() { Status = FactStatus.Unknown, Rationale = "Explicit projection evidence conflicts." },
+                new() { Status = FactStatus.Unknown, Rationale = "显式的投影证据相矛盾。" },
                 ViewMapStatus.Conflict, explicitKnown.Select(item => item.EvidenceId).ToArray());
         if (conventions.Length == 1)
             return new(conventions[0], new()
@@ -75,7 +75,7 @@ public static class ProjectionConventionResolver
         return new(ProjectionConvention.FirstAngle, new()
         {
             Status = FactStatus.Assumed,
-            Rationale = "No explicit projection symbol/label conflict; project default is first-angle.",
+            Rationale = "没有显式的投影符号/标签冲突；投影默认为第一角投影。",
             AssumptionAuthorizationId = "project-default-first-angle"
         }, ViewMapStatus.Candidate, []);
     }

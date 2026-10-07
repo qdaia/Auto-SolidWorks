@@ -1,0 +1,206 @@
+{
+  "name": "trimmed_three_section_roof",
+  "source_text": "New complex modeling fixture with explicit mm requirements, not a replay of previous acceptance.",
+  "operations": [
+    {
+      "type": "NativeFeature",
+      "id": "roof0",
+      "name": "roof0",
+      "depends_on": [],
+      "feature": {
+        "kind": "SpatialCurve",
+        "spatial_curve": {
+          "points_mm": [
+            {
+              "x": -30,
+              "y": 0,
+              "z": 0
+            },
+            {
+              "x": 0,
+              "y": 15,
+              "z": 0
+            },
+            {
+              "x": 30,
+              "y": 0,
+              "z": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "roof1",
+      "name": "roof1",
+      "depends_on": [
+        "roof0"
+      ],
+      "feature": {
+        "kind": "SpatialCurve",
+        "spatial_curve": {
+          "points_mm": [
+            {
+              "x": -25,
+              "y": 0,
+              "z": 30
+            },
+            {
+              "x": 0,
+              "y": 25,
+              "z": 30
+            },
+            {
+              "x": 25,
+              "y": 0,
+              "z": 30
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "roof2",
+      "name": "roof2",
+      "depends_on": [
+        "roof0",
+        "roof1"
+      ],
+      "feature": {
+        "kind": "SpatialCurve",
+        "spatial_curve": {
+          "points_mm": [
+            {
+              "x": -20,
+              "y": 0,
+              "z": 60
+            },
+            {
+              "x": 0,
+              "y": 15,
+              "z": 60
+            },
+            {
+              "x": 20,
+              "y": 0,
+              "z": 60
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "roof",
+      "name": "roof",
+      "depends_on": [
+        "roof0",
+        "roof1",
+        "roof2"
+      ],
+      "feature": {
+        "kind": "SurfaceLoft",
+        "profile_ids": [
+          "roof0",
+          "roof1",
+          "roof2"
+        ],
+        "tangent_propagation": false
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "cut_plane",
+      "name": "cut_plane",
+      "depends_on": [
+        "roof0",
+        "roof1",
+        "roof2",
+        "roof"
+      ],
+      "feature": {
+        "kind": "ReferencePlane",
+        "frame": {
+          "origin_mm": {
+            "x": 8,
+            "y": 0,
+            "z": 0
+          },
+          "normal": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          },
+          "x_direction": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "trimmed_roof",
+      "name": "trimmed_roof",
+      "depends_on": [
+        "roof0",
+        "roof1",
+        "roof2",
+        "roof",
+        "cut_plane"
+      ],
+      "feature": {
+        "kind": "SurfaceTrim",
+        "merge": false,
+        "selections": [
+          {
+            "kind": "Plane",
+            "feature_id": "cut_plane"
+          },
+          {
+            "kind": "Body",
+            "feature_id": "roof",
+            "position_mm": {
+              "x": 0,
+              "y": 25,
+              "z": 30
+            },
+            "selection_mark": 2
+          }
+        ]
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "roof_wall",
+      "name": "roof_wall",
+      "depends_on": [
+        "roof0",
+        "roof1",
+        "roof2",
+        "roof",
+        "cut_plane",
+        "trimmed_roof"
+      ],
+      "feature": {
+        "kind": "Thicken",
+        "thickness_mm": 1.2,
+        "merge": false,
+        "selections": [
+          {
+            "kind": "Body",
+            "feature_id": "trimmed_roof"
+          }
+        ]
+      }
+    }
+  ],
+  "expected_solid_body_count": 1,
+  "expected_surface_body_count": 0,
+  "recovery": {
+    "enabled": false
+  }
+}

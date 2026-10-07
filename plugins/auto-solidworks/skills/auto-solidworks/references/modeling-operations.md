@@ -1,12 +1,14 @@
 # Typed geometry
 
+Typed draft `design_intent` supports bounded equations/global variables and named configuration dimensions in the offline source revision. Read [design intent contracts](design-intent.md) for fields, scopes, evidence and limits. Native authoring/save/reopen for this revision is not run.
+
 For drawing-based drafts, also read [source requirements and recovery](source-requirements-and-recovery.md). `drawing_context.features` links all operations and critical parameters to source evidence; `verification` carries separate expected measurements. `recovery` controls verified checkpoints and suffix replay. Text-only drafts can omit drawing context.
 
 Use the live MCP input schema for property spelling. All lengths in operations are mm and angles are degrees. Output paths are separate tool arguments.
 
 ## Coordinates and plans
 
-A draft has `name`, `source_text`, ordered `operations`, optional `assumptions`, `source_model_path` and `drawing_context`. Each operation has a unique `id`, readable `name`, and `type`. The compiler adds dependencies from sketches, profiles, paths, axes, support features and entity selectors.
+A draft has `name`, `source_text`, ordered `operations`, optional `assumptions`, `source_model_path`, `drawing_context` and `execution_deadline`. `execution_deadline` configures `deadline_milliseconds` (default 300000, maximum 3600000) and `pause_acknowledgement_milliseconds` (default 1000, maximum 5000). These bound waiting and cancel at safe boundaries; synchronous COM itself is not forcibly aborted. Each operation has a unique `id`, readable `name`, and `type`. The compiler adds dependencies from sketches, profiles, paths, axes, support features and entity selectors.
 
 | Standard sketch | Coordinates | Extrusion axis |
 |---|---|---|

@@ -28,13 +28,13 @@ internal sealed partial class SolidWorksComExecutor
             ArgumentNullException.ThrowIfNull(request);
             SectionVerifier.Validate(request.Spec);
             if (request.Spec.Type != SectionType.FullPlane)
-                return new(false, "validation: only a single complete planar section is supported.");
+                return new(false, "验证：仅支持一个完整的平面剖面。");
             if (!Path.IsPathFullyQualified(request.NativePath) || !File.Exists(request.NativePath) ||
                 !Path.GetExtension(request.NativePath).Equals(".sldprt", StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException("Section capture requires an existing absolute .SLDPRT path.");
+                throw new ArgumentException("截面捕捉需要一个现有的绝对 .SLDPRT 路径。");
             if (!double.IsFinite(request.EndpointToleranceMm) || request.EndpointToleranceMm <= 0 ||
                 !double.IsFinite(request.SheetMarginMm) || request.SheetMarginMm <= 0)
-                throw new ArgumentException("Section capture tolerances/margins must be finite and positive.");
+                throw new ArgumentException("截面捕捉公差/边缘必须是有限且正数。");
 
             var modelHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(request.NativePath)));
             app = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application", true)!)!;
@@ -48,25 +48,25 @@ internal sealed partial class SolidWorksComExecutor
             }
             if (model is null || model is not IPartDoc part ||
                 !Path.GetFullPath(model.GetPathName()).Equals(Path.GetFullPath(request.NativePath), StringComparison.OrdinalIgnoreCase))
-                throw new IOException($"Could not reopen exact saved native part for section capture (errors={errors}).");
-            if (model.GetSaveFlag()) throw new InvalidOperationException("Section capture refuses unsaved in-memory model state.");
+                throw new IOException($"无法重新打开精确保存的原生零件进行剖面捕捉（错误={errors}）。");
+            if (model.GetSaveFlag()) throw new InvalidOperationException("截面捕捉拒绝未保存的内存模型状态。");
 
-            stage = "freeze section frame";
+            stage = "冻结剖面框";
             var normal = ModelVerification.Unit(request.Spec.PlaneNormal);
             var xAxis = ModelVerification.Unit(request.Spec.InPlaneXDirection);
             var yAxis = ModelVerification.Unit(SectionCross(normal, xAxis));
             if (Math.Abs(ModelVerification.Dot(normal, xAxis)) > 1e-6 || ModelVerification.Norm(yAxis) <= 1e-12)
-                throw new InvalidOperationException("Section frame is not a valid right-handed in-plane basis.");
+                throw new InvalidOperationException("剖面框架不是一个有效的右手平面基准。");
             var originMm = request.Spec.PlaneOriginMm;
             var bodies = (part.GetBodies2((int)swBodyType_e.swSolidBody, false) as object[] ?? []).OfType<IBody2>().ToArray();
-            if (bodies.Length == 0) throw new InvalidOperationException("Section capture found no solid bodies.");
+            if (bodies.Length == 0) throw new InvalidOperationException("截面捕捉未找到任何实体体。");
             var (uMin, uMax, vMin, vMax) = SectionBounds(bodies, originMm, xAxis, yAxis, request.SheetMarginMm);
             var modeler = (IModeler)app.GetModeler();
             var primitives = new List<ProjectionPrimitive>();
             var limitations = new List<string>();
             var primitiveIndex = 0;
 
-            stage = "intersect actual B-Rep with fixed plane";
+            stage = "特征实际B-Rep与固定平面相交";
             foreach (var body in bodies)
             {
                 IBody2? target = null;
@@ -74,25 +74,25 @@ internal sealed partial class SolidWorksComExecutor
                 ISurface? plane = null;
                 try
                 {
-                    target = (IBody2?)body.Copy2(true) ?? throw new IOException("Could not copy solid body for non-mutating section capture.");
+                    target = (IBody2?)body.Copy2(true) ?? throw new IOException("无法复制固体体，因为非可变截面捕获。");
                     plane = (ISurface?)modeler.CreatePlanarSurface2(
                         new[] { originMm.X / 1000, originMm.Y / 1000, originMm.Z / 1000 },
                         new[] { normal.X, normal.Y, normal.Z }, new[] { xAxis.X, xAxis.Y, xAxis.Z })
-                        ?? throw new IOException("Could not create temporary section plane.");
+                        ?? throw new IOException("无法创建临时剖面平面。");
                     sheet = (IBody2?)modeler.CreateSheetFromSurface(plane, new[] { uMin / 1000, uMax / 1000, vMin / 1000, vMax / 1000 })
-                        ?? throw new IOException("Could not create bounded temporary section sheet.");
+                        ?? throw new IOException("无法创建有界临时剖面曲面。");
                     var raw = target.GetIntersectionEdges2(sheet, false) as object[] ?? [];
                     if (raw.Length == 0) continue;
                     if (raw.Length % 2 != 0)
                     {
-                        limitations.Add($"Intersection edge payload for body '{body.Name}' is not target/tool paired.");
+                        limitations.Add($"体 ' {body.Name} ' 的边交 数据 未配对为目标/工具。");
                         continue;
                     }
                     for (var i = 0; i < raw.Length; i += 2)
                     {
                         if (raw[i] is not IEdge edge)
                         {
-                            limitations.Add($"Intersection record {i / 2} for body '{body.Name}' has no target-body edge.");
+                            limitations.Add($"记录{i / 2}体 '{body.Name}' 的交集没有目标体边。");
                             continue;
                         }
                         var primitive = SectionPrimitive(edge, originMm, normal, xAxis, yAxis, ref primitiveIndex, limitations);
@@ -106,9 +106,9 @@ internal sealed partial class SolidWorksComExecutor
                     ReleaseCom(target);
                 }
             }
-            if (primitives.Count == 0) limitations.Add("The fixed section plane produced no supported line/circle boundary primitives.");
+            if (primitives.Count == 0) limitations.Add("固定剖面平面没有产生支撑的线/圆边界 图元。");
 
-            stage = "assemble material and void loops";
+            stage = "装配材料和空洞";
             var capturedLoops = BuildSectionLoops(primitives, request.EndpointToleranceMm, limitations);
             var loops = new List<SectionLoop>();
             for (var i = 0; i < capturedLoops.Count; i++)
@@ -124,9 +124,9 @@ internal sealed partial class SolidWorksComExecutor
                     AreaMm2 = loop.AreaMm2
                 });
             }
-            if (loops.Count == 0) limitations.Add("No closed supported section loops could be assembled from the actual intersection edges.");
+            if (loops.Count == 0) limitations.Add("无法从实际的交界面边线组装封闭的闭合剖面环。");
             if (modelHash != Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(request.NativePath))))
-                throw new IOException("Native model changed while the section was captured.");
+                throw new IOException("原生模型在截面被捕捉时被更改。");
             var complete = limitations.Count == 0;
             var snapshot = new SectionSnapshot
             {
@@ -147,8 +147,8 @@ internal sealed partial class SolidWorksComExecutor
                 Loops = loops
             };
             return new(true, complete
-                ? $"Captured {primitives.Count} section boundaries and {loops.Count} closed loops from the reopened actual B-Rep."
-                : $"Section B-Rep intersection completed with {limitations.Count} fail-closed limitation(s).")
+                ? $"捕获了从重新打开的实际B-Rep中提取的{primitives.Count}边界和{loops.Count}闭合环。"
+                : $"剖面 B-Rep 交集已完成，且满足限制条件{limitations.Count}的闭合失败。")
             {
                 Complete = complete,
                 Limitations = limitations,
@@ -170,42 +170,42 @@ internal sealed partial class SolidWorksComExecutor
         ref int index, List<string> limitations)
     {
         var curve = (ICurve?)edge.GetCurve();
-        if (curve is null) { limitations.Add("A section intersection edge exposed no underlying curve."); return null; }
+        if (curve is null) { limitations.Add("剖面剖切边缘暴露了没有底层曲线。"); return null; }
         ProjectionPointMm Project(IReadOnlyList<double> point) => SectionProject(new(point[0] * 1000, point[1] * 1000, point[2] * 1000), originMm, xAxis, yAxis);
         if (curve.IsLine())
         {
             if ((IVertex?)edge.GetStartVertex() is not { } a || (IVertex?)edge.GetEndVertex() is not { } b ||
                 a.GetPoint() is not double[] pa || b.GetPoint() is not double[] pb)
-            { limitations.Add("A section line edge has incomplete endpoints."); return null; }
+            { limitations.Add("剖面线的边线有不完整的端点。"); return null; }
             var start = Project(pa); var end = Project(pb);
-            if (Distance(start, end) <= 1e-9) { limitations.Add("A section line edge collapsed in the fixed section frame."); return null; }
+            if (Distance(start, end) <= 1e-9) { limitations.Add("剖面线边在固定剖面框架中塌陷。"); return null; }
             return new() { Id = $"section-line-{++index:D4}", Kind = ProjectionPrimitiveKind.Line, Start = start, End = end, LineStyle = "visible" };
         }
         if (curve.IsCircle())
         {
-            var p = ToDoubles(curve.CircleParams, 7, "section circle parameters");
+            var p = ToDoubles(curve.CircleParams, 7, "剖面圆的参数");
             var circleNormal = ModelVerification.Unit(new Vector3(p[3], p[4], p[5]));
             if (Math.Abs(ModelVerification.Dot(circleNormal, normal)) < Math.Cos(.25 * Math.PI / 180))
-            { limitations.Add("A section circular edge is not coplanar with the frozen section plane."); return null; }
+            { limitations.Add("截面的圆边不与已锁定的截面平面共面。"); return null; }
             var center = Project(p);
             var parameters = (ICurveParamData)edge.GetCurveParams3();
             var startRaw = parameters.StartPoint as double[]; var endRaw = parameters.EndPoint as double[];
             if (startRaw is not { Length: >= 3 } || endRaw is not { Length: >= 3 })
-            { limitations.Add("A section circular edge has incomplete trimmed endpoints."); return null; }
+            { limitations.Add("截面的圆形边线有未完成的剪裁端点。"); return null; }
             var start = Project(startRaw); var end = Project(endRaw); var radius = p[6] * 1000;
-            if (!double.IsFinite(radius) || radius <= 0) { limitations.Add("A section circular edge has invalid radius."); return null; }
+            if (!double.IsFinite(radius) || radius <= 0) { limitations.Add("截面的圆边有无效的半径。"); return null; }
             if (Distance(start, end) <= 1e-6)
                 return new() { Id = $"section-circle-{++index:D4}", Kind = ProjectionPrimitiveKind.Circle, Center = center, RadiusMm = radius, LineStyle = "visible" };
             var delta = parameters.UMaxValue - parameters.UMinValue;
             if (!double.IsFinite(delta) || Math.Abs(delta) <= 1e-12 || Math.Abs(delta) >= Math.PI * 2 - 1e-7)
-            { limitations.Add("A section arc has invalid parameter extent."); return null; }
+            { limitations.Add("截面弧的参数范围无效。"); return null; }
             return new()
             {
                 Id = $"section-arc-{++index:D4}", Kind = ProjectionPrimitiveKind.Arc, Center = center, Start = start, End = end,
                 RadiusMm = radius, SweepDegrees = delta * 180 / Math.PI * (ModelVerification.Dot(circleNormal, normal) >= 0 ? 1 : -1), LineStyle = "visible"
             };
         }
-        limitations.Add("A section intersection contains a spline/ellipse/free curve outside the first T10 production scope.");
+        limitations.Add("剖面交线包含一个超出第一个T10生产范围的样条/椭圆/自由曲线。");
         return null;
     }
 
@@ -220,7 +220,7 @@ internal sealed partial class SolidWorksComExecutor
                 point => Distance(point, circle.Center) < circle.RadiusMm - tolerance));
         }
         if (primitives.Any(item => item.Kind == ProjectionPrimitiveKind.Arc))
-            limitations.Add("Section loop assembly currently does not certify loops containing trimmed circular arcs; arc boundaries remain captured but the section is incomplete.");
+            limitations.Add("剖面环装配目前不认证包含修剪圆弧的环；圆弧边界被捕捉但剖面不完整。");
 
         var remaining = primitives.Where(item => item.Kind == ProjectionPrimitiveKind.Line).ToList();
         while (remaining.Count > 0)
@@ -240,7 +240,7 @@ internal sealed partial class SolidWorksComExecutor
             }
             if (failed || points.Count < 4)
             {
-                limitations.Add("Section line intersections cannot be assembled into a unique closed loop.");
+                limitations.Add("剖面线的交点无法组装成一个唯一的闭合环。");
                 continue;
             }
             points.RemoveAt(points.Count - 1);
@@ -250,7 +250,7 @@ internal sealed partial class SolidWorksComExecutor
                 var p = points[i]; var q = points[(i + 1) % points.Count]; doubleArea += p.X * q.Y - q.X * p.Y;
             }
             if (!double.IsFinite(doubleArea) || Math.Abs(doubleArea) <= 1e-12)
-            { limitations.Add("A section line loop has degenerate area."); continue; }
+            { limitations.Add("剖面线圈有退化面积。"); continue; }
             var area = Math.Abs(doubleArea) / 2;
             var centroid = SectionPolygonCentroid(points, doubleArea / 2);
             var probe = new ProjectionPointMm(points[0].X * .99 + centroid.X * .01, points[0].Y * .99 + centroid.Y * .01);
@@ -266,7 +266,7 @@ internal sealed partial class SolidWorksComExecutor
         var vMin = double.PositiveInfinity; var vMax = double.NegativeInfinity;
         foreach (var body in bodies)
         {
-            var box = ToDoubles(body.GetBodyBox(), 6, "section body box");
+            var box = ToDoubles(body.GetBodyBox(), 6, "剖面体盒");
             foreach (var x in new[] { box[0], box[3] }) foreach (var y in new[] { box[1], box[4] }) foreach (var z in new[] { box[2], box[5] })
             {
                 var delta = ModelVerification.Sub(new Vector3(x * 1000, y * 1000, z * 1000), originMm);
@@ -274,7 +274,7 @@ internal sealed partial class SolidWorksComExecutor
                 uMin = Math.Min(uMin, u); uMax = Math.Max(uMax, u); vMin = Math.Min(vMin, v); vMax = Math.Max(vMax, v);
             }
         }
-        if (!new[] { uMin, uMax, vMin, vMax }.All(double.IsFinite)) throw new InvalidOperationException("Section body bounds are invalid.");
+        if (!new[] { uMin, uMax, vMin, vMax }.All(double.IsFinite)) throw new InvalidOperationException("剖面体的边界无效。");
         return (uMin - marginMm, uMax + marginMm, vMin - marginMm, vMax + marginMm);
     }
 

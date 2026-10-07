@@ -1,5 +1,7 @@
 # Third-party notices
 
+The local Gordon surface addition bundles unmodified [CurvesWB](https://github.com/tomate44/CurvesWB) source at commit `e47b47927f59c87b93a1820c9f6ad4b4dc187076` under `plugins/auto-solidworks/surface/CurvesWB/`. The workbench uses LGPL-2.1-or-later (`LICENSE-CODE` and original per-file headers); the DLR TiGL-derived Gordon/BSpline algorithms use Apache-2.0 (`LICENSE-TIGL` and original per-file headers). Both license texts and original source/attributions are preserved. This does not relicense those files under the project's MIT license. FreeCAD/OpenCascade and their dependencies are separate local installations, not bundled in the plugin ZIP.
+
 Auto SolidWorks source is MIT licensed. Dependencies retain their own licenses. This list is generated from the built MCP dependency manifest and local NuGet metadata. Upstream license and notice texts are preserved under `third-party/`.
 
 | Package | Version | License | Copyright |

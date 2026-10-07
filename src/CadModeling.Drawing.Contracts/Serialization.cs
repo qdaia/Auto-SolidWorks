@@ -18,14 +18,14 @@ public static class DrawingContractJson
     public static string SerializeDeterministic<T>(T value)
     {
         var node = JsonSerializer.SerializeToNode(value, Options)
-            ?? throw new JsonException("Drawing contract serialized to an empty document.");
+            ?? throw new JsonException("绘制合同被序列化到一个空文档。");
         var canonical = SortNode(node);
         return canonical.ToJsonString(new JsonSerializerOptions(Options) { WriteIndented = false });
     }
 
     public static T Deserialize<T>(string json) where T : class =>
         JsonSerializer.Deserialize<T>(json, Options)
-        ?? throw new JsonException("Drawing contract document was empty.");
+        ?? throw new JsonException("绘制合同文档为空。");
 
     private static JsonSerializerOptions CreateOptions()
     {

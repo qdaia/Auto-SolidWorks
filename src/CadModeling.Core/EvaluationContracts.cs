@@ -121,19 +121,19 @@ public static class EvaluationIsolation
             .ToDictionary(group => group.Key, group => group.Select(item => item.CaseId).Distinct(StringComparer.Ordinal).ToArray(), StringComparer.Ordinal);
 
         foreach (var duplicate in cases.GroupBy(item => item.CaseId, StringComparer.Ordinal).Where(group => group.Count() > 1))
-            issues.Add(new("EVAL_DUPLICATE_CASE", $"Duplicate case id '{duplicate.Key}'.", duplicate.Select(item => item.CaseId).ToArray()));
+            issues.Add(new("EVAL_DUPLICATE_CASE", $"复制案号 '{duplicate.Key}'。", duplicate.Select(item => item.CaseId).ToArray()));
 
         foreach (var item in cases)
         {
             if (string.IsNullOrWhiteSpace(item.CaseId) || string.IsNullOrWhiteSpace(item.PartIdentity) || string.IsNullOrWhiteSpace(item.VariantGroupId))
-                issues.Add(new("EVAL_ID_REQUIRED", "Case id, part identity and variant group are required.", [item.CaseId]));
+                issues.Add(new("EVAL_ID_REQUIRED", "案件编号、零件标识和变型组都是必需的。", [item.CaseId]));
             if (!IsSha256(item.SourceSha256))
-                issues.Add(new("EVAL_SOURCE_HASH", $"Case '{item.CaseId}' source hash is not SHA-256.", [item.CaseId]));
+                issues.Add(new("EVAL_SOURCE_HASH", $"案例 '{item.CaseId}' 的源哈希不是 SHA-256。", [item.CaseId]));
             var leaked = item.GeneratorInputArtifactIds.Where(truthOwners.ContainsKey).Distinct(StringComparer.Ordinal).ToArray();
             if (leaked.Length > 0)
             {
                 var owners = leaked.SelectMany(id => truthOwners[id]).Append(item.CaseId).Distinct(StringComparer.Ordinal).ToArray();
-                issues.Add(new("EVAL_TRUTH_LEAK", $"Case '{item.CaseId}' exposes evaluator truth from the evaluation run to the generator: {string.Join(", ", leaked)}.", owners));
+                issues.Add(new("EVAL_TRUTH_LEAK", $"案例 '{item.CaseId}' 将评估运行中的评估器真值暴露给生成器：{string.Join(", ", leaked)}.", owners));
             }
         }
 
@@ -142,14 +142,14 @@ public static class EvaluationIsolation
         {
             var partitions = group.Select(item => PartitionBoundary(item.Partition)).Distinct(StringComparer.Ordinal).ToArray();
             if (partitions.Length > 1)
-                issues.Add(new("EVAL_PARTITION_LEAK", $"Physical part '{group.Key}' crosses evaluation boundaries.", group.Select(item => item.CaseId).ToArray()));
+                issues.Add(new("EVAL_PARTITION_LEAK", $"实体零件 '{group.Key}' 跨越评估边界。", group.Select(item => item.CaseId).ToArray()));
         }
 
         foreach (var group in cases.GroupBy(item => item.VariantGroupId, StringComparer.Ordinal))
         {
             var partitions = group.Select(item => PartitionBoundary(item.Partition)).Distinct(StringComparer.Ordinal).ToArray();
             if (partitions.Length > 1)
-                issues.Add(new("EVAL_VARIANT_LEAK", $"Variant group '{group.Key}' crosses evaluation boundaries.", group.Select(item => item.CaseId).ToArray()));
+                issues.Add(new("EVAL_VARIANT_LEAK", $"变形单元 '{group.Key}' 跨越了评估边界。", group.Select(item => item.CaseId).ToArray()));
         }
         return issues;
     }

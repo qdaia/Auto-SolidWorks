@@ -4,18 +4,40 @@ namespace CadModeling.Ir;
 /// <summary>Requirements authored from the source, separately from operation geometry.</summary>
 public sealed record ModelVerificationSpec
 {
+    public IReadOnlyList<EdgeShapeCheck> EdgeShapes { get; init; } = [];
+    public IReadOnlyList<SurfaceContinuityCheck> SurfaceContinuity { get; init; } = [];
     public IReadOnlyList<CylinderGroupCheck> CylinderGroups { get; init; } = [];
     public IReadOnlyList<NativeDimensionCheck> NativeDimensions { get; init; } = [];
     public IReadOnlyList<BoundsCheck> Bounds { get; init; } = [];
     public IReadOnlyList<SurfaceSampleCheck> SurfaceSamples { get; init; } = [];
     public IReadOnlyList<BoundaryClearanceCheck> BoundaryClearances { get; init; } = [];
     public IReadOnlyList<VerificationParameterBinding> Bindings { get; init; } = [];
+    public IReadOnlyList<WholeModelCheck> WholeModelChecks { get; init; } = [];
+    public bool RequireWholeModelInventory { get; init; }
 }
 
 public sealed record VerificationParameterBinding(string DimensionId, string CheckId, string ParameterPath);
 
 [JsonConverter(typeof(JsonStringEnumConverter<LocalSurfaceKind>))]
-public enum LocalSurfaceKind { Plane, Cylinder, Cone }
+public enum LocalSurfaceKind { Plane, Cylinder, Cone, Sphere, Torus, BSpline, Other }
+
+/// <summary>Source-derived whole-part structure and mass/area requirements, never inferred from operation output.</summary>
+public sealed record WholeModelCheck
+{
+    public required string Id { get; init; }
+    public required string SourceLiteral { get; init; }
+    public IReadOnlyList<string> SourceDimensionIds { get; init; } = [];
+    public int SolidBodyCount { get; init; }
+    public int SurfaceBodyCount { get; init; }
+    public int FaceCount { get; init; }
+    public int EdgeCount { get; init; }
+    public int OpenEdgeCount { get; init; }
+    public IReadOnlyDictionary<LocalSurfaceKind,int> SurfaceFaceCounts { get; init; } = new Dictionary<LocalSurfaceKind,int>();
+    public double? SurfaceAreaMm2 { get; init; }
+    public double? VolumeMm3 { get; init; }
+    public double AreaToleranceMm2 { get; init; } = .1;
+    public double VolumeToleranceMm3 { get; init; } = .1;
+}
 
 /// <summary>Finite source-derived probes on actual trimmed faces, not whole-feature certification.</summary>
 public sealed record SurfaceSampleCheck
@@ -28,6 +50,9 @@ public sealed record SurfaceSampleCheck
     /// <summary>One outward-from-material normal per point, in model coordinates.</summary>
     public IReadOnlyList<Vector3> OutwardNormals { get; init; } = [];
     public double? DiameterMm { get; init; }
+    /// <summary>Sphere's analytic radius and centre, independently derived from the source.</summary>
+    public double? RadiusMm { get; init; }
+    public Vector3? CenterMm { get; init; }
     public double? ConeHalfAngleDegrees { get; init; }
     /// <summary>Computed binding target for a source's included drill-point/countersink angle.</summary>
     public double? ConeIncludedAngleDegrees => ConeHalfAngleDegrees*2;

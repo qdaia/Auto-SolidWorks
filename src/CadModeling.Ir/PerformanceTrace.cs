@@ -21,7 +21,7 @@ public static class PerformanceTrace
         // An invalid diagnostics destination must not change CAD execution behavior.
         try
         {
-            if (!Path.IsPathFullyQualified(directory)) throw new IOException("Trace directory must be absolute.");
+            if (!Path.IsPathFullyQualified(directory)) throw new IOException("跟踪目录必须是绝对路径。");
             var span = new Span(directory, stage, Current.Value);
             Current.Value = span;
             return span;
@@ -48,7 +48,7 @@ public static class PerformanceTrace
     private static void Failed()
     {
         if (Interlocked.Increment(ref _writeFailures) != 1) return;
-        try { Console.Error.WriteLine("AutoSolidWorks diagnostic timing write failed; timing evidence is incomplete."); }
+        try { Console.Error.WriteLine("AutoSolidWorks 诊断计时写入失败；计时证据不完整。"); }
         catch (IOException) { }
     }
 
@@ -82,7 +82,7 @@ public static class PerformanceTrace
                     started_ticks = _started, ended_ticks = ended, frequency = Stopwatch.Frequency,
                     elapsed_ms = (ended - _started) * 1000d / Stopwatch.Frequency,
                     write_failures = WriteFailures,
-                    semantics = "inclusive_wall_time; span completion is not acceptance"
+                    semantics = "inclusive_wall_time; 上一次完成不是接受"
                 });
                 lock (WriteGate)
                 {

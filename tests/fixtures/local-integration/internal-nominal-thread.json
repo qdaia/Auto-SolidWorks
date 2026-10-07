@@ -1,0 +1,91 @@
+{
+  "name": "M10x1.5名义实体内螺纹",
+  "source_text": "Explicit nominal internal fixture. Bore8.5mm actual cut diameter10.123797625mm; no ISO manufacturing or fit certification.",
+  "expected_solid_body_count": 1,
+  "expected_surface_body_count": 0,
+  "expected_bounding_box_mm": {
+    "x": 20,
+    "y": 20,
+    "z": 20
+  },
+  "operations": [
+    {
+      "type": "ProfileSketch",
+      "id": "sketch",
+      "name": "圆柱轮廓",
+      "plane": "Front",
+      "auto_dimension_primitives": true,
+      "require_fully_defined": true,
+      "primitives": [
+        {
+          "type": "Circle",
+          "diameter_mm": 20,
+          "center_xmm": 0,
+          "center_ymm": 0
+        },
+        {
+          "type": "Circle",
+          "diameter_mm": 8.5,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "ExtrudeBoss",
+      "id": "shaft",
+      "name": "内螺纹环形坯体",
+      "sketch_id": "sketch",
+      "depth_mm": 20,
+      "end_condition": "Blind"
+    },
+    {
+      "type": "NativeFeature",
+      "id": "thread",
+      "name": "M10x1.5实体螺纹",
+      "depends_on": [
+        "shaft"
+      ],
+      "feature": {
+        "kind": "PhysicalThread",
+        "reverse": false,
+        "selections": [
+          {
+            "kind": "Edge",
+            "feature_id": "shaft",
+            "geometry": "Circle",
+            "position_mm": {
+              "x": 4.25,
+              "y": 0,
+              "z": 20
+            },
+            "radius_mm": 4.25
+          }
+        ],
+        "physical_thread": {
+          "designation": "M10x1.5",
+          "profile_path": "C:\\ProgramData\\SOLIDWORKS\\SOLIDWORKS 2025\\Thread Profiles\\Metric Tap.SLDLFP",
+          "profile_sha256": "bb4e6ad777d15e464f059708482110ce34afcf9f16e8f8d8f1291abd2363f7a9",
+          "major_diameter_mm": 10,
+          "pitch_mm": 1.5,
+          "length_mm": 10,
+          "runout_allowance_mm": 1.5,
+          "right_handed": true,
+          "axis_origin_mm": {
+            "x": 0,
+            "y": 0,
+            "z": 20
+          },
+          "axis_into_part": {
+            "x": 0,
+            "y": 0,
+            "z": -1
+          },
+          "location": "Internal",
+          "bore_diameter_mm": 8.5,
+          "maximum_cut_diameter_mm": 10.123797625
+        }
+      }
+    }
+  ]
+}

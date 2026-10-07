@@ -91,7 +91,7 @@ public sealed class EngineeringRasterPreprocessor : IRasterPreprocessor
             Provenance = provenance,
             Diagnostics = darkRatio < 0.0001
                 ? [new() { Code = "ING-BLANK-PAGE", Severity = ContractDiagnosticSeverity.Warning,
-                    Message = "The rendered page contains too little foreground information and is retained as unreadable.",
+                    Message = "渲染页面包含太少的前景信息，保留为不可读。",
                     PageNumber = page.PageNumber, ProviderName = ProviderName }]
                 : []
         });

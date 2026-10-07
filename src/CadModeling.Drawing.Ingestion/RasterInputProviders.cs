@@ -64,7 +64,7 @@ public sealed class PdftoppmRasterizationProvider : IPdfRasterizationProvider
         var result = await IngestionUtilities.RunProcessAsync(executablePath, arguments, 120, cancellationToken);
         var path = prefix + ".png";
         if (result.ExitCode != 0 || !File.Exists(path))
-            throw new InvalidDataException($"PDF rasterization failed with exit code {result.ExitCode}: {result.StandardError.Trim()}");
+            throw new InvalidDataException($"PDF 网格化失败，退出代码{result.ExitCode}：{result.StandardError.Trim()}");
         var buffer = RasterBuffer.Load(path);
         return new()
         {
@@ -100,7 +100,7 @@ public sealed class PdftoppmRasterizationProvider : IPdfRasterizationProvider
         candidates.AddRange(pathValue.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries).Select(folder => Path.Combine(folder, "pdftoppm.exe")));
         var resolved = candidates.FirstOrDefault(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path));
         return resolved is null
-            ? throw new FileNotFoundException("No reviewed pdftoppm provider was found. Set CAD_PDFTOPPM_PATH to an absolute executable path.")
+            ? throw new FileNotFoundException("未找到审核过的 pdftoppm 提供者。将 CAD_PDFTOPPM_PATH 设置为绝对可执行文件路径。")
             : Path.GetFullPath(resolved);
     }
 }

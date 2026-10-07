@@ -1,34 +1,32 @@
-# 下载 Windows 插件
-
-**当前版本：0.6.0。** [更新公告](release-0.6.0.zh-CN.md) · [最新安装包](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v0.6.0)。整合已验证的建模、图纸复查与受约束修复能力，补充 22 阶段性能矩阵；独立工程图完整验收仍未完成。
+# 下载 Auto SolidWorks Windows 插件
 
 **简体中文** | [English](download.en.md) · [返回 README](../README.md)
 
-## Auto SolidWorks 0.6.0
+当前版本：**26.10.07**。通过 Codex / MCP 在本机 SolidWorks 创建、检查和修改参数化零件与装配体，保存原生模型、STEP / STL 和工程图。
 
-通过 Codex / MCP 在本机 SolidWorks 创建、检查和修改参数化零件及装配体,以实现自然语言或者工程图输入，SolidWorks零件图输出。
-该插件依赖LLM识图能力，推荐使用GPT-6 Astra
+[Windows x64 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip) · [SHA-256 校验文件](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.07) · [新增内容](release-26.10.07.zh-CN.md)
 
-## 下载与安装
+## 安装
 
-[下载 Windows 插件 ZIP](https://github.com/qdaia/Auto-SolidWorks/releases/download/v0.6.0/auto-solidworks-0.6.0-windows-x64.zip) · [SHA-256 校验文件](https://github.com/qdaia/Auto-SolidWorks/releases/download/v0.6.0/auto-solidworks-0.6.0-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v0.6.0)
+1. 准备 Windows x64、已激活的本机 SolidWorks、.NET 9 Windows Desktop Runtime x64，以及支持插件的 Codex。
+2. 下载 `auto-solidworks-26.10.07-windows-x64.zip`，解压到长期保留的目录。
+3. 在解压目录运行：
 
-发送此消息至agent一键安装：帮我安装https://github.com/qdaia/Auto-SolidWorks
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+   ```
 
-手动安装：下载上方链接中的 `auto-solidworks-0.6.0-windows-x64.zip` 并解压，在解压目录执行：
+4. 打开新的 Codex 聊天并启用 Auto SolidWorks。
+
+安装器优先使用 Codex 桌面版内置 CLI。SolidWorks 位于自定义目录时，追加 `-SolidWorksInteropDir '你的 SolidWorks 目录'`。安装器从本机准备 Interop；详细说明见[安装指南](installation.md)。
+
+## 校验与包内容
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+Get-FileHash .\auto-solidworks-26.10.07-windows-x64.zip -Algorithm SHA256
+Get-Content .\auto-solidworks-26.10.07-windows-x64.zip.sha256
 ```
 
-需要 Windows x64、本机已激活的 SolidWorks、.NET 9 Windows Desktop Runtime x64，以及支持插件的 Codex CLI。安装后打开新的 Codex 任务。SHA-256 校验文件通过上方同名 `.zip.sha256` 链接提供。
+核对两处摘要一致。ZIP 内另有逐文件 `SHA256SUMS.json`，并包含运行程序、18 个 MCP 工具、使用技能、安装脚本、文档和许可声明。
 
-SolidWorks interop DLL 由安装脚本从使用者本机安装目录复制。OCR 的 Tesseract 和 PDF 栅格化的 Poppler 按需另行安装。详细步骤见[安装说明](installation.md)。
-
-GitHub 自动生成的 Source code 压缩包不含运行程序；直接使用请选择 Windows 插件 ZIP。
-
-## 包含内容
-
-- 15 个 MCP 工具，覆盖能力查询、图纸输入、计划编译、零件构建、模型检查、装配构建、型材发现、连接诊断和 SLDDRW/PDF 工程图导出。
-- 原生特征、钣金、焊件、曲面、几何引用和已有模型副本修改工作流程。
-- 安装包提供运行程序、使用文档、安装脚本、MIT 许可证及第三方声明；源码与公开测试位于 GitHub 仓库。
+Gordon 工具另需本地 FreeCAD；OCR 可选 Tesseract，PDF 栅格化可选 Poppler。源代码与测试另见仓库或 Release 的 `source-tests.zip`；直接安装请选择 Windows ZIP。

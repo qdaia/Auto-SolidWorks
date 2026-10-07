@@ -22,9 +22,21 @@ foreach ($name in @('SolidWorks.Interop.sldworks.dll','SolidWorks.Interop.swcons
     } else { Copy-Item -LiteralPath $source -Destination $target }
 }
 if ($SkipCodex) { Write-Output 'Runtime prerequisites prepared. Codex configuration was not changed.'; return }
-if (-not (Get-Command codex -ErrorAction SilentlyContinue)) { throw 'Codex CLI with plugin support is required. Install it, then run this script again.' }
-& codex plugin marketplace add $root
+# Prefer the desktop CLI, whose configuration schema matches this installation.
+$desktopCliRoot = Join-Path $env:LOCALAPPDATA 'OpenAI\Codex\bin'
+$desktopCli = if (Test-Path -LiteralPath $desktopCliRoot) {
+    Get-ChildItem -LiteralPath $desktopCliRoot -Directory | ForEach-Object {
+        $candidate = Join-Path $_.FullName 'codex.exe'
+        if (Test-Path -LiteralPath $candidate) { Get-Item -LiteralPath $candidate }
+    } | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+}
+$codexCommand = if ($desktopCli) { $desktopCli.FullName } else {
+    $availableCli = Get-Command codex -ErrorAction SilentlyContinue
+    if ($availableCli) { $availableCli.Source }
+}
+if (-not $codexCommand) { throw 'Codex CLI with plugin support is required. Install it, then run this script again.' }
+& $codexCommand plugin marketplace add $root
 if ($LASTEXITCODE -ne 0) { throw 'Codex marketplace registration failed.' }
-& codex plugin add 'auto-solidworks@auto-solidworks-local'
+& $codexCommand plugin add 'auto-solidworks@auto-solidworks-local'
 if ($LASTEXITCODE -ne 0) { throw 'Codex plugin installation failed.' }
 Write-Output 'Auto SolidWorks installed. Open a new Codex task to load the plugin.'

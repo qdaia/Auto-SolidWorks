@@ -110,9 +110,9 @@ public static class SourceFactRevisions
                 var dependencies = derivation.Coefficients.Keys.ToArray();
                 if (dependencies.Any(dep => !facts.ContainsKey(dep)))
                 {
-                    issues.Add(new("SRC_DERIVATION_MISSING_INPUT", $"Derived fact '{id}' references a missing input.", [id, .. dependencies.Where(dep => !facts.ContainsKey(dep))]));
+                    issues.Add(new("SRC_DERIVATION_MISSING_INPUT", $"衍生事实 '{id}' 参考了一个缺失的输入。", [id, .. dependencies.Where(dep => !facts.ContainsKey(dep))]));
                     remaining.Remove(id);
-                    facts[id] = AsUnknown(fact, "A derivation input is missing.");
+                    facts[id] = AsUnknown(fact, "缺少 推导过程 输入。");
                     progressed = true;
                     continue;
                 }
@@ -120,7 +120,7 @@ public static class SourceFactRevisions
                 var inputs = dependencies.Select(dep => facts[dep]).ToArray();
                 if (inputs.Any(input => input.NumericValue is null || input.Fact.Status is FactStatus.Unknown or FactStatus.Assumed))
                 {
-                    facts[id] = AsUnknown(fact, "A derivation input is unresolved.");
+                    facts[id] = AsUnknown(fact, "输入的衍生值未解决。");
                     remaining.Remove(id);
                     progressed = true;
                     continue;
@@ -128,8 +128,8 @@ public static class SourceFactRevisions
                 var unit = fact.Unit ?? inputs.Select(item => item.Unit).FirstOrDefault(item => item.HasValue);
                 if (unit is null || inputs.Any(input => input.Unit != unit))
                 {
-                    issues.Add(new("SRC_DERIVATION_UNIT", $"Derived fact '{id}' mixes units or has no unit.", [id, .. dependencies]));
-                    facts[id] = AsUnknown(fact, "Derivation units are incompatible.");
+                    issues.Add(new("SRC_DERIVATION_UNIT", $"派生事实 '{id}' 混合了单位或没有单位。", [id, .. dependencies]));
+                    facts[id] = AsUnknown(fact, "导出的单位不兼容。");
                     remaining.Remove(id);
                     progressed = true;
                     continue;
@@ -137,8 +137,8 @@ public static class SourceFactRevisions
                 var value = derivation.Constant + derivation.Coefficients.Sum(term => term.Value * facts[term.Key].NumericValue!.Value);
                 if (!double.IsFinite(value))
                 {
-                    issues.Add(new("SRC_DERIVATION_NONFINITE", $"Derived fact '{id}' produced a non-finite value.", [id]));
-                    facts[id] = AsUnknown(fact, "Derivation produced a non-finite value.");
+                    issues.Add(new("SRC_DERIVATION_NONFINITE", $"派生事实{id}产生了非有限值。", [id]));
+                    facts[id] = AsUnknown(fact, "求解产生了非有限值。");
                 }
                 else
                 {
@@ -151,7 +151,7 @@ public static class SourceFactRevisions
                             Status = FactStatus.Derived,
                             PreviousStatus = fact.Fact.Status,
                             SourceIds = dependencies,
-                            Rationale = string.IsNullOrWhiteSpace(derivation.Formula) ? "restricted arithmetic derivation" : derivation.Formula
+                            Rationale = string.IsNullOrWhiteSpace(derivation.Formula) ? "受限算术推导" : derivation.Formula
                         }
                     };
                 }
@@ -164,8 +164,8 @@ public static class SourceFactRevisions
         foreach (var id in remaining)
         {
             var dependencies = facts[id].Derivation!.Coefficients.Keys.ToArray();
-            issues.Add(new("SRC_DERIVATION_CYCLE", $"Derived fact '{id}' participates in a derivation cycle.", [id, .. dependencies]));
-            facts[id] = AsUnknown(facts[id], "Derivation dependency cycle.");
+            issues.Add(new("SRC_DERIVATION_CYCLE", $"派生事实 '{id}' 参与了一个派生循环。", [id, .. dependencies]));
+            facts[id] = AsUnknown(facts[id], "依赖循环的导出。");
         }
 
         var ordered = document.Facts.Select(item => facts[item.FactId]).ToArray();
@@ -182,13 +182,13 @@ public static class SourceFactRevisions
         ArgumentNullException.ThrowIfNull(prior);
         ArgumentNullException.ThrowIfNull(replacements);
         if (string.IsNullOrWhiteSpace(rationale))
-            throw new ArgumentException("A source revision requires a rationale.", nameof(rationale));
+            throw new ArgumentException("源版本需要一个理由。", nameof(rationale));
         var priorIssues = ValidateShape(prior).Where(item => item.Code == "SRC_DUPLICATE_FACT").ToArray();
         var replacementDuplicates = replacements.GroupBy(item => item.FactId, StringComparer.Ordinal).Where(group => group.Count() > 1).ToArray();
         if (priorIssues.Length > 0 || replacementDuplicates.Length > 0)
         {
             var issues = priorIssues.Concat(replacementDuplicates.Select(group =>
-                new SourceFactRevisionIssue("SRC_DUPLICATE_FACT", $"Duplicate replacement source fact '{group.Key}'.", [group.Key]))).ToArray();
+                new SourceFactRevisionIssue("SRC_DUPLICATE_FACT", $"特征{group.Key}的替换源特征已复制。", [group.Key]))).ToArray();
             return new(prior, issues);
         }
         var map = prior.Facts.ToDictionary(item => item.FactId, StringComparer.Ordinal);
@@ -209,21 +209,21 @@ public static class SourceFactRevisions
     {
         var issues = new List<SourceFactRevisionIssue>();
         foreach (var duplicate in document.Facts.GroupBy(item => item.FactId, StringComparer.Ordinal).Where(group => group.Count() > 1))
-            issues.Add(new("SRC_DUPLICATE_FACT", $"Duplicate source fact '{duplicate.Key}'.", [duplicate.Key]));
+            issues.Add(new("SRC_DUPLICATE_FACT", $"复制源特征 '{duplicate.Key}'。", [duplicate.Key]));
         foreach (var fact in document.Facts)
         {
-            if (string.IsNullOrWhiteSpace(fact.FactId)) issues.Add(new("SRC_FACT_ID", "Source fact id is required.", [fact.FactId]));
-            if (fact.PageNumber < 1) issues.Add(new("SRC_PAGE", $"Source fact '{fact.FactId}' requires a positive page number.", [fact.FactId]));
+            if (string.IsNullOrWhiteSpace(fact.FactId)) issues.Add(new("SRC_FACT_ID", "源特征ID是必需的。", [fact.FactId]));
+            if (fact.PageNumber < 1) issues.Add(new("SRC_PAGE", $"源特征 '{fact.FactId}' 需要正数页码。", [fact.FactId]));
             if (fact.Fact.Status == FactStatus.Stated && fact.NumericValue is null && fact.Kind is not SourceFactKind.FeatureRequirement)
-                issues.Add(new("SRC_VALUE", $"Stated numeric fact '{fact.FactId}' has no numeric value.", [fact.FactId]));
+                issues.Add(new("SRC_VALUE", $"声明的数值事实 '{fact.FactId}' 没有数值值。", [fact.FactId]));
             if (fact.Fact.Status == FactStatus.Derived && fact.Derivation is null)
-                issues.Add(new("SRC_DERIVATION_REQUIRED", $"Derived fact '{fact.FactId}' requires an explicit derivation.", [fact.FactId]));
+                issues.Add(new("SRC_DERIVATION_REQUIRED", $"派生事实 '{fact.FactId}' 需要显式的派生。", [fact.FactId]));
             if (fact.Fact.Status == FactStatus.Stated && fact.EvidenceIds.Count == 0)
-                issues.Add(new("SRC_STATED_EVIDENCE", $"Stated fact '{fact.FactId}' requires evidence.", [fact.FactId]));
+                issues.Add(new("SRC_STATED_EVIDENCE", $"明确的陈述事实 '{fact.FactId}' 需要证据。", [fact.FactId]));
             if (fact.Derivation is not null && fact.Derivation.Coefficients.Count == 0)
-                issues.Add(new("SRC_DERIVATION_EMPTY", $"Derived fact '{fact.FactId}' has no inputs.", [fact.FactId]));
+                issues.Add(new("SRC_DERIVATION_EMPTY", $"派生事实 '{fact.FactId}' 没有输入。", [fact.FactId]));
             if (fact.Candidates.Any(candidate => candidate.Confidence is < 0 or > 1))
-                issues.Add(new("SRC_CANDIDATE_CONFIDENCE", $"Source fact '{fact.FactId}' has candidate confidence outside [0,1].", [fact.FactId]));
+                issues.Add(new("SRC_CANDIDATE_CONFIDENCE", $"源特征 '{fact.FactId}' 的候选置信度位于 [0,1] 之外。", [fact.FactId]));
         }
         return issues;
     }

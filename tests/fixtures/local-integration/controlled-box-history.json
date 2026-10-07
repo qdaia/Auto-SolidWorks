@@ -1,0 +1,76 @@
+{
+  "schema_version": "2.0",
+  "plan_id": "controlled-production-28",
+  "name": "生产受控尺寸圆角",
+  "source_model_path": "synthetic-source-box.SLDPRT",
+  "box_edge_history": {
+    "width_dimension_name": "宽度_0@基础轮廓草图",
+    "length_dimension_name": "高度_0@基础轮廓草图",
+    "thickness_dimension_name": "D1@基础拉伸",
+    "base_feature_name": "基础拉伸",
+    "width_mm": 80,
+    "length_mm": 50,
+    "initial_thickness_mm": 10,
+    "resize_operation_id": "resize",
+    "fillet_operation_id": "fillet"
+  },
+  "operations": [
+    {
+      "type": "native_feature",
+      "id": "resize",
+      "name": "受控改厚度",
+      "options": {
+        "kind": "SetDimension",
+        "dimension_name": "D1@基础拉伸",
+        "dimension_value": 12
+      }
+    },
+    {
+      "type": "native_feature",
+      "id": "fillet",
+      "name": "受控R2圆角",
+      "depends_on": [
+        "resize"
+      ],
+      "options": {
+        "kind": "Fillet",
+        "radius_mm": 2,
+        "tangent_propagation": false,
+        "selections": [
+          {
+            "kind": "Edge",
+            "geometry": "Line",
+            "position_mm": {
+              "x": 40,
+              "y": 0,
+              "z": 12
+            },
+            "direction": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "tolerance_mm": 0.01
+          }
+        ]
+      }
+    }
+  ],
+  "recovery": {
+    "enabled": false
+  },
+  "output": {
+    "native_path": "synthetic-tracked-box.SLDPRT"
+  },
+  "acceptance": {
+    "expected_bounding_box_mm": {
+      "x": 80,
+      "y": 50,
+      "z": 12
+    },
+    "expected_features": [
+      "基础拉伸",
+      "受控R2圆角"
+    ]
+  }
+}

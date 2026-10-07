@@ -1,0 +1,128 @@
+{
+  "name": "配置安装板",
+  "source_text": "板宽由基础宽度40mm的两倍驱动，长度50mm；标准厚10mm，加厚20mm。活动配置加厚。",
+  "design_intent": {
+    "active_configuration": "加厚",
+    "global_variables": [
+      {
+        "name": "基础宽度",
+        "expression": {
+          "kind": "Literal",
+          "literal": {
+            "value": 40,
+            "unit": "Millimeter"
+          }
+        }
+      },
+      {
+        "name": "倍宽",
+        "expression": {
+          "kind": "Multiply",
+          "left": {
+            "kind": "Variable",
+            "variable": "基础宽度"
+          },
+          "right": {
+            "kind": "Literal",
+            "literal": {
+              "value": 2,
+              "unit": "Unitless"
+            }
+          }
+        }
+      }
+    ],
+    "equations": [
+      {
+        "dimension_name": "宽度_0@尺寸轮廓",
+        "expression": {
+          "kind": "Variable",
+          "variable": "倍宽"
+        },
+        "expected_value": {
+          "value": 80,
+          "unit": "Millimeter"
+        }
+      }
+    ],
+    "configurations": [
+      {
+        "name": "标准",
+        "create_from_configuration": "Default",
+        "dimensions": [
+          {
+            "dimension_name": "D1@凸台",
+            "value": {
+              "value": 10,
+              "unit": "Millimeter"
+            }
+          }
+        ],
+        "geometry": {
+          "expected_solid_body_count": 1,
+          "expected_volume_mm3": 40000
+        }
+      },
+      {
+        "name": "加厚",
+        "create_from_configuration": "Default",
+        "dimensions": [
+          {
+            "dimension_name": "D1@凸台",
+            "value": {
+              "value": 20,
+              "unit": "Millimeter"
+            }
+          }
+        ],
+        "geometry": {
+          "expected_solid_body_count": 1,
+          "expected_volume_mm3": 80000
+        }
+      }
+    ],
+    "require_fully_defined_sketches": [
+      "尺寸轮廓"
+    ]
+  },
+  "operations": [
+    {
+      "type": "ProfileSketch",
+      "id": "profile",
+      "name": "尺寸轮廓",
+      "plane": "Front",
+      "auto_dimension_primitives": true,
+      "require_fully_defined": true,
+      "primitives": [
+        {
+          "type": "CenteredRectangle",
+          "center_xmm": 0,
+          "center_ymm": 0,
+          "width_mm": 40,
+          "height_mm": 50
+        }
+      ]
+    },
+    {
+      "type": "ExtrudeBoss",
+      "id": "body",
+      "name": "凸台",
+      "depends_on": [
+        "profile"
+      ],
+      "sketch_id": "profile",
+      "depth_mm": 10,
+      "end_condition": "Blind"
+    }
+  ],
+  "expected_solid_body_count": 1,
+  "expected_bounding_box_mm": {
+    "x": 80,
+    "y": 50,
+    "z": 20
+  },
+  "expected_volume_mm3": 80000,
+  "assumptions": [
+    "离线示例假定原生模板已有 Default 配置；实际模板需按准确名称调整来源配置。"
+  ]
+}

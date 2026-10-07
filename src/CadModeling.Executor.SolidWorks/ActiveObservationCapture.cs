@@ -21,37 +21,37 @@ internal sealed partial class SolidWorksComExecutor
         try { ObservationSession.Validate(request); }
         catch(ArgumentException ex) { return Failed(ex.Message); }
         if(request.RequestedView==ObservationViewKind.SourceCrop)
-            return Failed("Source crops are produced by drawing ingestion; the SolidWorks executor will not fabricate a model screenshot as source evidence.");
+            return Failed("源数据由摄入绘制产生；SolidWorks执行器不会生成模型截图作为源证据。");
         if(!Path.IsPathFullyQualified(capture.NativePath)||!File.Exists(capture.NativePath)||
            !Path.GetExtension(capture.NativePath).Equals(".sldprt",StringComparison.OrdinalIgnoreCase))
-            return Failed("Active model observation requires an existing absolute .SLDPRT path.");
+            return Failed("活动模型观察需要一个现有的绝对 .SLDPRT 路径。");
         if(!Path.IsPathFullyQualified(capture.OutputDirectory)||capture.PixelWidth is <256 or >4096||capture.PixelHeight is <256 or >4096)
-            return Failed("Observation output directory must be absolute and bitmap dimensions must be within 256..4096 pixels.");
+            return Failed("观察输出目录必须为绝对路径，且位图尺寸必须在 256..4096 像素范围内。");
         var nativePath=Path.GetFullPath(capture.NativePath);
         var modelHash=Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(nativePath)));
         if(!modelHash.Equals(request.ModelSha256,StringComparison.OrdinalIgnoreCase))
-            return Failed("Saved model SHA-256 differs from the ObservationRequest; stale observation capture was rejected.");
+            return Failed("保存的模型 SHA-256 与 ObservationRequest 不同； stale 观察捕捉被拒绝。");
 
         if(request.RequestedView==ObservationViewKind.FullPlaneSection)
         {
-            if(request.Section is null) return Failed("Full-plane section observation is missing its frozen SectionSpec.");
+            if(request.Section is null) return Failed("平面剖面观察缺少已锁定的 SectionSpec。");
             var captured=CaptureSectionOnSta(new SectionCaptureRequest{NativePath=nativePath,Spec=request.Section});
             if(!captured.Success||!captured.Complete||captured.Snapshot is null)
-                return Failed("T10 section observation is incomplete: "+captured.Message);
+                return Failed("T10 区域剖面观察不完整："+captured.Message);
             var fingerprint=ObservationSession.Fingerprint(request);
             var versionDirectory=Path.Combine(Path.GetFullPath(capture.OutputDirectory),$"{Safe(request.RequestId)}_{fingerprint[..12]}_{Guid.NewGuid():N}");
             var output=Path.Combine(versionDirectory,"section-observation.json");
             EnforceAllowedOutputRoot(output);Directory.CreateDirectory(versionDirectory);
             File.WriteAllText(output,JsonSerializer.Serialize(captured,ModelingIrJson.Options));
-            if(new FileInfo(output).Length==0) return Failed("T10 section observation artifact was empty.");
+            if(new FileInfo(output).Length==0) return Failed("T10 包围盒剖面观察artifact为空。");
             if(!modelHash.Equals(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(nativePath))),StringComparison.OrdinalIgnoreCase))
-                return Failed("Native model changed while section observation evidence was captured.");
+                return Failed("原生模型在剖面观察证据被捕捉时被更改。");
             return new()
             {
                 Success=true,OutputPath=output,OutputSha256=Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(output))),
                 ActualView=ObservationViewKind.FullPlaneSection,CameraIdentity="T10:BRep-section",
                 SectionPlaneFingerprint=SectionVerifier.Fingerprint(request.Section),CoverageIds=[request.Section.SectionId],
-                Message="Captured a new fixed-plane T10 B-Rep section artifact; no orthographic screenshot fallback was used."
+                Message="捕获了一个新的固定平面 T10 B-Rep 剖面艺术作品；没有正射投影截图作为后备。"
             };
         }
 
@@ -61,16 +61,16 @@ internal sealed partial class SolidWorksComExecutor
             app=(SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application",true)!)!;
             model=(IModelDoc2?)app.GetOpenDocumentByName(nativePath);
             if(model is not null)
-                throw new InvalidOperationException("Active bitmap observation refuses to change the view of an already-open user document; close it so the executor can open an isolated read-only instance.");
+                throw new InvalidOperationException("活动位图观察拒绝更改已打开用户文档的视图；关闭它以便执行者可以打开一个隔离的只读实例。");
             if(model is null)
             {
                 int errors=0,warnings=0;
                 model=(IModelDoc2?)PerformanceTrace.Measure("native.open", () => app.OpenDoc6(nativePath,(int)swDocumentTypes_e.swDocPART,
                     (int)(swOpenDocOptions_e.swOpenDocOptions_Silent|swOpenDocOptions_e.swOpenDocOptions_ReadOnly),"",ref errors,ref warnings));
                 owned=model is not null&&Path.GetFullPath(model.GetPathName()).Equals(nativePath,StringComparison.OrdinalIgnoreCase);
-                if(model is null||!owned) throw new IOException($"Could not reopen exact saved part for observation (errors={errors}).");
+                if(model is null||!owned) throw new IOException($"无法重新打开已保存的零件进行观察（errors={errors}）。");
             }
-            if(model.GetSaveFlag()) throw new InvalidOperationException("Observation refuses unsaved in-memory model state.");
+            if(model.GetSaveFlag()) throw new InvalidOperationException("观察拒绝未保存的内存模型状态。");
 
             PrepareModelPresentation(model);
             var viewId=request.RequestedView switch
@@ -79,7 +79,7 @@ internal sealed partial class SolidWorksComExecutor
                 ObservationViewKind.OrthographicTop=>(int)swStandardViews_e.swTopView,
                 ObservationViewKind.OrthographicRight=>(int)swStandardViews_e.swRightView,
                 ObservationViewKind.Isometric=>(int)swStandardViews_e.swIsometricView,
-                _=>throw new InvalidOperationException("Requested model observation view is not registered by the SolidWorks renderer.")
+                _=>throw new InvalidOperationException("请求的模型观察视图未被SolidWorks渲染器注册。")
             };
             model.ShowNamedView2("",viewId);
             var focused=false;
@@ -87,9 +87,9 @@ internal sealed partial class SolidWorksComExecutor
             {
                 var resolution=ResolveGeometryReference(model,nativePath,modelHash,target,null,request.SourceRevisionId);
                 if(resolution.Status!=GeometryRefResolutionStatus.Resolved||resolution.Candidate?.NativePersistentReference is not {Length:>0} encoded)
-                    throw new InvalidOperationException("Observation target GeometryRef did not uniquely resolve on the current saved model.");
+                    throw new InvalidOperationException("观测目标 GeometryRef 在当前保存的模型中无法唯一确定。");
                 int state=0;var entity=model.Extension.GetObjectByPersistReference3(Convert.FromBase64String(encoded),out state);
-                if(state!=0||entity is null) throw new InvalidOperationException("Resolved observation target became stale before rendering.");
+                if(state!=0||entity is null) throw new InvalidOperationException("已解决的观察目标在渲染之前过期。");
                 model.ClearSelection2(true);
                 focused=entity switch
                 {
@@ -98,7 +98,7 @@ internal sealed partial class SolidWorksComExecutor
                     IBody2 b=>b.Select2(false,null),
                     _=>false
                 };
-                if(!focused) throw new InvalidOperationException("Resolved observation target could not be selected for object-focused capture.");
+                if(!focused) throw new InvalidOperationException("无法为聚焦捕捉对象选择观察目标。");
                 model.ViewZoomToSelection();
             }
             else model.ViewZoomtofit2();
@@ -109,10 +109,10 @@ internal sealed partial class SolidWorksComExecutor
             var output=Path.Combine(versionDirectory,"observation.bmp");
             EnforceAllowedOutputRoot(output);Directory.CreateDirectory(versionDirectory);
             if(!Convert.ToBoolean(model.SaveBMP(output,capture.PixelWidth,capture.PixelHeight))||!File.Exists(output)||new FileInfo(output).Length==0)
-                throw new IOException("SolidWorks failed to export the current observation bitmap.");
+                throw new IOException("SolidWorks 失败导出当前观察位图。");
             var outputHash=Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(output)));
             if(!modelHash.Equals(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(nativePath))),StringComparison.OrdinalIgnoreCase))
-                throw new IOException("Native model changed while observation evidence was rendered.");
+                throw new IOException("原生模型在观察证据渲染时被更改。");
             return new()
             {
                 Success=true,
@@ -121,7 +121,7 @@ internal sealed partial class SolidWorksComExecutor
                 ActualView=request.RequestedView,
                 CameraIdentity=$"standard:{request.RequestedView}:{(focused?"target-selection":"zoom-fit")}",
                 CoverageIds=request.TargetGeometry is null?[]:[request.TargetGeometry.RefId],
-                Message="Captured a new identity-bound bitmap from the exact saved model; no prior bitmap fallback is used."
+                Message="捕获了一个基于身份的新位图图像，来自保存的精确模型；未使用先前的位图替代方案。"
             };
         }
         catch(Exception ex) when(ex is IOException or InvalidOperationException or UnauthorizedAccessException or ArgumentException)

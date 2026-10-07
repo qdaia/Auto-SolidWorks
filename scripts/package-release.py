@@ -4,12 +4,15 @@ import hashlib
 import json
 from pathlib import Path
 import zipfile
+import subprocess
+import sys
 
 root = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser()
 parser.add_argument('--output', type=Path, default=root/'dist')
 args = parser.parse_args()
 plugin = root/'plugins/auto-solidworks'
+subprocess.run([sys.executable,str(root/'scripts/check-plugin-contract.py'),'--runtime'],check=True)
 version = json.loads((plugin/'.codex-plugin/plugin.json').read_text(encoding='utf-8'))['version']
 for file in ('runtime/mcp/AutoSolidWorks.ModelingMcp.exe','runtime/executor/CadModeling.Executor.SolidWorks.exe'):
     if not (plugin/file).is_file():
@@ -21,6 +24,7 @@ selected = [root/p for p in ('README.md','README.en.md','LICENSE','CHANGELOG.md'
 selected += [p for p in (root/'docs').rglob('*') if p.is_file()]
 selected += [p for p in (root/'third-party').rglob('*') if p.is_file()]
 selected += [p for p in plugin.rglob('*') if p.is_file() and p.suffix.lower() != '.pdb'
+             and p.suffix.lower() not in ('.pyc', '.pyo') and '__pycache__' not in p.parts
              and not p.name.startswith('SolidWorks.Interop.')]
 hashes = {p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(selected)}
 with zipfile.ZipFile(archive, 'x', compression=zipfile.ZIP_DEFLATED) as z:

@@ -95,12 +95,12 @@ public static class RevolvedFamilyVerifier
             profile.EditabilityProbes.Count>0&&profile.EditabilityProbes.Select(p=>p.ProbeId).Distinct(StringComparer.Ordinal).Count()==profile.EditabilityProbes.Count&&
             profile.EditabilityProbes.All(p=>!string.IsNullOrWhiteSpace(p.ProbeId)&&!string.IsNullOrWhiteSpace(p.DimensionName)&&double.IsFinite(p.TrialValue))&&
             Finite(profile.AxisToleranceMm,profile.DirectionToleranceDegrees)&&profile.AxisToleranceMm>0&&profile.DirectionToleranceDegrees>0&&profile.DirectionToleranceDegrees<90;
-        Add("profile-contract",profileValid,"Finite nonempty family requirements and frozen T08/T09 requirement fingerprints are mandatory.");
+        Add("profile-contract",profileValid,"有限非空家族的要求和已锁定的T08/T09要求指纹是强制性的。");
         Add("identity",profileValid&&Stage4EvidenceBinding.Hash(actual.ModelSha256)&&
             profile.SourceSha256.Equals(actual.SourceSha256,StringComparison.OrdinalIgnoreCase)&&
             profile.SourceRevisionId.Equals(actual.SourceRevisionId,StringComparison.Ordinal)&&actual.ModelReopened&&
             profile.AxisReference.SourceRevisionId==profile.SourceRevisionId&&profile.AxisReference.SourceFactIds.Count>0,
-            "Source revision/SHA and reopened native model must match the family contract.");
+            "源修订/SHA 和重新打开的原生模型必须匹配家族合同。");
         var axisValid=Finite(profile.AxisOriginMm)&&Finite(profile.AxisDirection)&&Norm(profile.AxisDirection)>1e-12&&
             Finite(actual.AxisOriginMm)&&Finite(actual.AxisDirection)&&Norm(actual.AxisDirection)>1e-12;
         if(axisValid)
@@ -109,12 +109,12 @@ public static class RevolvedFamilyVerifier
             var directionError=Math.Acos(Math.Clamp(Math.Abs(Dot(a,b)),-1,1))*180/Math.PI;
             var offset=Norm(Cross(Sub(actual.AxisOriginMm,profile.AxisOriginMm),a));
             Add("axis",directionError<=profile.DirectionToleranceDegrees&&offset<=profile.AxisToleranceMm,
-                $"Axis direction error={directionError:R} deg, offset={offset:R} mm.");
+                $"轴方向误差={directionError:R}度, 偏移={offset:R}mm.");
         }
-        else Add("axis",false,"Axis vectors/origins must be finite and nonzero.");
+        else Add("axis",false,"轴向向量/原点必须是有限且非零的。");
         Add("native-revolve",actual.NativeFeatureKind==NativeFeatureKind.RevolveBoss&&actual.NativeDrivingDimensionsEditable&&actual.RebuildSucceeded,
-            "Supported family requires an editable native revolve boss that rebuilds after a driving-dimension edit.");
-        Add("step-count",actual.Steps.Count==profile.Steps.Count,$"Expected {profile.Steps.Count} revolved steps, measured {actual.Steps.Count}.");
+            "支持的族需要一个可编辑的原生旋转凸台，在驱动尺寸编辑后会重建。");
+        Add("step-count",actual.Steps.Count==profile.Steps.Count,$"预期的{profile.Steps.Count}旋转步骤为{actual.Steps.Count}。");
         if(actual.Steps.Count==profile.Steps.Count)
         {
             var expected=profile.Steps.OrderBy(s=>s.AxialStartMm).ToArray();
@@ -126,14 +126,14 @@ public static class RevolvedFamilyVerifier
                     e.AxialLengthMm>0&&e.RadialValueMm>0&&e.ToleranceMm>0&&m.DiameterMm>0&&
                     Math.Abs(e.AxialStartMm-m.AxialStartMm)<=e.ToleranceMm&&Math.Abs(e.AxialLengthMm-m.AxialLengthMm)<=e.ToleranceMm&&
                     Math.Abs(e.ExpectedDiameterMm-m.DiameterMm)<=e.ToleranceMm;
-                Add("step:"+e.SourceFactId,ok,$"Expected start/length/diameter {e.AxialStartMm:R}/{e.AxialLengthMm:R}/{e.ExpectedDiameterMm:R} mm; measured {m.AxialStartMm:R}/{m.AxialLengthMm:R}/{m.DiameterMm:R} mm.");
+                Add("step:"+e.SourceFactId,ok,$"预期的起始/长度/直径{e.AxialStartMm:R}/{e.AxialLengthMm:R}/{e.ExpectedDiameterMm:R}mm; 实测的{m.AxialStartMm:R}/{m.AxialLengthMm:R}/{m.DiameterMm:R}mm.");
             }
         }
         foreach(var id in requiredCheckIds)
             Add((id==profile.AxialHoleConnectivityCheckId?"axial-hole:":"view:")+id,
                 Stage4EvidenceBinding.Passes(id,profile.SourceSha256,profile.SourceRevisionId,actual.ModelSha256,profile.RequiredScopeFingerprint,
                     profile.CheckRequirementFingerprints.GetValueOrDefault(id),actual.CheckEvidence),
-                "Required T08/T09 evidence must be uniquely bound to this source revision, reopened model, frozen scope and requirement fingerprint.");
+                "需要将T08/T09的证据唯一地绑定到此源修订版、重新打开的模型、锁定的范围和要求指纹上。");
         return new(checks);
         void Add(string id,bool ok,string message)=>checks.Add(new(id,ok?RequirementCheckStatus.Passed:RequirementCheckStatus.Failed,message));
     }
@@ -175,6 +175,7 @@ public sealed record HoleGroupProfile
     public double CountersinkDiameterMm { get; init; }
     public double CountersinkAngleDegrees { get; init; }=90;
     public double ThreadMajorDiameterMm { get; init; }
+    public double? ThreadDepthMm { get; init; }
     public string? ThreadDesignation { get; init; }
     public double PatternSpacingMm { get; init; }
     public double PatternAngleDegrees { get; init; }
@@ -247,7 +248,7 @@ public static class HoleGroupVerifier
         Add("identity",profile.Contract==HoleGroupProfile.ContractVersion&&Stage4EvidenceBinding.Hash(profile.SourceSha256)&&Stage4EvidenceBinding.Hash(profile.RequiredScopeFingerprint)&&
             Stage4EvidenceBinding.Hash(actual.ModelSha256)&&profileChecksValid&&editabilityScopeValid&&profile.SourceSha256.Equals(actual.SourceSha256,StringComparison.OrdinalIgnoreCase)&&
             profile.SourceRevisionId.Equals(actual.SourceRevisionId,StringComparison.Ordinal)&&actual.ModelReopened,
-            "Source identity and reopened saved model must match.");
+            "源身份和重新打开的保存模型必须匹配。");
         var validProfile=profile.ExpectedCenters.Count>0&&profile.ExpectedCenters.All(p=>double.IsFinite(p.Xmm)&&double.IsFinite(p.Ymm))&&
             Positive(profile.DiameterMm)&&Positive(profile.PositionToleranceMm)&&Positive(profile.SizeToleranceMm)&&
             (profile.ThroughAll||Positive(profile.DepthMm))&&(profile.HoleKind switch
@@ -255,17 +256,18 @@ public static class HoleGroupVerifier
                 HoleKind.Simple=>true,
                 HoleKind.Counterbore=>Positive(profile.CounterboreDiameterMm)&&profile.CounterboreDiameterMm>profile.DiameterMm&&Positive(profile.CounterboreDepthMm),
                 HoleKind.Countersink=>Positive(profile.CountersinkDiameterMm)&&profile.CountersinkDiameterMm>profile.DiameterMm&&Positive(profile.CountersinkAngleDegrees)&&profile.CountersinkAngleDegrees<180,
-                HoleKind.Tapped=>Positive(profile.ThreadMajorDiameterMm)&&profile.ThreadMajorDiameterMm>profile.DiameterMm&&!string.IsNullOrWhiteSpace(profile.ThreadDesignation),
+                HoleKind.Tapped=>Positive(profile.ThreadMajorDiameterMm)&&profile.ThreadMajorDiameterMm>profile.DiameterMm&&!string.IsNullOrWhiteSpace(profile.ThreadDesignation)
+                    && (profile.ThreadDepthMm is null || Positive(profile.ThreadDepthMm.Value)&&(profile.ThroughAll||profile.ThreadDepthMm.Value<=profile.DepthMm)),
                 _=>false
             });
-        Add("profile",validProfile,"Hole-group dimensions, centers and tolerances must be explicit and finite.");
-        Add("count",actual.Instances.Count==profile.ExpectedCenters.Count,$"Expected {profile.ExpectedCenters.Count} holes, measured {actual.Instances.Count}.");
+        Add("profile",validProfile,"孔组尺寸、中心和公差必须明确且为有限值。");
+        Add("count",actual.Instances.Count==profile.ExpectedCenters.Count,$"预期 {profile.ExpectedCenters.Count} 个孔，实际测得 {actual.Instances.Count} 个。");
         var used=new HashSet<int>();var usedTopologyEvidence=new HashSet<string>(StringComparer.Ordinal);var usedTopologyScopes=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for(var i=0;i<profile.ExpectedCenters.Count;i++)
         {
             var e=profile.ExpectedCenters[i];
             var candidates=actual.Instances.Select((m,index)=>(m,index,d:Distance(e,m.Center))).Where(x=>x.d<=profile.PositionToleranceMm&&!used.Contains(x.index)).OrderBy(x=>x.d).ToArray();
-            if(candidates.Length!=1){Add($"instance:{i}",false,$"Expected center ({e.Xmm:R},{e.Ymm:R}) mm matched {candidates.Length} unused actual instances.");continue;}
+            if(candidates.Length!=1){Add($"instance:{i}",false,$"预期中心 ({e.Xmm:R},{e.Ymm:R}) 毫米匹配{candidates.Length}未使用的实际实例。");continue;}
             var (m,index,_)=candidates[0];used.Add(index);
             var topologyEvidenceId=m.TopologyEvidenceId;var topologyScope=m.TopologyScopeFingerprint;
             var topologyFact=m.TopologySourceFactFingerprint;var topologyModel=m.TopologyModelSha256;
@@ -285,25 +287,25 @@ public static class HoleGroupVerifier
                     Math.Abs(csd-profile.CountersinkDiameterMm)<=profile.SizeToleranceMm&&Math.Abs(csa-profile.CountersinkAngleDegrees)<=0.1;
             if(profile.HoleKind==HoleKind.Tapped)
                 shape&=m.ThreadMajorDiameterMm is {} major&&Math.Abs(major-profile.ThreadMajorDiameterMm)<=profile.SizeToleranceMm&&
-                    m.ThreadThroughAll==profile.ThroughAll&&m.ThreadReverseDirection==profile.ReverseDirection&&
-                    (profile.ThroughAll||m.ThreadDepthMm is {} threadDepth&&double.IsFinite(threadDepth)&&Math.Abs(threadDepth-profile.DepthMm)<=profile.SizeToleranceMm)&&
+                    m.ThreadThroughAll==(profile.ThroughAll&&profile.ThreadDepthMm is null)&&m.ThreadReverseDirection==profile.ReverseDirection&&
+                    (profile.ThroughAll&&profile.ThreadDepthMm is null||m.ThreadDepthMm is {} threadDepth&&double.IsFinite(threadDepth)&&Math.Abs(threadDepth-(profile.ThreadDepthMm??profile.DepthMm))<=profile.SizeToleranceMm)&&
                     !string.IsNullOrWhiteSpace(profile.ThreadDesignation)&&string.Equals(m.ThreadDesignation,profile.ThreadDesignation,StringComparison.Ordinal);
-            Add($"instance:{i}",shape,$"Measured hole at ({m.Center.Xmm:R},{m.Center.Ymm:R}); diameter/depth/direction/layers are checked per instance.");
+            Add($"instance:{i}",shape,$"测量孔在 ({m.Center.Xmm:R},{m.Center.Ymm:R})；每个实例都检查直径/深度/方向/层数。");
         }
-        if(actual.Instances.Count!=used.Count)Add("unmatched-actual",false,"One or more actual holes are not bijectively matched to source instances.");
+        if(actual.Instances.Count!=used.Count)Add("unmatched-actual",false,"一个或多个实际的孔未与源实例一一对应匹配。");
         if(profile.PatternKind!=HoleGroupPatternKind.None)
         {
             var p=actual.Pattern;var expectedKind=profile.PatternKind==HoleGroupPatternKind.Linear?NativeFeatureKind.LinearPattern:NativeFeatureKind.CircularPattern;
             var ok=p is not null&&p.TypeRecognized&&!p.Suppressed&&p.Kind==expectedKind&&p.Count==profile.ExpectedCenters.Count&&p.Editable&&p.RebuildSucceeded&&
                 (profile.PatternKind==HoleGroupPatternKind.Linear?Math.Abs(p.SpacingMm-profile.PatternSpacingMm)<=profile.SizeToleranceMm:
                     Math.Abs(p.AngleDegrees-profile.PatternAngleDegrees)<=0.1);
-            Add("native-pattern",ok,"A supported array must be a recognized, unsuppressed native editable pattern with the declared count/spacing or angular span; unrelated/unknown features do not qualify.");
+            Add("native-pattern",ok,"受支持的阵列必须是一个认可的、未抑制的原生可编辑阵列，具有声明的计数/间距或角度跨度；与之无关或未知的特征不满足条件。");
         }
-        Add("required-check-scope",profileChecksValid,"Hole-group acceptance requires producer-owned per-instance T08 topology scope plus one frozen T09 projection check.");
+        Add("required-check-scope",profileChecksValid,"孔组接受需要由生产者拥有的每实例T08拓扑范围，加上一个已锁定的T09投影检查。");
         if(profile.ProjectionCheckId is { } id)
             Add("check:"+id,Stage4EvidenceBinding.Passes(id,profile.SourceSha256,profile.SourceRevisionId,actual.ModelSha256,profile.RequiredScopeFingerprint,
                     profile.CheckRequirementFingerprints.GetValueOrDefault(id),actual.CheckEvidence),
-                "Declared T09 evidence must be uniquely bound to this source revision, reopened model, frozen scope and requirement fingerprint.");
+                "声明的 T09 证据必须唯一绑定到此源修订、重新打开的模型、锁定的范围和要求指纹。");
         return new(checks);
         void Add(string id,bool ok,string message)=>checks.Add(new(id,ok?RequirementCheckStatus.Passed:RequirementCheckStatus.Failed,message));
     }
@@ -382,37 +384,37 @@ public static class EdgeTreatmentVerifier
             intent.EditabilityProbes.Count>0&&intent.EditabilityProbes.Select(p=>p.ProbeId).Distinct(StringComparer.Ordinal).Count()==intent.EditabilityProbes.Count&&
             intent.EditabilityProbes.All(p=>!string.IsNullOrWhiteSpace(p.ProbeId)&&!string.IsNullOrWhiteSpace(p.DimensionName)&&double.IsFinite(p.TrialValue))&&
             (intent.Route==EdgeTreatmentRoute.ProfileArc||intent.TargetEdges.Count>0&&intent.TargetEdges.Select(r=>r.RefId).Distinct(StringComparer.Ordinal).Count()==intent.TargetEdges.Count);
-        Add("intent-contract",intentValid,"Edge-treatment source identity, target scope and finite positive tolerances are required.");
+        Add("intent-contract",intentValid,"需要边处理源身份、目标范围及有限的正数公差。");
         Add("identity",intentValid&&Stage4EvidenceBinding.Hash(actual.ModelSha256)&&intent.SourceSha256.Equals(actual.SourceSha256,StringComparison.OrdinalIgnoreCase)&&
-            intent.SourceRevisionId.Equals(actual.SourceRevisionId,StringComparison.Ordinal)&&actual.ModelReopened,"Source identity and reopened candidate model must match.");
+            intent.SourceRevisionId.Equals(actual.SourceRevisionId,StringComparison.Ordinal)&&actual.ModelReopened,"源身份和重新打开的候选项模型必须匹配。");
         Add("semantic-route",actual.NativeFeatureTypeRecognized&&!actual.FeatureSuppressed&&intent.Route==actual.ActualRoute,
-            "Profile arc, solid fillet and solid chamfer must come from a recognized, unsuppressed native feature; source intent cannot fill an unknown actual type.");
+            "轮廓圆弧、实体圆角和实体倒角必须来自可识别且未压缩的原生特征；源意图不能补足未知的实际特征类型。");
         var parameterOk=intent.Route switch
         {
             EdgeTreatmentRoute.ProfileArc or EdgeTreatmentRoute.SolidFillet=>Positive(intent.RadiusMm)&&Positive(actual.RadiusMm)&&Math.Abs(intent.RadiusMm-actual.RadiusMm)<=intent.ToleranceMm,
             EdgeTreatmentRoute.SolidChamfer=>ChamferMatches(intent,actual),
             _=>false
         };
-        Add("locked-parameters",parameterOk,"Repair may reselect/regroup/reorder, but source radius/chamfer values remain locked and are remeasured.");
-        Add("editable",actual.NativeEditable&&actual.RebuildSucceeded,"Supported edge-treatment result must remain editable and rebuild after legal parameter driving.");
+        Add("locked-parameters",parameterOk,"修复可以重新选择、分组或排序，但源半径／倒角值保持锁定，并须重新测量。");
+        Add("editable",actual.NativeEditable&&actual.RebuildSucceeded,"边缘处理的结果必须保持可编辑且在合法参数驱动后重建。");
         if(intent.Route!=EdgeTreatmentRoute.ProfileArc)
         {
             var byRef=actual.EdgeResolutions.GroupBy(r=>r.Reference.RefId,StringComparer.Ordinal).ToDictionary(g=>g.Key,g=>g.ToArray(),StringComparer.Ordinal);
             var expectedIds=intent.TargetEdges.Select(r=>r.RefId).ToHashSet(StringComparer.Ordinal);
             var allResolved=intent.TargetEdges.Count>0&&byRef.Keys.ToHashSet(StringComparer.Ordinal).SetEquals(expectedIds)&&intent.TargetEdges.All(reference=>byRef.TryGetValue(reference.RefId,out var rows)&&rows.Length==1&&rows[0].Status==GeometryRefResolutionStatus.Resolved&&
-                SameGeometryReference(reference,rows[0].Reference)&&rows[0].Candidate is { } candidate&&GeometryRefResolver.Matches(reference,candidate)&&
+                SameGeometryReference(reference,rows[0].Reference)&&rows[0].Candidate is { } candidate&&GeometryRefResolver.IsVerifiedResolution(rows[0])&&
                 rows[0].CandidateIds.Count==1&&rows[0].ResolvedModelSha256.Equals(actual.ModelSha256,StringComparison.OrdinalIgnoreCase)&&
-                (rows[0].Reference.SourceRevisionId is not { } edgeRevision||edgeRevision.Equals(intent.SourceRevisionId,StringComparison.Ordinal)));
-            Add("edge-group",allResolved,"Every target edge must be uniquely re-resolved on the current saved model; edge ordinal/first-match fallback is forbidden.");
+                ((rows[0].SemanticReceipt?.CurrentSourceRevisionId??rows[0].Reference.SourceRevisionId) is not { } edgeRevision||edgeRevision.Equals(intent.SourceRevisionId,StringComparison.Ordinal)));
+            Add("edge-group",allResolved,"每个目标边必须在当前保存的模型中唯一重新解析；禁止边序号/首次匹配后备选项。");
             var resolvedPersistent=actual.EdgeResolutions.Where(x=>x.Status==GeometryRefResolutionStatus.Resolved&&x.Candidate?.NativePersistentReference is {Length:>0})
                 .Select(x=>x.Candidate!.NativePersistentReference!).ToHashSet(StringComparer.Ordinal);
             var featurePersistent=actual.NativeDrivingEdgePersistentReferences.Where(x=>!string.IsNullOrWhiteSpace(x)).ToHashSet(StringComparer.Ordinal);
             Add("native-edge-ownership",resolvedPersistent.Count==intent.TargetEdges.Count&&featurePersistent.SetEquals(resolvedPersistent),
-                "The native fillet/chamfer definition must own exactly the persistent edges resolved for this source target group.");
+                "该原生圆角/倒角定义必须拥有此源目标组已解析的持久边。");
         }
         if(actual.TopologyChanged)
             Add("topology-rebind",intent.Route==EdgeTreatmentRoute.ProfileArc||intent.TargetEdges.All(r=>actual.EdgeResolutions.Any(x=>x.Reference.RefId==r.RefId&&x.Rebound&&x.Status==GeometryRefResolutionStatus.Resolved)),
-                "Topology change requires explicit current-model rebinding evidence for every solid edge target.");
+                "拓扑变化需要为每个固体边目标明确当前模型重建证据。");
         var repairPresent=actual.RepairEvidenceSupplied||actual.RepairAttempt is not null||actual.RepairExecution is not null||
             actual.RepairCoverage is not null||actual.CollateralDiff is not null||actual.RepairChecks.Count>0||actual.RepairStrategiesUsed.Count>0;
         var supportedRepairKind=!repairPresent||actual.RepairAttempt?.Kind is RepairKind.FilletSelection or RepairKind.GeometryRefRebind;
@@ -421,7 +423,7 @@ public static class EdgeTreatmentVerifier
         var repairStrategiesOk=!repairPresent||supportedRepairKind&&repairTargetBound&&actual.RepairStrategiesUsed.Count>0&&
             actual.RepairStrategiesUsed.All(intent.AllowedRepairStrategies.Contains);
         Add("repair-policy",repairStrategiesOk,
-            "Any supplied repair history must use a supported edge-treatment repair kind, target this exact treatment operation, and map to an intent-authorized strategy.");
+            "任何提供的修复历史必须使用支持的边缘处理修复类型，针对此精确的操作进行修复，并映射到意图授权的策略。");
         if(repairPresent)
         {
             RepairValidationResult? recomputed=null;
@@ -433,12 +435,12 @@ public static class EdgeTreatmentVerifier
                 recomputed.CandidateModelSha256?.Equals(actual.ModelSha256,StringComparison.OrdinalIgnoreCase)==true&&
                 recomputed.CandidateModelReopened&&actual.RepairAttempt?.RequestId==recomputed.RequestId&&actual.RepairExecution?.ExecutionId==recomputed.ExecutionId;
             Add("T14-repair-gate",boundToCurrent,
-                "T19 recomputes the complete T14 gate and requires the exact attempt/execution/source/candidate identity; a portable Passed flag is insufficient.");
+                "T19 重新计算完整的T14 门，并需要确切的尝试/执行/源/候选项身份；一个可移动的通过标志是不够的。");
             Add("T13-collateral-diff",actual.CollateralDiff is {Status:ModelDiffStatus.Comparable,BaselineModelReopened:true,CandidateModelReopened:true,BaselineCaptureComplete:true,CandidateCaptureComplete:true}&&
                 actual.CollateralDiff.CaptureScopeIds.Count>0&&!actual.CollateralDiff.HasUnexpectedImpact&&actual.RepairExecution is not null&&
                 actual.CollateralDiff.BaselineModelSha256.Equals(actual.RepairExecution.BaselineModelSha256,StringComparison.OrdinalIgnoreCase)&&
                 actual.CollateralDiff.CandidateModelSha256.Equals(actual.ModelSha256,StringComparison.OrdinalIgnoreCase),
-                "Any repaired result must carry a complete reopened T13 diff bound to the same baseline/candidate execution.");
+                "任何修复结果必须带有与同一基准/候选项执行绑定的完整重新打开的T13边界。");
         }
         return new(checks);
         void Add(string id,bool ok,string message)=>checks.Add(new(id,ok?RequirementCheckStatus.Passed:RequirementCheckStatus.Failed,message));
@@ -503,7 +505,7 @@ public static class Stage4EvidenceAdapter
     {
         ArgumentNullException.ThrowIfNull(report);ArgumentException.ThrowIfNullOrWhiteSpace(requirementId);ArgumentException.ThrowIfNullOrWhiteSpace(requiredScopeFingerprint);
         var matches=report.Requirements.Where(item=>item.RequirementId.Equals(requirementId,StringComparison.Ordinal)).ToArray();
-        if(matches.Length!=1)throw new ArgumentException("Projection evidence must contain exactly one producer-owned requirement identity.",nameof(requirementId));
+        if(matches.Length!=1)throw new ArgumentException("投影证据必须包含一个业主拥有者的要求身份。",nameof(requirementId));
         var result=matches[0];
         var complete=report.ModelReopened&&report.CaptureLimitations.Count==0&&report.RequiredPrimitiveCount>0&&
             report.CheckedRequiredPrimitiveCount==report.RequiredPrimitiveCount&&result.Status is ProjectionRequirementStatus.Passed or ProjectionRequirementStatus.Failed;

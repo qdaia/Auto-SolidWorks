@@ -93,7 +93,7 @@ public sealed record SectionReport
     public ProjectionReport? BoundaryReport { get; init; }
     public IReadOnlyList<SectionDifference> Differences { get; init; } = [];
     public IReadOnlyList<string> ConnectivityRequirementIds { get; init; } = [];
-    public string Scope { get; init; } = "Single complete planar section with fixed plane and viewing direction; stepped/local/revolved sections are unsupported.";
+    public string Scope { get; init; } = "单个完整的平面剖面，固定平面和观察方向；阶梯/局部/旋转剖面不支持。";
 }
 
 public static class SectionVerifier
@@ -109,34 +109,34 @@ public static class SectionVerifier
         var differences = new List<SectionDifference>();
 
         if (spec.Type != SectionType.FullPlane || source.Type != SectionType.FullPlane || model.Type != SectionType.FullPlane)
-            return Report(SectionStatus.Unsupported, null, "section-type", "Only a single complete planar section is supported.");
+            return Report(SectionStatus.Unsupported, null, "section-type", "仅支持一个完整的平面剖面。");
         if (!spec.SectionId.Equals(source.SectionId, StringComparison.Ordinal) || !spec.SectionId.Equals(model.SectionId, StringComparison.Ordinal))
-            throw new ArgumentException("Section spec/source/model section ids must agree.");
+            throw new ArgumentException("剖面规格/源/模型的剖面ID必须一致。");
         if (!spec.SourceSha256.Equals(source.SourceSha256, StringComparison.OrdinalIgnoreCase) ||
             !spec.SourceSha256.Equals(model.SourceSha256, StringComparison.OrdinalIgnoreCase))
-            throw new ArgumentException("Section source/model must carry the same independent source SHA-256 as the section spec.");
+            throw new ArgumentException("剖面源/模型必须携带与剖面规格相同的独立源 SHA-256。");
         if (!spec.ViewId.Equals(source.ViewId, StringComparison.Ordinal) || !spec.ViewId.Equals(model.ViewId, StringComparison.Ordinal) ||
             !spec.CoordinateFrameId.Equals(source.CoordinateFrameId, StringComparison.Ordinal) ||
             !spec.CoordinateFrameId.Equals(model.CoordinateFrameId, StringComparison.Ordinal))
-            throw new ArgumentException("Section comparison requires the frozen source view and coordinate frame; no free alignment is performed.");
+            throw new ArgumentException("剖面比较需要冻结的源视图和坐标框架；不会进行自由对齐。");
         if (!model.ModelReopened)
-            return Report(SectionStatus.Unverifiable, null, "model-not-reopened", "Actual section was not captured from a saved and reopened model.");
+            return Report(SectionStatus.Unverifiable, null, "model-not-reopened", "实际剖面未能从保存并重新打开的模型中捕获。");
         if (!source.CaptureComplete || !model.CaptureComplete)
             return Report(SectionStatus.Unverifiable, null, "capture-incomplete",
-                string.Join(" ", source.CaptureLimitations.Select(x => "source: " + x).Concat(model.CaptureLimitations.Select(x => "model: " + x))));
+                string.Join(" ", source.CaptureLimitations.Select(x => "源：" + x).Concat(model.CaptureLimitations.Select(x => "模型：" + x))));
 
         if (Distance(spec.PlaneOriginMm, source.PlaneOriginMm) > spec.PlaneToleranceMm ||
             Distance(spec.PlaneOriginMm, model.PlaneOriginMm) > spec.PlaneToleranceMm)
-            differences.Add(Diff("plane-position", "Section plane origin differs from the source-defined fixed plane; translation/alignment is forbidden."));
+            differences.Add(Diff("plane-position", "剖面平面的原点与源定义的固定平面不同；不允许进行平移/对齐。"));
         if (!SameDirected(spec.PlaneNormal, source.PlaneNormal, spec.DirectionToleranceDegrees) ||
             !SameDirected(spec.PlaneNormal, model.PlaneNormal, spec.DirectionToleranceDegrees))
-            differences.Add(Diff("plane-normal", "Section plane normal differs or is reversed."));
+            differences.Add(Diff("plane-normal", "剖面平面的法线不同或反转。"));
         if (!SameDirected(spec.ViewingDirection, source.ViewingDirection, spec.DirectionToleranceDegrees) ||
             !SameDirected(spec.ViewingDirection, model.ViewingDirection, spec.DirectionToleranceDegrees))
-            differences.Add(Diff("view-direction", "Section viewing direction differs or is reversed."));
+            differences.Add(Diff("view-direction", "剖面视图的方向不同或相反。"));
         if (!SameDirected(spec.InPlaneXDirection, source.InPlaneXDirection, spec.DirectionToleranceDegrees) ||
             !SameDirected(spec.InPlaneXDirection, model.InPlaneXDirection, spec.DirectionToleranceDegrees))
-            differences.Add(Diff("frame-x-direction", "Section in-plane X direction differs or is reversed; free section rotation is forbidden."));
+            differences.Add(Diff("frame-x-direction", "剖面在平面X方向上不同或反向；不允许自由剖面旋转。"));
 
         var sourceProjection = Projection(source, nativeModelSha: null, reopened: false);
         var modelProjection = Projection(model, model.NativeModelSha256, model.ModelReopened);
@@ -144,12 +144,12 @@ public static class SectionVerifier
         var options = projectionOptions ?? new ProjectionComparisonOptions { CompareVisibleOnly = false };
         var boundary = ProjectionVerifier.Compare(sourceProjection, modelProjection, options);
         if (!boundary.Passed)
-            differences.Add(Diff("boundary", "Section boundary primitives do not match in the frozen section frame."));
+            differences.Add(Diff("boundary", "剖面边界 图元 匹配不起来，处于已锁定的剖面框架中。"));
 
         CompareLoops(source, model, options, spec.LoopAreaToleranceMm2, differences);
         CompareConnectivity(spec, connectivityChecks ?? [], model.NativeModelSha256!, differences, out var connectivityUnverifiable);
         if (differences.Count == 0)
-            return Report(SectionStatus.Passed, boundary, null, "Section plane, direction, material/void loops and required connectivity evidence match.");
+            return Report(SectionStatus.Passed, boundary, null, "剖面平面、方向、材料/空洞环和所需的连通性证据匹配。");
         return Report(connectivityUnverifiable || differences.Any(d => d.Kind is "connectivity-missing" or "connectivity-unverifiable")
             ? SectionStatus.Unverifiable : SectionStatus.Failed, boundary);
 
@@ -179,20 +179,20 @@ public static class SectionVerifier
         ArgumentNullException.ThrowIfNull(spec);
         if (string.IsNullOrWhiteSpace(spec.SectionId) || string.IsNullOrWhiteSpace(spec.SourceFactId) || string.IsNullOrWhiteSpace(spec.SourceRevisionId) ||
             string.IsNullOrWhiteSpace(spec.ViewMapId) || string.IsNullOrWhiteSpace(spec.ViewId) || string.IsNullOrWhiteSpace(spec.CoordinateFrameId) || !Sha(spec.SourceSha256))
-            throw new ArgumentException("SectionSpec requires source, view and coordinate-frame identity.", nameof(spec));
+            throw new ArgumentException("SectionSpec 需要源、视图和坐标框架的身份。", nameof(spec));
         if (!FiniteVector(spec.PlaneOriginMm) || !UnitCapable(spec.PlaneNormal) || !UnitCapable(spec.ViewingDirection) || !UnitCapable(spec.InPlaneXDirection))
-            throw new ArgumentException("SectionSpec requires finite plane origin, normal, viewing direction and in-plane X direction.", nameof(spec));
+            throw new ArgumentException("SectionSpec 需要有限平面的原点、法线、观察方向和平面内的 X 方向。", nameof(spec));
         if (Math.Abs(Dot(Unit(spec.PlaneNormal), Unit(spec.InPlaneXDirection))) > 1e-6)
-            throw new ArgumentException("Section in-plane X direction must lie in the section plane.", nameof(spec));
+            throw new ArgumentException("剖面在平面X方向的切线必须位于剖面平面内。", nameof(spec));
         if (!Positive(spec.PlaneToleranceMm) || !Positive(spec.DirectionToleranceDegrees) || spec.DirectionToleranceDegrees >= 90 || !Positive(spec.LoopAreaToleranceMm2))
-            throw new ArgumentException("SectionSpec tolerances must be finite and positive.", nameof(spec));
+            throw new ArgumentException("SectionSpec 允差必须是有限且正数。", nameof(spec));
         if (spec.SourceRegionIds.Any(string.IsNullOrWhiteSpace) || spec.SourceRegionIds.Distinct(StringComparer.Ordinal).Count() != spec.SourceRegionIds.Count ||
             spec.RequiredConnectivityRequirementIds.Any(string.IsNullOrWhiteSpace) || spec.RequiredConnectivityRequirementIds.Distinct(StringComparer.Ordinal).Count() != spec.RequiredConnectivityRequirementIds.Count)
-            throw new ArgumentException("SectionSpec source/connectivity ids must be nonempty and unique.", nameof(spec));
+            throw new ArgumentException("SectionSpec 源/连接性 ID 必须非空且唯一。", nameof(spec));
         if (spec.RequiredConnectivity.Select(item => item.RequirementId).Distinct(StringComparer.Ordinal).Count() != spec.RequiredConnectivity.Count ||
             spec.RequiredConnectivity.Any(item => string.IsNullOrWhiteSpace(item.RequirementId) || string.IsNullOrWhiteSpace(item.SourceFactId) ||
                 string.IsNullOrWhiteSpace(item.SourceRevisionId) || !Sha(item.SourceFactFingerprint) || !Sha(item.RequirementFingerprint)))
-            throw new ArgumentException("Section structured T08 dependencies require unique ids and frozen source/requirement fingerprints.", nameof(spec));
+            throw new ArgumentException("剖面结构包含T08的依赖项需要具有唯一的ID和冻结的源/要求指纹。", nameof(spec));
     }
 
     public static string Fingerprint(SectionSpec spec)
@@ -220,19 +220,19 @@ public static class SectionVerifier
         if (string.IsNullOrWhiteSpace(snapshot.SectionId) || string.IsNullOrWhiteSpace(snapshot.ViewId) ||
             string.IsNullOrWhiteSpace(snapshot.CoordinateFrameId) || !Sha(snapshot.SourceSha256) ||
             !FiniteVector(snapshot.PlaneOriginMm) || !UnitCapable(snapshot.PlaneNormal) || !UnitCapable(snapshot.ViewingDirection) || !UnitCapable(snapshot.InPlaneXDirection))
-            throw new ArgumentException("Section snapshot identity/plane is invalid.", nameof(snapshot));
+            throw new ArgumentException("截面快照的平面标识无效。", nameof(snapshot));
         if (Math.Abs(Dot(Unit(snapshot.PlaneNormal), Unit(snapshot.InPlaneXDirection))) > 1e-6)
-            throw new ArgumentException("Section snapshot in-plane X direction must lie in its plane.", nameof(snapshot));
+            throw new ArgumentException("截面平面内X方向的截取点必须位于其平面内。", nameof(snapshot));
         if (isModel && (snapshot.NativeModelSha256 is null || !Sha(snapshot.NativeModelSha256)))
-            throw new ArgumentException("Model section snapshot requires actual native model SHA-256.", nameof(snapshot));
+            throw new ArgumentException("模型剖面快照需要实际的原生模型 SHA-256。", nameof(snapshot));
         if (snapshot.Loops.Select(loop => loop.LoopId).Distinct(StringComparer.Ordinal).Count() != snapshot.Loops.Count)
-            throw new ArgumentException("Section loop ids must be unique.", nameof(snapshot));
+            throw new ArgumentException("剖面循环的标识符必须唯一。", nameof(snapshot));
         var primitiveIds = snapshot.BoundaryPrimitives.Select(p => p.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var loop in snapshot.Loops)
         {
             if (string.IsNullOrWhiteSpace(loop.LoopId) || loop.PrimitiveIds.Count == 0 || loop.PrimitiveIds.Any(id => !primitiveIds.Contains(id)) ||
                 loop.PrimitiveIds.Distinct(StringComparer.Ordinal).Count() != loop.PrimitiveIds.Count || loop.AreaMm2 is { } area && !Positive(area))
-                throw new ArgumentException($"Section loop '{loop.LoopId}' is invalid or references missing boundary primitives.", nameof(snapshot));
+                throw new ArgumentException($"剖面环 '{loop.LoopId}' 无效或缺少边界基本元素。", nameof(snapshot));
         }
     }
 
@@ -258,14 +258,14 @@ public static class SectionVerifier
         var actual = actualSnapshot.Loops;
         if (expected.Count == 0)
         {
-            differences.Add(Diff("loop-scope-empty", "Source section has no required material/void loops; empty section scope cannot pass."));
+            differences.Add(Diff("loop-scope-empty", "源剖面没有必要的材料/空洞环；空剖面范围无法通过。"));
             return;
         }
 
         var primitiveMap = BuildPrimitiveMap(expectedSnapshot.BoundaryPrimitives, actualSnapshot.BoundaryPrimitives, options);
         if (primitiveMap is null)
         {
-            differences.Add(Diff("loop-boundary-map", "Source/model section boundaries do not have one unique geometric primitive mapping, so loop ownership cannot be certified."));
+            differences.Add(Diff("loop-boundary-map", "源/模型的剖面边界没有一个唯一的几何原语映射，因此无法认证循环的所有权。"));
             return;
         }
 
@@ -274,9 +274,9 @@ public static class SectionVerifier
         var actualGeometry = actual.ToDictionary(loop => loop.LoopId,
             loop => AnalyzeLoop(loop, actualSnapshot.BoundaryPrimitives, tolerance), StringComparer.Ordinal);
         foreach (var item in expectedGeometry)
-            if (!item.Value.Closed) differences.Add(Diff("loop-open", $"Source loop '{item.Key}' is not a closed supported line/circle boundary."));
+            if (!item.Value.Closed) differences.Add(Diff("loop-open", $"源环 '{item.Key}' 不是封闭的支持线/圆边界。"));
         foreach (var item in actualGeometry)
-            if (!item.Value.Closed) differences.Add(Diff("loop-open", $"Actual loop '{item.Key}' is not a closed supported line/circle boundary."));
+            if (!item.Value.Closed) differences.Add(Diff("loop-open", $"实际闭环 '{item.Key}' 不是一个封闭的支持线/圆边界。"));
         if (differences.Any(item => item.Kind == "loop-open")) return;
 
         ValidateLoopNesting(expected, expectedGeometry, "source", differences);
@@ -291,12 +291,12 @@ public static class SectionVerifier
                 item.loop.PrimitiveIds.Order(StringComparer.Ordinal).SequenceEqual(mappedBoundary, StringComparer.Ordinal)).ToArray();
             if (candidates.Length == 0)
             {
-                differences.Add(Diff("loop-membership", $"Loop '{sourceLoop.LoopId}' material/void classification does not own the geometrically corresponding model boundaries."));
+                differences.Add(Diff("loop-membership", $"封闭 '{sourceLoop.LoopId}' 材质/空洞分类没有几何对应的模型边界。"));
                 continue;
             }
             if (candidates.Length > 1)
             {
-                differences.Add(Diff("loop-ambiguous", $"Loop '{sourceLoop.LoopId}' maps to multiple actual loops with identical boundary membership."));
+                differences.Add(Diff("loop-ambiguous", $"封闭环{sourceLoop.LoopId}映射到具有相同边界成员的多个实际环。"));
                 continue;
             }
             var match = candidates[0];
@@ -305,19 +305,19 @@ public static class SectionVerifier
             var actualShape = actualGeometry[match.loop.LoopId];
             if (sourceShape.AreaMm2 is not { } sourceArea || actualShape.AreaMm2 is not { } actualArea)
             {
-                differences.Add(Diff("loop-geometry-unsupported", $"Loop '{sourceLoop.LoopId}' area cannot be independently reconstructed from the supported boundary geometry."));
+                differences.Add(Diff("loop-geometry-unsupported", $"封闭环{sourceLoop.LoopId}的区域无法从支持的边界几何体独立重建。"));
                 continue;
             }
             if (sourceLoop.AreaMm2 is { } declaredSource && Math.Abs(declaredSource - sourceArea) > tolerance)
-                differences.Add(Diff("loop-source-area-inconsistent", $"Source loop '{sourceLoop.LoopId}' declared area is inconsistent with its own boundaries."));
+                differences.Add(Diff("loop-source-area-inconsistent", $"源环 '{sourceLoop.LoopId}' 宣称的区域与其自身的边界不一致。"));
             if (match.loop.AreaMm2 is { } declaredActual && Math.Abs(declaredActual - actualArea) > tolerance)
-                differences.Add(Diff("loop-model-area-inconsistent", $"Actual loop '{match.loop.LoopId}' declared area is inconsistent with its own boundaries."));
+                differences.Add(Diff("loop-model-area-inconsistent", $"实际闭环 '{match.loop.LoopId}' 宣布的面积与其自身的边界不一致。"));
             var error = Math.Abs(sourceArea - actualArea);
             if (error > tolerance)
-                differences.Add(Diff("loop-area", $"Loop '{sourceLoop.LoopId}' geometric area differs by {error:0.###} mm²."));
+                differences.Add(Diff("loop-area", $"循环 '{sourceLoop.LoopId}' 的几何面积相差{error:0.###}² 毫米²。"));
         }
         if (actual.Select((loop, index) => (loop, index)).Any(item => !used.Contains(item.index)))
-            differences.Add(Diff("loop-extra", "Actual section contains unmatched extra material/void loop(s)."));
+            differences.Add(Diff("loop-extra", "实际剖面包含未匹配的额外材料/空洞环(s)."));
     }
 
     private static void CompareConnectivity(SectionSpec spec, IReadOnlyList<ConnectivityCheck> checks, string modelSha,
@@ -326,7 +326,7 @@ public static class SectionVerifier
         unverifiable = false;
         if (spec.RequiredConnectivityRequirementIds.Count > 0 && spec.RequiredConnectivity.Count == 0)
         {
-            differences.Add(Diff("connectivity-unversioned", "Legacy T08 requirement ids do not carry frozen source/requirement fingerprints and cannot certify a section dependency."));
+            differences.Add(Diff("connectivity-unversioned", "遗留的T08要求ID不携带冻结的源/要求指纹，无法证明一个剖面依赖性。"));
             unverifiable = true;
         }
         foreach (var dependency in spec.RequiredConnectivity)
@@ -338,22 +338,22 @@ public static class SectionVerifier
                 check.RequirementFingerprint.Equals(dependency.RequirementFingerprint, StringComparison.OrdinalIgnoreCase)).ToArray();
             if (matches.Length != 1)
             {
-                differences.Add(Diff("connectivity-missing", $"Section requires exactly one T08 result for '{id}' with the frozen source revision/fact/requirement fingerprint."));
+                differences.Add(Diff("connectivity-missing", $"剖面需要一个T08结果对于'{id}'，并且源修订/事实/要求指纹已锁定。"));
                 unverifiable = true;
                 continue;
             }
             var check = matches[0];
             if (!check.ActualModelSha256.Equals(modelSha, StringComparison.OrdinalIgnoreCase) || !check.ModelReopened)
             {
-                differences.Add(Diff("connectivity-model", $"Connectivity result '{id}' belongs to a different model or was not measured from a reopened saved model."));
+                differences.Add(Diff("connectivity-model", $"连接性结果 '{id}' 属于不同的模型，或者不是从一个重新打开并保存的模型中测量得到的。"));
                 unverifiable = true;
                 continue;
             }
             if (check.Status == ConnectivityStatus.Failed)
-                differences.Add(Diff("connectivity-failed", $"Connectivity requirement '{id}' failed and cannot be overridden by a matching 2D section."));
+                differences.Add(Diff("connectivity-failed", $"连接要求 '{id}' 失败，无法被匹配的 ' 2D ' 部分所覆盖。"));
             else if (check.Status != ConnectivityStatus.Passed)
             {
-                differences.Add(Diff("connectivity-unverifiable", $"Connectivity requirement '{id}' is not verified."));
+                differences.Add(Diff("connectivity-unverifiable", $"连接性要求 '{id}' 未被验证。"));
                 unverifiable = true;
             }
         }
@@ -455,7 +455,7 @@ public static class SectionVerifier
             var point = current.BoundaryProbePoint;
             if (point is null || current.AreaMm2 is not { } currentArea)
             {
-                differences.Add(Diff("loop-nesting", $"{label} loop '{loop.LoopId}' lacks independently derived boundary/area evidence for containment."));
+                differences.Add(Diff("loop-nesting", $"{label}循环 '{loop.LoopId}' 缺少独立界定/面积证据，无法证明包含关系。"));
                 continue;
             }
             var containers = loops.Where(candidate => candidate.LoopId != loop.LoopId &&
@@ -465,18 +465,18 @@ public static class SectionVerifier
             if (containers.Length == 0)
             {
                 if (loop.IsVoid)
-                    differences.Add(Diff("loop-nesting", $"{label} void loop '{loop.LoopId}' has no containing material parent."));
+                    differences.Add(Diff("loop-nesting", $" {label} 空腔闭环 ' {loop.LoopId} ' 没有包含材料的父对象。"));
                 continue;
             }
             var parentArea = geometry[containers[0].LoopId].AreaMm2!.Value;
             if (containers.Length > 1 && Math.Abs(geometry[containers[1].LoopId].AreaMm2!.Value - parentArea) <= 1e-9)
             {
-                differences.Add(Diff("loop-nesting", $"{label} loop '{loop.LoopId}' has ambiguous equal-area direct containers."));
+                differences.Add(Diff("loop-nesting", $"{label}循环 '{loop.LoopId}' 有模糊的等面积直接容器。"));
                 continue;
             }
             var parent = containers[0];
             if (loop.IsVoid == parent.IsVoid)
-                differences.Add(Diff("loop-nesting", $"{label} loop '{loop.LoopId}' and its direct parent '{parent.LoopId}' do not alternate material/void classification."));
+                differences.Add(Diff("loop-nesting", $"{label}循环 '{loop.LoopId}' 和它的直接父循环 '{parent.LoopId}' 不交替材料/空洞分类。"));
         }
     }
 

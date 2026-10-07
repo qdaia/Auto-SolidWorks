@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net9.0-windows</TargetFramework></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../src/CadModeling.Executor.SolidWorks/CadModeling.Executor.SolidWorks.csproj" />
+    <Reference Include="SolidWorks.Interop.sldworks"><HintPath>$(SolidWorksInteropDir)/SolidWorks.Interop.sldworks.dll</HintPath><Private>true</Private></Reference>
+  </ItemGroup>
+</Project>

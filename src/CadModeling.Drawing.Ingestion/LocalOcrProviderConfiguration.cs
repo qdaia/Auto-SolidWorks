@@ -70,40 +70,40 @@ public static partial class LocalOcrConfigurationChecker
         var fingerprint = Fingerprint(configuration);
         if (string.IsNullOrWhiteSpace(configuration.ExecutablePath) || string.IsNullOrWhiteSpace(configuration.TessdataDirectory))
             return Failure("ING-OCR-MODEL-NOT-CONFIGURED",
-                "No reviewed local Tesseract executable and tessdata directory were configured.", fingerprint);
+                "未配置审核过的本地 Tesseract 可执行文件和 tessdata 目录。", fingerprint);
         if (!Path.IsPathFullyQualified(configuration.ExecutablePath))
-            return Failure("ING-OCR-EXECUTABLE-PATH-UNSAFE", "The local OCR executable path must be absolute.", fingerprint);
+            return Failure("ING-OCR-EXECUTABLE-PATH-UNSAFE", "本地OCR可执行文件路径必须是绝对路径。", fingerprint);
         if (!Path.IsPathFullyQualified(configuration.TessdataDirectory))
-            return Failure("ING-OCR-TESSDATA-PATH-UNSAFE", "The local OCR tessdata path must be absolute.", fingerprint);
+            return Failure("ING-OCR-TESSDATA-PATH-UNSAFE", "本地 OCR tessdata 路径必须是绝对路径。", fingerprint);
 
         var executable = Path.GetFullPath(configuration.ExecutablePath);
         var tessdata = Path.GetFullPath(configuration.TessdataDirectory);
         if (!File.Exists(executable))
-            return Failure("ING-OCR-EXECUTABLE-MISSING", $"Configured local OCR executable does not exist: {executable}", fingerprint,
+            return Failure("ING-OCR-EXECUTABLE-MISSING", $"配置的本地 OCR 可执行文件不存在：{executable}", fingerprint,
                 executable, tessdata);
         if (!Directory.Exists(tessdata))
-            return Failure("ING-OCR-TESSDATA-MISSING", $"Configured tessdata directory does not exist: {tessdata}", fingerprint,
+            return Failure("ING-OCR-TESSDATA-MISSING", $"配置的 tessdata 目录不存在：{tessdata}", fingerprint,
                 executable, tessdata);
         if (configuration.TimeoutSeconds is < 1 or > 600)
-            return Failure("ING-OCR-TIMEOUT-CONFIG", "Local OCR timeout must be within 1..600 seconds.", fingerprint, executable, tessdata);
+            return Failure("ING-OCR-TIMEOUT-CONFIG", "本地 OCR 超时必须在 1..600 秒内。", fingerprint, executable, tessdata);
         if (configuration.PageSegmentationMode is < 0 or > 13 || configuration.OcrEngineMode is < 0 or > 3)
-            return Failure("ING-OCR-MODE-CONFIG", "Tesseract PSM/OEM configuration is outside the supported numeric range.", fingerprint,
+            return Failure("ING-OCR-MODE-CONFIG", "Tesseract PSM/OEM 配置超出支持的数字范围。", fingerprint,
                 executable, tessdata);
 
         var languages = Languages(configuration.Language);
         if (languages.Length == 0)
-            return Failure("ING-OCR-LANGUAGE-CONFIG", "At least one local Tesseract language must be configured.", fingerprint,
+            return Failure("ING-OCR-LANGUAGE-CONFIG", "至少配置一个本地的Tesseract语言。", fingerprint,
                 executable, tessdata);
 
         var tsvConfigPath = Path.Combine(tessdata, "configs", "tsv");
         if (!File.Exists(tsvConfigPath) || new FileInfo(tsvConfigPath).Length == 0)
             return Failure("ING-OCR-TSV-CONFIG-MISSING",
-                $"Required reviewed Tesseract TSV config is missing: {tsvConfigPath}", fingerprint, executable, tessdata);
+                $"缺少必要的 Tesseract TSV 配置：{tsvConfigPath}", fingerprint, executable, tessdata);
         var tsvConfigSha = IngestionUtilities.Sha256File(tsvConfigPath);
         if (!string.IsNullOrWhiteSpace(configuration.ExpectedTsvConfigSha256) &&
             !HashEquals(configuration.ExpectedTsvConfigSha256, tsvConfigSha))
             return Failure("ING-OCR-TSV-CONFIG-HASH-MISMATCH",
-                "Tesseract TSV config hash does not match the reviewed deployment pin.", fingerprint,
+                "四面体 TSV 配置哈希不匹配已审核的部署钉。", fingerprint,
                 executable, tessdata, tsvConfigSha: tsvConfigSha);
 
         var modelLanguages = languages
@@ -115,22 +115,22 @@ public static partial class LocalOcrConfigurationChecker
         foreach (var language in modelLanguages)
         {
             if (!LanguageName().IsMatch(language))
-                return Failure("ING-OCR-LANGUAGE-CONFIG", $"Unsafe Tesseract language token '{language}'.", fingerprint, executable, tessdata);
+                return Failure("ING-OCR-LANGUAGE-CONFIG", $"不安全的 OCR 语言标记 '{language}' 。", fingerprint, executable, tessdata);
             var modelPath = Path.Combine(tessdata, language + ".traineddata");
             if (!File.Exists(modelPath) || new FileInfo(modelPath).Length < 1024)
-                return Failure("ING-OCR-MODEL-MISSING", $"Required reviewed OCR model is missing or truncated: {modelPath}", fingerprint,
+                return Failure("ING-OCR-MODEL-MISSING", $"缺少或截断了审核的 OCR 模型：{modelPath}", fingerprint,
                     executable, tessdata);
             var actual = IngestionUtilities.Sha256File(modelPath);
             modelHashes[language] = actual;
             if (configuration.ExpectedModelSha256.TryGetValue(language, out var expected) && !HashEquals(expected, actual))
-                return Failure("ING-OCR-MODEL-HASH-MISMATCH", $"OCR model hash mismatch for '{language}'.", fingerprint,
+                return Failure("ING-OCR-MODEL-HASH-MISMATCH", $"OCR 模型哈希不匹配 '{language}'。", fingerprint,
                     executable, tessdata, IngestionUtilities.Sha256File(executable), modelHashes);
         }
 
         var binarySha = IngestionUtilities.Sha256File(executable);
         if (!string.IsNullOrWhiteSpace(configuration.ExpectedExecutableSha256) &&
             !HashEquals(configuration.ExpectedExecutableSha256, binarySha))
-            return Failure("ING-OCR-EXECUTABLE-HASH-MISMATCH", "Local OCR executable hash does not match the reviewed deployment pin.", fingerprint,
+            return Failure("ING-OCR-EXECUTABLE-HASH-MISMATCH", "本地 OCR 可执行文件哈希不匹配已审核的部署钉。", fingerprint,
                 executable, tessdata, binarySha, modelHashes);
 
         var combinedModelSha = IngestionUtilities.Sha256Text(string.Join("|", modelHashes.Select(item => $"{item.Key}:{item.Value}")));
@@ -138,7 +138,7 @@ public static partial class LocalOcrConfigurationChecker
         {
             Ready = true,
             Code = "ING-OCR-READY",
-            Message = "Reviewed local Tesseract configuration is ready for offline OCR.",
+            Message = "离线OCR配置已本地审查完成。",
             ExecutablePath = executable,
             TessdataDirectory = tessdata,
             ProviderVersion = IngestionUtilities.ExecutableVersion(executable, "--version"),

@@ -34,7 +34,7 @@ public sealed class DrawingOmissionInventoryBuilder
         foreach (var item in observation.Observations)
         {
             token.ThrowIfCancellationRequested();
-            if (item.Geometry.Count == 0) { limitations.Add("Observation without source location: " + item.ObservationId); complete = false; continue; }
+            if (item.Geometry.Count == 0) { limitations.Add("观察没有来源位置：" + item.ObservationId); complete = false; continue; }
             var points = new List<(double, double)>();
             foreach (var point in item.Geometry)
             {
@@ -42,7 +42,7 @@ public sealed class DrawingOmissionInventoryBuilder
                 points.Add(transformed);
             }
             if (points.Count != item.Geometry.Count || points.Any(p => !double.IsFinite(p.Item1 + p.Item2)))
-            { limitations.Add("Unmapped coordinate frame: " + item.ObservationId); complete = false; continue; }
+            { limitations.Add("未映射坐标框架：" + item.ObservationId); complete = false; continue; }
             mapped.Add((item, points.ToArray()));
         }
 
@@ -59,7 +59,7 @@ public sealed class DrawingOmissionInventoryBuilder
             var first = group.First().Observation;
             var points = group.SelectMany(m => m.Points).ToArray();
             var box = Bounds(points, width, height);
-            if (box is null) { limitations.Add("Observation outside rendered page: " + first.ObservationId); complete = false; continue; }
+            if (box is null) { limitations.Add("观察不在渲染页面中的情况：" + first.ObservationId); complete = false; continue; }
             dimensions.TryGetValue(first.ObservationId, out var dimension);
             local.Add(new()
             {
@@ -116,18 +116,18 @@ public sealed class DrawingOmissionInventoryBuilder
             if (residual >= 12)
                 local.Add(new() { Id = $"page-{pageNumber:D4}-residual-{tileNumber:D3}", PageNumber = pageNumber,
                     Kind = DrawingCandidateKind.ResidualInk, Bounds = box, Provider = "independent-raster-ink", GeometryHint = "unexplained_foreground_requires_visual_review",
-                    Literal = $"{residual} foreground pixels were not accounted for by text boxes or primitive strokes; inspect original detail." });
+                    Literal = $"{residual}前景像素未被文本框或基本笔画考虑；检查原始细节。" });
         }
         var candidateBudget = Math.Min(MaximumCandidatesPerPage, Math.Max(0, MaximumCandidatesTotal-candidates.Count));
         if (local.Count > candidateBudget)
         {
-            limitations.Add($"Candidate budget {candidateBudget} exceeded (page limit {MaximumCandidatesPerPage}, document limit {MaximumCandidatesTotal}); extraction cannot support a complete review.");
+            limitations.Add($"候选项数量超过预算{candidateBudget}（页面上限{MaximumCandidatesPerPage}，文档上限{MaximumCandidatesTotal}）；提取结果不足以支持完整复查。");
             complete = false;
             local = local.Take(candidateBudget).ToList();
         }
-        if (localRegions[0].InkPixels == 0) limitations.Add("Blank raster page: inspect source overview and document its role.");
+        if (localRegions[0].InkPixels == 0) limitations.Add("空白栅格页面：检查源概述并说明其作用。");
         if (observation.Diagnostics.Any(d => d.Code.StartsWith("ING-OCR-", StringComparison.Ordinal)))
-            limitations.Add("OCR was unavailable or unreliable. Candidate recall is unknown; raw image review is required.");
+            limitations.Add("OCR 不可用或不可靠。候选项召回未知；需要审查原始图像。");
         var retainedIds = local.Select(c=>c.Id).ToHashSet(StringComparer.Ordinal);
         for (var i = 0; i < local.Count; i++)
         {
@@ -166,9 +166,9 @@ public sealed class DrawingOmissionInventoryBuilder
             SourcePath = Path.GetFullPath(sourcePath), SourceSha256 = sourceSha, TotalPages = totalPages, CompleteExtraction = complete,
             Pages = Enumerable.Range(1, totalPages).Select(n => pages.FirstOrDefault(p => p.PageNumber == n) ?? new DrawingOmissionPage { PageNumber = n, Ingested = false }).ToArray(),
             Regions = regions, Candidates = candidates,
-            Limitations = ["Detected candidates are not a complete feature inventory. Region review is an agent declaration, not proof of visual attention.",
-                "Residual ink is heuristic localization, not semantic segmentation or exact line coverage.",
-                "No automatic cross-view geometry proof, hidden-line equivalence, topology or GD&T certification."]
+            Limitations = ["候选特征不完整，无法检测。区域审查是一种代理声明，而非视觉关注的证明。",
+                "残余墨迹是基于启发式的定位，而非语义分割或精确的线条覆盖。",
+                "没有自动的多视角几何验证、隐藏线等价性、拓扑结构或GD&T认证。"]
         };
         var path = Path.Combine(outputDirectory, "omission-inventory.json");
         using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None))

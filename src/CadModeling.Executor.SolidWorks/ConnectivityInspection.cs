@@ -19,10 +19,10 @@ internal sealed partial class SolidWorksComExecutor
             {
                 CheckId = query.QueryId, ActualModelSha256 = actualModelSha256, ModelReopened = modelReopened,
                 GeometryResolutions = scoped, Complete = false, Method = "solidworks_brep_connectivity",
-                Error = "One or more T06 GeometryRefs did not resolve uniquely on the inspected model."
+                Error = "一个或多个 T06 GeometryRefs 未能在被检查模型上唯一解析。"
             });
         if (model is not IPartDoc part)
-            return Unsupported(query, "T08 actual connectivity inspection currently supports native part documents only.");
+            return Unsupported(query, "T08 当前的实际连接性检查仅支持原生零件文档。");
 
         try
         {
@@ -53,9 +53,9 @@ internal sealed partial class SolidWorksComExecutor
                 IFace2 face => (IBody2)face.GetBody(),
                 IEdge edge => (edge.GetTwoAdjacentFaces2() as object[] ?? []).OfType<IFace2>().Select(face => (IBody2)face.GetBody()).FirstOrDefault(),
                 _ => null
-            } ?? throw new InvalidOperationException("Solid-connection GeometryRef must resolve to a body, face, or edge with an owning solid body.");
+            } ?? throw new InvalidOperationException("Solid-连接 GeometryRef 必须关联到一个体、面或边，且该边需归属于一个母体体。");
             if (body.GetType() != (int)swBodyType_e.swSolidBody)
-                throw new InvalidOperationException("Solid-connection evidence requires solid bodies.");
+                throw new InvalidOperationException("实体连接证据需要实体体。");
             groupIds.Add(Persistent(model, body) ?? "body-name:" + body.Name);
         }
         var observation = new ConnectivityObservation
@@ -75,7 +75,7 @@ internal sealed partial class SolidWorksComExecutor
         IReadOnlyList<GeometryRefResolution> scoped, string modelSha256, bool reopened)
     {
         var cylinders = scoped.Select(resolution => MeasureInteriorAxialFace(model, resolution)).ToArray();
-        if (cylinders.Length == 0) return Unsupported(query, "Axial connectivity query has no cylindrical interior faces.");
+        if (cylinders.Length == 0) return Unsupported(query, "轴向连通性查询没有圆柱形内部面。");
 
         var direction = ModelVerification.Unit(cylinders[0].Direction);
         var axisOrigin = cylinders[0].AxisStartMm;
@@ -85,11 +85,11 @@ internal sealed partial class SolidWorksComExecutor
         {
             var current = ModelVerification.Unit(cylinder.Direction);
             if (Math.Abs(ModelVerification.Dot(direction, current)) < angularTolerance)
-                throw new InvalidOperationException("Scoped cylindrical faces are not coaxial within the frozen angular threshold.");
+                throw new InvalidOperationException("限定的圆柱面特征在已锁定的角度阈值内不是共轴的。");
             var delta = ModelVerification.Sub(cylinder.AxisStartMm, axisOrigin);
             var perpendicular = ModelVerification.Sub(delta, ModelVerification.Scale(direction, ModelVerification.Dot(delta, direction)));
             if (ModelVerification.Norm(perpendicular) > axisTolerance)
-                throw new InvalidOperationException("Scoped cylindrical faces do not share one axial line within GeometryRef tolerance.");
+                throw new InvalidOperationException("限定在GeometryRef范围内的圆柱面特征不共享一条轴线。");
         }
 
         var segments = cylinders.Select(cylinder =>
@@ -105,7 +105,7 @@ internal sealed partial class SolidWorksComExecutor
         var startPoint = ModelVerification.Add(axisOrigin, ModelVerification.Scale(direction, overallMin));
         var endPoint = ModelVerification.Add(axisOrigin, ModelVerification.Scale(direction, overallMax));
         var bodies = (part.GetBodies2((int)swBodyType_e.swSolidBody, false) as object[] ?? []).OfType<IBody2>().ToArray();
-        if (bodies.Length == 0) throw new InvalidOperationException("No solid bodies are available for connectivity ray probing.");
+        if (bodies.Length == 0) throw new InvalidOperationException("没有可供连通性射线探测的实体体。”");
 
         var startEvidence = ProbeAxialEnd(model, bodies, query, startPoint, ModelVerification.Scale(direction, -1),
             startSegment.Cylinder.RadiusMm, "start");
@@ -146,39 +146,39 @@ internal sealed partial class SolidWorksComExecutor
     private static AxialCylinderFace MeasureInteriorAxialFace(IModelDoc2 model, GeometryRefResolution resolution)
     {
         var entity = ResolveCurrentCandidate(model, resolution);
-        if (entity is not IFace2 face) throw new InvalidOperationException("Axial hole/cavity GeometryRef must resolve to an actual cylindrical face.");
+        if (entity is not IFace2 face) throw new InvalidOperationException("轴向孔/腔 GeometryRef 必须解析为实际的圆柱面。");
         var surface = (ISurface)face.GetSurface();
         if(surface.IsCone())
         {
             var cone=MeasureCone(model,face);
-            if(!cone.Interior||!cone.CompleteWall)throw new InvalidOperationException("Scoped cone is not a complete interior wall: "+cone.BoundaryEvidence);
+            if(!cone.Interior||!cone.CompleteWall)throw new InvalidOperationException("范围内的圆锥不是完整的内墙："+cone.BoundaryEvidence);
             var coneBody=(IBody2)face.GetBody();
             return new(face,cone.AxisStartMm,cone.AxisEndMm,cone.Direction,Math.Min(cone.StartRadiusMm,cone.EndRadiusMm),
                 Persistent(model,coneBody)??"body-name:"+coneBody.Name,true);
         }
-        if (!surface.IsCylinder()) throw new InvalidOperationException("Axial hole/cavity GeometryRef resolved to a non-cylindrical face.");
-        var data = ToDoubles(surface.CylinderParams, 7, "connectivity cylinder parameters");
+        if (!surface.IsCylinder()) throw new InvalidOperationException("轴向孔/腔在GeometryRef处被解析为非圆面。");
+        var data = ToDoubles(surface.CylinderParams, 7, "连接性圆柱参数");
         var origin = new Vector3(data[0] * 1000, data[1] * 1000, data[2] * 1000);
         var direction = ModelVerification.Unit(new(data[3], data[4], data[5]));
         var radius = data[6] * 1000;
-        if (!ModelVerification.Positive(radius)) throw new InvalidOperationException("Connectivity cylinder radius is invalid.");
-        var uv = ToDoubles(face.GetUVBounds(), 4, "connectivity cylinder UV bounds");
-        var p0 = ToDoubles(surface.Evaluate((uv[0] + uv[1]) / 2, uv[2], 0, 0), 6, "connectivity cylinder end A");
-        var p1 = ToDoubles(surface.Evaluate((uv[0] + uv[1]) / 2, uv[3], 0, 0), 6, "connectivity cylinder end B");
+        if (!ModelVerification.Positive(radius)) throw new InvalidOperationException("圆柱的连通性半径无效。");
+        var uv = ToDoubles(face.GetUVBounds(), 4, "连接性圆柱UV边界");
+        var p0 = ToDoubles(surface.Evaluate((uv[0] + uv[1]) / 2, uv[2], 0, 0), 6, "连接器圆柱端面 A");
+        var p1 = ToDoubles(surface.Evaluate((uv[0] + uv[1]) / 2, uv[3], 0, 0), 6, "连接性圆柱端面B");
         Vector3 AxisPoint(double[] evaluated)
         {
             var position = new Vector3(evaluated[0] * 1000, evaluated[1] * 1000, evaluated[2] * 1000);
             return ModelVerification.Add(origin, ModelVerification.Scale(direction,
                 ModelVerification.Dot(ModelVerification.Sub(position, origin), direction)));
         }
-        var mid = ToDoubles(surface.Evaluate((uv[0] + uv[1]) / 2, (uv[2] + uv[3]) / 2, 0, 0), 6, "connectivity cylinder normal");
+        var mid = ToDoubles(surface.Evaluate((uv[0] + uv[1]) / 2, (uv[2] + uv[3]) / 2, 0, 0), 6, "连接性圆柱正则面法线");
         var point = new Vector3(mid[0] * 1000, mid[1] * 1000, mid[2] * 1000);
         var radial = ModelVerification.Sub(point, AxisPoint(mid));
         var normal = new Vector3(mid[3], mid[4], mid[5]);
         if (face.FaceInSurfaceSense()) normal = ModelVerification.Scale(normal, -1);
         if (!ModelVerification.Finite(normal) || ModelVerification.Norm(normal) <= 1e-12 || ModelVerification.Norm(radial) <= 1e-12 ||
             ModelVerification.Dot(normal, radial) >= 0)
-            throw new InvalidOperationException("Scoped cylindrical face is not an interior void wall or has invalid normal evidence.");
+            throw new InvalidOperationException("限定的圆柱面不是内部空腔墙，也没有无效的法向证据。");
         var startAxis = AxisPoint(p0); var endAxis = AxisPoint(p1);
         var body = (IBody2)face.GetBody();
         var lateralBoundaryExcluded = CylinderLateralBoundaryExcluded(face, startAxis, endAxis, direction, radius, .02);
@@ -203,7 +203,7 @@ internal sealed partial class SolidWorksComExecutor
             if (curve is null) return false;
             if (curve.IsLine())
             {
-                var p = ToDoubles(curve.LineParams, 6, "cylinder boundary line");
+                var p = ToDoubles(curve.LineParams, 6, "圆柱轮廓线");
                 var d = ModelVerification.Unit(new Vector3(p[3], p[4], p[5]));
                 if (Math.Abs(ModelVerification.Dot(axis, d)) < Math.Cos(.25 * Math.PI / 180)) return false;
                 // An axial trim edge is only a harmless periodic seam / split-cylinder edge when both sides
@@ -216,7 +216,7 @@ internal sealed partial class SolidWorksComExecutor
             }
             if (curve.IsCircle())
             {
-                var p = ToDoubles(curve.CircleParams, 7, "cylinder boundary circle");
+                var p = ToDoubles(curve.CircleParams, 7, "圆柱边界圆圈");
                 var center = new Vector3(p[0] * 1000, p[1] * 1000, p[2] * 1000);
                 var circleAxis = ModelVerification.Unit(new Vector3(p[3], p[4], p[5]));
                 if (Math.Abs(ModelVerification.Dot(axis, circleAxis)) < Math.Cos(.25 * Math.PI / 180)) return false;
@@ -239,7 +239,7 @@ internal sealed partial class SolidWorksComExecutor
         {
             var surface = (ISurface?)adjacentFace.GetSurface();
             if (surface is null || !surface.IsCylinder()) return false;
-            var p = ToDoubles(surface.CylinderParams, 7, "adjacent cylinder parameters");
+            var p = ToDoubles(surface.CylinderParams, 7, "相邻圆柱参数");
             var direction = ModelVerification.Unit(new Vector3(p[3], p[4], p[5]));
             if (Math.Abs(ModelVerification.Dot(axis, direction)) < Math.Cos(.25 * Math.PI / 180)) return false;
             var radius = p[6] * 1000;
@@ -260,7 +260,7 @@ internal sealed partial class SolidWorksComExecutor
         var sampleCount = Math.Max(3, query.EndProbeCount);
         var span = ModelVerification.Dot(ModelVerification.Sub(endMm, startMm), axis);
         if (!double.IsFinite(span) || span <= query.ProbeInsetMm * 2)
-            return Incomplete("Axial passage interval is too short for bounded interior probes.");
+            return Incomplete("轴向通路过短，无法满足边界内探针的限定内部间距。");
         var helper = Math.Abs(axis.Z) < .9 ? new Vector3(0, 0, 1) : new Vector3(0, 1, 0);
         var radialU = ModelVerification.Unit(Cross(axis, helper));
         var radialV = ModelVerification.Unit(Cross(axis, radialU));
@@ -284,16 +284,16 @@ internal sealed partial class SolidWorksComExecutor
         // SOLIDWORKS expects SAFEARRAY(IDispatch), not a VARIANT array of RCWs.
         var count = model.Extension.RayIntersections(bodies.Select(body => new DispatchWrapper(body)).ToArray(), baseValues.ToArray(), directions.ToArray(), options,
             0, query.NumericalToleranceMm / 1000, true);
-        if (count < 0) return Incomplete("SOLIDWORKS returned a negative axial-passage ray count.");
-        var values = count == 0 ? [] : ToDoubles(model.GetRayIntersectionsPoints(), count * 9, "axial passage ray intersections");
-        if (values.Length != count * 9) return Incomplete("Axial-passage ray payload size is inconsistent.");
+        if (count < 0) return Incomplete("SOLIDWORKS 返回了一个负的轴向通路射线计数。");
+        var values = count == 0 ? [] : ToDoubles(model.GetRayIntersectionsPoints(), count * 9, "轴向通道射线相交");
+        if (values.Length != count * 9) return Incomplete("轴流通道射线载荷尺寸不一致。");
         var blocked = new HashSet<int>();
         var interiorLimit = span - Math.Max(query.ProbeInsetMm + query.Requirement.SealDetectionThresholdMm, query.NumericalToleranceMm * 4);
         for (var hitIndex = 0; hitIndex < count; hitIndex++)
         {
             var offset = hitIndex * 9;
-            _ = ExactIndex(values[offset], bodies.Count, "body index");
-            var rayIndex = ExactIndex(values[offset + 1], sampleCount, "ray index");
+            _ = ExactIndex(values[offset], bodies.Count, "部件索引");
+            var rayIndex = ExactIndex(values[offset + 1], sampleCount, "射线索引");
             var type = (int)Math.Round(values[offset + 2]);
             var point = new Vector3(values[offset + 3] * 1000, values[offset + 4] * 1000, values[offset + 5] * 1000);
             var distance = ModelVerification.Dot(ModelVerification.Sub(point, bases[rayIndex]), axis);
@@ -358,15 +358,15 @@ internal sealed partial class SolidWorksComExecutor
         var options = (int)(swRayPtsOpts_e.swRayPtsOptsENTRY_EXIT | swRayPtsOpts_e.swRayPtsOptsNORMALS);
         var intersectionCount = model.Extension.RayIntersections(bodies.Select(body => new DispatchWrapper(body)).ToArray(), basePoints.ToArray(), directions.ToArray(),
             options, 0, query.NumericalToleranceMm / 1000, true);
-        if (intersectionCount < 0) return Incomplete("SOLIDWORKS returned a negative ray-intersection count.");
-        var values = intersectionCount == 0 ? [] : ToDoubles(model.GetRayIntersectionsPoints(), intersectionCount * 9, "connectivity ray intersections");
-        if (values.Length != intersectionCount * 9) return Incomplete("Ray-intersection point payload size does not match the reported hit count.");
+        if (intersectionCount < 0) return Incomplete("SOLIDWORKS 返回了一个负的交线计数。");
+        var values = intersectionCount == 0 ? [] : ToDoubles(model.GetRayIntersectionsPoints(), intersectionCount * 9, "连接性交点射线");
+        if (values.Length != intersectionCount * 9) return Incomplete("射线-交点 数据 大小与报告的命中计数不符。");
 
         var hits = Enumerable.Range(0, intersectionCount).Select(hitIndex =>
         {
             var offset = hitIndex * 9;
-            _ = ExactIndex(values[offset], bodies.Count, "body index");
-            var rayIndex = ExactIndex(values[offset + 1], query.EndProbeCount, "ray index");
+            _ = ExactIndex(values[offset], bodies.Count, "部件索引");
+            var rayIndex = ExactIndex(values[offset + 1], query.EndProbeCount, "射线索引");
             var type = (int)Math.Round(values[offset + 2]);
             var point = new Vector3(values[offset + 3] * 1000, values[offset + 4] * 1000, values[offset + 5] * 1000);
             var distance = ModelVerification.Dot(ModelVerification.Sub(point, basesMm[rayIndex]), outward);
@@ -417,10 +417,10 @@ internal sealed partial class SolidWorksComExecutor
     private static object ResolveCurrentCandidate(IModelDoc2 model, GeometryRefResolution resolution)
     {
         var encoded = resolution.Candidate?.NativePersistentReference;
-        if (string.IsNullOrWhiteSpace(encoded)) throw new InvalidOperationException("Resolved GeometryRef candidate has no native persistent reference for B-Rep inspection.");
+        if (string.IsNullOrWhiteSpace(encoded)) throw new InvalidOperationException("已解决的 GeometryRef 候选项 对 B-Rep 检查 没有 原生 持久 参考。");
         int state = 0;
         var entity = model.Extension.GetObjectByPersistReference3(Convert.FromBase64String(encoded), out state);
-        if (state != 0 || entity is null) throw new InvalidOperationException("Resolved GeometryRef candidate became stale before connectivity inspection.");
+        if (state != 0 || entity is null) throw new InvalidOperationException("已解决的 GeometryRef 候选项在连接性检查前过时了。");
         return entity;
     }
 
@@ -445,7 +445,7 @@ internal sealed partial class SolidWorksComExecutor
     private static int ExactIndex(double value, int count, string name)
     {
         if (!double.IsFinite(value) || Math.Abs(value - Math.Round(value)) > 1e-9 || value < 0 || value >= count)
-            throw new InvalidOperationException($"SOLIDWORKS returned invalid {name}.");
+            throw new InvalidOperationException($"SOLIDWORKS 返回了无效的{name}。");
         return (int)Math.Round(value);
     }
 

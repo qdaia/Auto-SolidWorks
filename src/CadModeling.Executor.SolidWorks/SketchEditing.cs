@@ -10,7 +10,7 @@ internal sealed partial class SolidWorksComExecutor
         object Entity(SketchEntityReference r)
         {
             if(r.PrimitiveIndex<0 || r.PrimitiveIndex>=primitives.Count || r.SegmentIndex<0 || r.SegmentIndex>=primitives[r.PrimitiveIndex].Length)
-                throw new ArgumentException("Sketch entity reference is outside the created primitive segments.");
+                throw new ArgumentException("草图实体引用位于创建的原始段落之外。");
             var segment=primitives[r.PrimitiveIndex][r.SegmentIndex];
             if(segment is ISketchPoint) return segment;
             return r.Part switch {
@@ -20,7 +20,7 @@ internal sealed partial class SolidWorksComExecutor
                 SketchEntityPart.StartPoint when segment is ISketchArc arc=>arc.GetStartPoint2(),
                 SketchEntityPart.EndPoint when segment is ISketchArc arc=>arc.GetEndPoint2(),
                 SketchEntityPart.CenterPoint when segment is ISketchArc arc=>arc.GetCenterPoint2(),
-                _=>throw new ArgumentException("Requested point is unavailable for this sketch segment.")
+                _=>throw new ArgumentException("请求的点在当前草图段不可用。")
             };
         }
         void Select(IReadOnlyList<SketchEntityReference> refs)
@@ -29,7 +29,7 @@ internal sealed partial class SolidWorksComExecutor
             foreach(var r in refs)
             {
                 var selected=Entity(r) switch { ISketchSegment s=>s.Select4(append,null),ISketchPoint p=>p.Select4(append,null),_=>false };
-                if(!selected) throw new InvalidOperationException("Cannot select sketch entity."); append=true;
+                if(!selected) throw new InvalidOperationException("无法选择草图实体。"); append=true;
             }
         }
         foreach(var relation in operation.Constraints)
@@ -47,7 +47,7 @@ internal sealed partial class SolidWorksComExecutor
                 SketchConstraintKind.Midpoint=>swConstraintType_e.swConstraintType_ATMIDDLE,
                 _=>swConstraintType_e.swConstraintType_FIXED };
             if(sketch.RelationManager.AddRelation(relation.Entities.Select(r=>new System.Runtime.InteropServices.DispatchWrapper(Entity(r))).ToArray(),(int)kind) is null)
-                throw new InvalidOperationException($"Could not add {relation.Kind} sketch relation.");
+                throw new InvalidOperationException($"无法添加{relation.Kind}草图关系。");
         }
         foreach(var d in operation.Dimensions)
         {
@@ -59,11 +59,11 @@ internal sealed partial class SolidWorksComExecutor
                 SketchDimensionKind.Radius=>model.AddRadialDimension2(p.X,p.Y,p.Z),
                 SketchDimensionKind.Diameter=>model.AddDiameterDimension2(p.X,p.Y,p.Z),
                 _=>model.AddDimension2(p.X,p.Y,p.Z) });
-            var dimension=display?.GetDimension2(0) ?? throw new InvalidOperationException($"Cannot create sketch dimension '{d.Name}'.");
+            var dimension=display?.GetDimension2(0) ?? throw new InvalidOperationException($"无法创建草图尺寸 '{d.Name}'。");
             dimension.Name=d.Name;
             if(dimension.SetSystemValue3(d.Kind==SketchDimensionKind.Angle?Radians(d.Value):Mm(d.Value),
                 (int)swSetValueInConfiguration_e.swSetValue_InThisConfiguration,null)!=0)
-                throw new InvalidOperationException($"Cannot set driving dimension '{d.Name}'.");
+                throw new InvalidOperationException($"无法设置驱动尺寸 '{d.Name}'。");
         }
         foreach(var edit in operation.Edits)
         {
@@ -71,7 +71,7 @@ internal sealed partial class SolidWorksComExecutor
             if(edit.Kind==SketchEditKind.Offset)
             {
                 if(!model.SketchManager.SketchOffset(Mm(edit.OffsetMm),edit.BothDirections,edit.Chain,edit.CapEnds,false,true))
-                    throw new InvalidOperationException("Sketch offset failed.");
+                    throw new InvalidOperationException("草图偏移失败。");
             }
             else
             {
@@ -79,16 +79,16 @@ internal sealed partial class SolidWorksComExecutor
                 model.ClearSelection2(true);
                 var data=model.ISelectionManager.CreateSelectData();data.X=p.X;data.Y=p.Y;data.Z=p.Z;
                 if(edit.Entities.Count!=1 || Entity(edit.Entities[0]) is not ISketchSegment trimSegment || !trimSegment.Select4(false,data))
-                    throw new ArgumentException("TrimClosest needs one sketch segment and a point on the portion to remove.");
+                    throw new ArgumentException("TrimClosest 需要一个草图段和要移除部分上的一个点。");
                 model.ClearSelection2(true);
                 var world=(double[])((IMathPoint)((IMathPoint)math.CreatePoint(new[]{p.X,p.Y,p.Z})).MultiplyTransform(transform)).ArrayData;
                 if(!model.Extension.SelectByID2("","SKETCHSEGMENT",world[0],world[1],world[2],false,0,null,0))
-                    throw new InvalidOperationException("No sketch segment lies at the trim pick point.");
+                    throw new InvalidOperationException("草图段不在剪裁拾取点处。");
                 if(!Equals(model.ISelectionManager.GetSelectedObject6(1,-1),trimSegment))
-                    throw new InvalidOperationException("Trim pick point does not identify the requested sketch segment.");
+                    throw new InvalidOperationException("修剪选取点未能识别所请求的草图段。");
                 // Power-trim's selected pick point identifies the interval bounded by the nearest intersections.
                 if(!model.SketchManager.SketchTrim((int)swSketchTrimChoice_e.swSketchTrimEntities,0,0,0))
-                    throw new InvalidOperationException("Sketch trim failed.");
+                    throw new InvalidOperationException("草图剪裁失败。");
             }
         }
         model.ClearSelection2(true);

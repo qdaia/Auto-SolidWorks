@@ -1,0 +1,199 @@
+{
+  "name": "centerline_hollow_duct",
+  "source_text": "New complex modeling fixture with explicit mm requirements, not a replay of previous acceptance.",
+  "operations": [
+    {
+      "type": "ProfileSketch",
+      "id": "p0",
+      "name": "p0",
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Circle",
+          "diameter_mm": 12,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "ProfileSketch",
+      "id": "p1",
+      "name": "p1",
+      "frame": {
+        "origin_mm": {
+          "x": 12,
+          "y": 6,
+          "z": 40
+        },
+        "normal": {
+          "x": 0.6,
+          "y": 0.3,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Circle",
+          "diameter_mm": 18,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "ProfileSketch",
+      "id": "p2",
+      "name": "p2",
+      "frame": {
+        "origin_mm": {
+          "x": 30,
+          "y": 18,
+          "z": 80
+        },
+        "normal": {
+          "x": 0.3,
+          "y": 0.3,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Circle",
+          "diameter_mm": 10,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "NativeFeature",
+      "id": "spine",
+      "name": "spine",
+      "depends_on": [
+        "p0",
+        "p1",
+        "p2"
+      ],
+      "feature": {
+        "kind": "SpatialCurve",
+        "spatial_curve": {
+          "points_mm": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            {
+              "x": 4,
+              "y": 0,
+              "z": 20
+            },
+            {
+              "x": 12,
+              "y": 6,
+              "z": 40
+            },
+            {
+              "x": 24,
+              "y": 12,
+              "z": 60
+            },
+            {
+              "x": 30,
+              "y": 18,
+              "z": 80
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "centerline_loft",
+      "name": "centerline_loft",
+      "depends_on": [
+        "p0",
+        "p1",
+        "p2",
+        "spine"
+      ],
+      "feature": {
+        "kind": "LoftBoss",
+        "profile_ids": [
+          "p0",
+          "p1",
+          "p2"
+        ],
+        "loft": {
+          "centerline_id": "spine"
+        }
+      }
+    },
+    {
+      "type": "NativeFeature",
+      "id": "duct_wall",
+      "name": "duct_wall",
+      "depends_on": [
+        "centerline_loft"
+      ],
+      "feature": {
+        "kind": "Shell",
+        "thickness_mm": 0.8,
+        "selections": [
+          {
+            "kind": "Face",
+            "feature_id": "centerline_loft",
+            "geometry": "Plane",
+            "position_mm": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "kind": "Face",
+            "feature_id": "centerline_loft",
+            "geometry": "Plane",
+            "position_mm": {
+              "x": 30,
+              "y": 18,
+              "z": 80
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "expected_solid_body_count": 1,
+  "expected_surface_body_count": 0,
+  "recovery": {
+    "enabled": false
+  }
+}

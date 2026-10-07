@@ -1,0 +1,157 @@
+{
+  "name": "four_section_tangent_coaxial",
+  "source_text": "New complex modeling fixture with explicit mm requirements, not a replay of previous acceptance.",
+  "operations": [
+    {
+      "type": "ProfileSketch",
+      "id": "t0",
+      "name": "t0",
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Circle",
+          "diameter_mm": 16,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "ProfileSketch",
+      "id": "t1",
+      "name": "t1",
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 20
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Circle",
+          "diameter_mm": 28,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "ProfileSketch",
+      "id": "t2",
+      "name": "t2",
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 45
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Circle",
+          "diameter_mm": 20,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "ProfileSketch",
+      "id": "t3",
+      "name": "t3",
+      "frame": {
+        "origin_mm": {
+          "x": 0,
+          "y": 0,
+          "z": 70
+        },
+        "normal": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "x_direction": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "primitives": [
+        {
+          "type": "Circle",
+          "diameter_mm": 12,
+          "center_xmm": 0,
+          "center_ymm": 0
+        }
+      ]
+    },
+    {
+      "type": "NativeFeature",
+      "id": "tangent_loft",
+      "name": "tangent_loft",
+      "depends_on": [
+        "t0",
+        "t1",
+        "t2",
+        "t3"
+      ],
+      "feature": {
+        "kind": "LoftBoss",
+        "profile_ids": [
+          "t0",
+          "t1",
+          "t2",
+          "t3"
+        ],
+        "loft": {
+          "start_condition": "NormalToProfile",
+          "end_condition": "NormalToProfile",
+          "start_tangent_length_mm": 12,
+          "end_tangent_length_mm": 18
+        }
+      }
+    }
+  ],
+  "expected_solid_body_count": 1,
+  "expected_surface_body_count": 0,
+  "recovery": {
+    "enabled": false
+  }
+}

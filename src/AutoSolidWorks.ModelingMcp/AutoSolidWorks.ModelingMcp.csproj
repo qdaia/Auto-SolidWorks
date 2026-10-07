@@ -5,10 +5,11 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>0.6.0</Version>
+    <Version>26.10.07</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="../../plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json" LogicalName="AutoSolidWorks.capability-manifest.json" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
     <PackageReference Include="ModelContextProtocol" Version="2.0.0" />
     <ProjectReference Include="..\CadModeling.Core\CadModeling.Core.csproj" />

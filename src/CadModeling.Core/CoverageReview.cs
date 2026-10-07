@@ -96,7 +96,7 @@ public static class CoverageReviewer
         CoverageEvidence[] blockers = [];
         if (packet.RequiredFacts.Count == 0)
             return Report([], CoverageConclusion.Unverifiable,
-                "Required source-fact inventory is empty; empty scope can never produce complete acceptance.");
+                "源特征库存为空；空的范围永远无法产生完整的接受。");
 
         ValidateEvidence(evidence);
         blockers = evidence.Where(item => item.ScopeBlocking).ToArray();
@@ -118,10 +118,10 @@ public static class CoverageReviewer
                     : CoverageConclusion.Passed;
         var reason = conclusion switch
         {
-            CoverageConclusion.Passed => "Every required source fact has current deterministic evidence for its declared required scope.",
-            CoverageConclusion.Failed => "At least one required source fact has deterministic contradictory evidence.",
-            CoverageConclusion.Unsupported => "At least one required source fact needs a capability that is explicitly unsupported.",
-            _ => "At least one required source fact is missing, stale, ambiguous, incomplete, or otherwise unverifiable."
+            CoverageConclusion.Passed => "每个必需的源事实在其声明的有效范围内都有当前确定性的证据。",
+            CoverageConclusion.Failed => "至少一个必需的源事实具有确定性的矛盾证据。",
+            CoverageConclusion.Unsupported => "至少一个必需的源事实需要一个明确不支持的能力。",
+            _ => "至少缺少一个必需的源事实，过时、模糊、不完整，或者无法验证。"
         };
         return Report(items, conclusion, reason);
 
@@ -145,26 +145,26 @@ public static class CoverageReviewer
         var relevant = allEvidence.Where(item => !item.ScopeBlocking && item.FactId.Equals(required.FactId, StringComparison.Ordinal)).ToArray();
         var ids = relevant.Select(item => item.EvidenceId).Distinct(StringComparer.Ordinal).ToArray();
         if (relevant.Length == 0)
-            return Item(RequirementCheckStatus.Unverifiable, "Required source fact has no evidence.", required.RequiredEvidenceKinds);
+            return Item(RequirementCheckStatus.Unverifiable, "需要的源事实没有证据支持。", required.RequiredEvidenceKinds);
 
         if (!required.SourceRevisionId.Equals(packet.SourceRevisionId, StringComparison.Ordinal))
-            return Item(RequirementCheckStatus.Stale, "Required fact belongs to a different source revision than the review packet.");
+            return Item(RequirementCheckStatus.Stale, "要求的事实属于审查包来自不同的源修订版本。");
         if (relevant.Any(item => !item.SourceSha256.Equals(packet.SourceSha256, StringComparison.OrdinalIgnoreCase)))
-            return Item(RequirementCheckStatus.Stale, "At least one evidence item belongs to a different source drawing SHA-256.");
+            return Item(RequirementCheckStatus.Stale, "至少一个证据项属于不同的源图纸 SHA-256。");
         if (relevant.Any(item => !item.SourceRevisionId.Equals(packet.SourceRevisionId, StringComparison.Ordinal)))
-            return Item(RequirementCheckStatus.Stale, "At least one evidence item belongs to an older/different source revision.");
+            return Item(RequirementCheckStatus.Stale, "至少一个证据项属于较旧/不同的源修订版本。");
         if (relevant.Any(item => !item.SourceFactFingerprint.Equals(required.SourceFactFingerprint, StringComparison.OrdinalIgnoreCase)))
-            return Item(RequirementCheckStatus.Stale, "At least one evidence item belongs to a different source-fact fingerprint.");
+            return Item(RequirementCheckStatus.Stale, "至少一个证据项属于不同的源事实指纹。");
         var requiredEvidence = relevant.Where(item => required.RequiredEvidenceKinds.Contains(item.Kind)).ToArray();
         if (requiredEvidence.Any(item => !item.RequirementFingerprint.Equals(required.RequirementFingerprint, StringComparison.OrdinalIgnoreCase)))
-            return Item(RequirementCheckStatus.Stale, "At least one evidence item belongs to a different frozen requirement fingerprint.");
+            return Item(RequirementCheckStatus.Stale, "至少一个证据项属于不同的已锁定需求指纹。");
         if (relevant.Any(item => item.ModelSha256 is { Length: > 0 } model &&
                                  !model.Equals(packet.CandidateModelSha256, StringComparison.OrdinalIgnoreCase)))
-            return Item(RequirementCheckStatus.Stale, "At least one model-derived evidence item belongs to a different model SHA-256.");
+            return Item(RequirementCheckStatus.Stale, "至少一个基于模型的证据项属于不同的模型 SHA-256。");
 
         var missingKinds = required.RequiredEvidenceKinds.Distinct().Where(kind => !requiredEvidence.Any(item => item.Kind == kind)).ToArray();
         if (missingKinds.Length > 0)
-            return Item(RequirementCheckStatus.Unverifiable, "Required evidence capability/view was not executed.", missingKinds);
+            return Item(RequirementCheckStatus.Unverifiable, "所需的证据能力/视图未执行。", missingKinds);
 
         var modelKinds = new HashSet<ReviewEvidenceKind>
         {
@@ -172,29 +172,29 @@ public static class CoverageReviewer
         };
         if (!required.RequiredEvidenceKinds.Any(modelKinds.Contains))
             return Item(RequirementCheckStatus.Unverifiable,
-                "Source/binding/observation evidence can establish provenance or raise a question, but cannot by itself certify candidate-model compliance.");
+                "源/绑定/观察证据可以确立出处或提出疑问，但自身不能单独证明候选项模型的合规性。");
         var modelEvidence = relevant.Where(item => modelKinds.Contains(item.Kind)).ToArray();
         if (modelEvidence.Length == 0 || modelEvidence.Any(item => !item.ModelReopened))
             return Item(RequirementCheckStatus.Unverifiable,
-                "Candidate-model compliance requires evidence from the exact saved and reopened model.");
+                "候选模型的合规性需要来自保存并重新打开的确切模型的证据。");
 
         var deterministic = relevant.Where(item => item.Deterministic && item.Kind != ReviewEvidenceKind.Observation).ToArray();
         if (deterministic.Any(item => item.Status == RequirementCheckStatus.Failed))
-            return Item(RequirementCheckStatus.Failed, "Deterministic evidence contradicts the source requirement; visual/reviewer evidence cannot override it.");
+            return Item(RequirementCheckStatus.Failed, "确定性证据违背了来源要求；视觉/审核证据无法取代它。");
         if (deterministic.Any(item => item.Status == RequirementCheckStatus.Unsupported))
-            return Item(RequirementCheckStatus.Unsupported, "A required deterministic capability is unsupported.");
+            return Item(RequirementCheckStatus.Unsupported, "一个必需的确定性能力不被支持。");
         if (deterministic.Any(item => item.Status is RequirementCheckStatus.Stale or RequirementCheckStatus.Unverifiable or
                                                RequirementCheckStatus.Ambiguous or RequirementCheckStatus.Missing or RequirementCheckStatus.WrongDocument))
-            return Item(RequirementCheckStatus.Unverifiable, "Deterministic evidence is not current and complete enough to certify this source requirement.");
+            return Item(RequirementCheckStatus.Unverifiable, "确定性证据不足以认证此源要求，且不够当前和完整。");
         if (relevant.Any(item => item.Status == RequirementCheckStatus.Failed))
-            return Item(RequirementCheckStatus.Failed, "Evidence contradicts the source requirement.");
+            return Item(RequirementCheckStatus.Failed, "证据反驳了来源要求。");
         if (relevant.Any(item => item.Status == RequirementCheckStatus.Unsupported))
-            return Item(RequirementCheckStatus.Unsupported, "Evidence reports an unsupported required capability.");
+            return Item(RequirementCheckStatus.Unsupported, "证据报告了一个未支持的必需能力。");
         if (relevant.Any(item => item.Status != RequirementCheckStatus.Passed))
-            return Item(RequirementCheckStatus.Unverifiable, "At least one required evidence item is not verifiable/passed.");
+            return Item(RequirementCheckStatus.Unverifiable, "至少一个必需的证据项无法验证/未通过。");
         if (!required.AllowObservationOnly && deterministic.Length == 0)
-            return Item(RequirementCheckStatus.Unverifiable, "Visual observation alone can raise questions but cannot certify a deterministic source requirement.");
-        return Item(RequirementCheckStatus.Passed, "Current evidence covers this required source fact.");
+            return Item(RequirementCheckStatus.Unverifiable, "仅凭视觉观察可以提出疑问，但无法验证确定性的源要求。");
+        return Item(RequirementCheckStatus.Passed, "当前证据覆盖了此所需的来源事实。");
 
         CoverageItem Item(RequirementCheckStatus status, string reason, IReadOnlyList<ReviewEvidenceKind>? missing = null) => new()
         {
@@ -255,7 +255,7 @@ public static class CoverageReviewer
                 string.IsNullOrWhiteSpace(result.SourceFactId) || !Hash(result.SourceFactFingerprint ?? string.Empty) ||
                 !Hash(result.RequirementFingerprint ?? string.Empty)))
             return [ProjectionIdentityBlocker(report, evidencePrefix,
-                "Projection report lacks producer-owned source revision/fact/requirement identity; caller relabeling is forbidden.")];
+                "投影报告缺少归属于使用者的来源修订/事实/要求身份标识；调用者重新标识被禁止。")];
         var sourceRevisionId = report.SourceRevisionId;
         var mapped = report.Requirements.Select(result => new CoverageEvidence
         {
@@ -292,7 +292,7 @@ public static class CoverageReviewer
                 Kind = ReviewEvidenceKind.Projection,
                 Status = incomplete ? RequirementCheckStatus.Unverifiable : RequirementCheckStatus.Failed,
                 ScopeBlocking = true,
-                Message = report.Differences.Count == 0 ? "Projection report did not pass." : string.Join("; ", report.Differences.Select(item => item.Message))
+                Message = report.Differences.Count == 0 ? "投影报告未通过。" : string.Join("; ", report.Differences.Select(item => item.Message))
             });
         }
         return mapped;
@@ -306,7 +306,7 @@ public static class CoverageReviewer
         if (!string.Equals(report.SourceRevisionId, sourceRevisionId, StringComparison.Ordinal) ||
             report.Requirements.Any(result => !requirementToFactId.TryGetValue(result.RequirementId, out var factId) ||
                                               !string.Equals(factId, result.SourceFactId, StringComparison.Ordinal)))
-            throw new ArgumentException("Projection adapter labels must exactly match producer-owned source revision and fact identities; relabeling is forbidden.");
+            throw new ArgumentException("投影适配器标签必须完全匹配生产者自有源修订和事实身份；重新标签是被禁止的。");
         return FromProjection(report, evidencePrefix);
     }
 
@@ -377,17 +377,17 @@ public static class CoverageReviewer
         if (packet.Contract != ReviewPacket.ContractVersion || !Hash(packet.SourceSha256) || !Hash(packet.CandidateModelSha256) ||
             string.IsNullOrWhiteSpace(packet.SourceRevisionId) || string.IsNullOrWhiteSpace(packet.ReviewerConfiguration) ||
             packet.CandidatePlanFingerprint is { Length: > 0 } planFingerprint && !Hash(planFingerprint))
-            throw new ArgumentException("ReviewPacket requires source-first versioned source/model identity.", nameof(packet));
+            throw new ArgumentException("ReviewPacket 需要以源文件/模型身份版本化的源文件/模型作为基础。", nameof(packet));
         if (packet.RequiredFacts.Any(item => string.IsNullOrWhiteSpace(item.FactId) || string.IsNullOrWhiteSpace(item.SourceRevisionId) ||
                                              !Hash(item.SourceFactFingerprint) || !Hash(item.RequirementFingerprint) ||
                                              !item.SourceRevisionId.Equals(packet.SourceRevisionId, StringComparison.Ordinal)) ||
             packet.RequiredFacts.Select(item => item.FactId).Distinct(StringComparer.Ordinal).Count() != packet.RequiredFacts.Count)
-            throw new ArgumentException("Required source facts need unique ids plus frozen source-fact/requirement fingerprints on the packet revision.", nameof(packet));
+            throw new ArgumentException("需要有唯一的标识符以及冻结的来源事实/需求指纹，这些指纹应在包修订版本中。", nameof(packet));
         if (packet.RequiredFacts.Any(item => item.RequiredEvidenceKinds.Count == 0 ||
                                              item.RequiredEvidenceKinds.Distinct().Count() != item.RequiredEvidenceKinds.Count))
-            throw new ArgumentException("Each required fact must declare at least one non-repeated evidence kind; source existence alone is not model acceptance.", nameof(packet));
+            throw new ArgumentException("每个必需的事实必须声明至少一种非重复的证据类型；仅存在来源不足以使模型被接受。", nameof(packet));
         if (packet.ObservationBudget.MaxAttempts < 1 || packet.ObservationBudget.MaxUniqueRequests < 1 || packet.ObservationBudget.MaxRepeatsPerIdentity < 1)
-            throw new ArgumentException("Review observation budget must be positive.", nameof(packet));
+            throw new ArgumentException("审查观测预算必须为正数。", nameof(packet));
     }
 
     private static void ValidateEvidence(IReadOnlyList<CoverageEvidence> evidence)
@@ -400,13 +400,13 @@ public static class CoverageReviewer
                                  !Hash(item.ModelSha256 ?? string.Empty)) ||
             evidence.Any(item => item.ScopeBlocking && item.FactId != "*") ||
             evidence.Select(item => item.EvidenceId).Distinct(StringComparer.Ordinal).Count() != evidence.Count)
-            throw new ArgumentException("Coverage evidence ids, source identity and optional model hashes must be valid and unique.", nameof(evidence));
+            throw new ArgumentException("覆盖证据的ID、源身份和可选的模型哈希必须有效且唯一。", nameof(evidence));
     }
 
     public static string SourceFactIdentity(string sourceSha256, string sourceRevisionId, string factId)
     {
         if (!Hash(sourceSha256) || string.IsNullOrWhiteSpace(sourceRevisionId) || string.IsNullOrWhiteSpace(factId))
-            throw new ArgumentException("Source-fact identity requires source SHA, revision and fact id.");
+            throw new ArgumentException("源事实标识需要源 SHA、修订版和事实 ID。");
         return Digest("source-fact", sourceSha256.ToUpperInvariant(), sourceRevisionId, factId);
     }
 
@@ -423,10 +423,10 @@ public static class CoverageReviewer
     {
         ArgumentNullException.ThrowIfNull(report);
         if (!string.Equals(report.SourceRevisionId, sourceRevisionId, StringComparison.Ordinal) || string.IsNullOrWhiteSpace(requirementId))
-            throw new ArgumentException("Projection requirement identity must use the producer-owned source revision and requirement id.");
+            throw new ArgumentException("投影要求的标识必须使用生产者所有源修订版和要求ID。");
         var result = report.Requirements.SingleOrDefault(item => item.RequirementId.Equals(requirementId, StringComparison.Ordinal));
         if (result is null || !Hash(result.RequirementFingerprint ?? string.Empty))
-            throw new ArgumentException("Projection report does not carry a frozen producer-owned requirement fingerprint.");
+            throw new ArgumentException("投影报告不携带冻结所有者拥有要求指纹。");
         return result.RequirementFingerprint!;
     }
 

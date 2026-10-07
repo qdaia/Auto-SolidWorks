@@ -132,7 +132,7 @@ public sealed class PdfPigNativeObservationProvider : IPdfNativeObservationProvi
 
         var diagnostics = new List<IngestionDiagnostic>();
         if (observations.Count == 0)
-            diagnostics.Add(new() { Code = "ING-NATIVE-EMPTY", Severity = ContractDiagnosticSeverity.Warning, Message = "The PDF page exposed no native text or path observations.", PageNumber = context.PageNumber, ProviderName = ProviderName });
+            diagnostics.Add(new() { Code = "ING-NATIVE-EMPTY", Severity = ContractDiagnosticSeverity.Warning, Message = "该PDF页面未显示任何原生文本或路径观察结果。", PageNumber = context.PageNumber, ProviderName = ProviderName });
 
         return Task.FromResult(new NativePdfPageObservation
         {
