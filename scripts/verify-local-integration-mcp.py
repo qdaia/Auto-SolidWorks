@@ -22,6 +22,8 @@ for name, expected in identity['source_hashes'].items():
 for name, expected in identity['runtime_hashes'].items():
     assert sha(plugin/name) == expected, name
 env = os.environ.copy()
+env['AUTO_SOLIDWORKS_TOOL_PROFILE'] = 'full'
+env['AUTO_SOLIDWORKS_ARTIFACT_DIRECTORY'] = str(output/'local-artifacts')
 env['CAD_SOLIDWORKS_EXECUTOR'] = str(output/'NATIVE-EXECUTOR-FORBIDDEN.exe')
 env['CAD_SOLIDWORKS_PIPE'] = 'offline-only-' + uuid.uuid4().hex
 env['CAD_EXECUTOR_LOG_DIR'] = str(output/'unexpected-executor-logs')
@@ -60,9 +62,11 @@ def rpc(method, params):
         return response['result']
     raise TimeoutError('Offline MCP request deadline exceeded')
 def call(name, arguments):
-    assert name in {'cad_get_capabilities', 'cad_create_model_plan', 'cad_build_model'}, 'Native-capable tool forbidden'
+    assert name in {'cad_get_capabilities', 'cad_create_model_plan', 'cad_build_model', 'cad_get_contract'}, 'Native-capable tool forbidden'
     if name == 'cad_build_model':
         assert arguments.get('dryRun') is True, 'Native build forbidden'
+    if name != 'cad_get_contract':
+        arguments = dict(arguments, responseDetail='full')
     calls.append(dict(name=name, arguments=arguments))
     result = rpc('tools/call', dict(name=name, arguments=arguments))
     assert not result.get('isError'), result
@@ -115,11 +119,11 @@ try:
     check('historical34_bounded_spline6_sphere4_durable_box23_entity_public_pass' in capabilities['semantic_topology']['saved_revision_native_acceptance'] and 'current_release_requires_fresh_native_acceptance' in capabilities['semantic_topology']['saved_revision_native_acceptance'], 'Changed spline implementation requires separate current native proof')
     check(any('TrimByD2_getter_unavailable' in x for x in capabilities['boundary_surface_contract']['limits']), 'Boundary trim getter limit public')
     check(any('unresolved_natively' in x for x in capabilities['boundary_surface_contract']['limits']), 'Boundary influence discrepancy public')
-    inspection_schema = json.dumps(next(t for t in listing['tools'] if t['name']=='cad_inspect_model')['inputSchema'],ensure_ascii=False)
+    inspection_schema = json.dumps(call('cad_get_contract',dict(contract='inspection')),ensure_ascii=False)
     for field in ['semantic', 'semantic_key', 'root_token', 'root_owner_persistent_reference', 'root_configuration', 'allowed_operation_ids', 'require_persistent_identity']:
         check('"'+field+'"' in inspection_schema, 'public inspection schema '+field)
     check('"topology_history"' not in inspection_schema and '"snapshots"' not in inspection_schema, 'caller cannot submit history as native inspection evidence')
-    schema = json.dumps(listing, ensure_ascii=False)
+    schema = json.dumps(dict(tools=listing, draft=call('cad_get_contract',dict(contract='draft'))), ensure_ascii=False)
     for field in ['bore_diameter_mm','maximum_cut_diameter_mm']:
         check('"'+field+'"' in schema,'public nominal internal thread schema '+field)
     internal_fixture=json.loads((root/'tests/fixtures/local-integration/internal-nominal-thread.json').read_text(encoding='utf-8'))
@@ -143,7 +147,7 @@ try:
     for field in ['design_intent', 'global_variables', 'equations', 'configurations', 'active_configuration',
                   'create_from_configuration', 'reuse_existing', 'expected_value', 'replace_existing', 'require_fully_defined_sketches']:
         check('"'+field+'"' in schema, 'public schema '+field)
-    assembly_schema = json.dumps(next(t for t in listing['tools'] if t['name']=='cad_build_assembly'), ensure_ascii=False)
+    assembly_schema = json.dumps(call('cad_get_contract',dict(contract='assembly')),ensure_ascii=False)
     for field in ['mobility', 'expected_basis', 'relative_to_component_id', 'source_literal', 'direction', 'point_mm',
                   'pitch_mm_per_radian', 'evaluation_point_mm', 'characteristic_length_mm', 'subspace_tolerance']:
         check('"'+field+'"' in assembly_schema, 'public assembly schema '+field)
@@ -274,7 +278,7 @@ try:
         check(not rejected['success'],'public bounded history rejects '+label)
     check(not list(output.glob('*.SLDPRT')), 'no native model created')
     check(not (output/'unexpected-executor-logs').exists(), 'executor never started')
-    check(len(listing['tools'])==18, 'public tool count retained')
+    check(len(listing['tools'])==21, 'all original tools plus contract and result readers retained')
     (output/'summary.json').write_text(json.dumps(dict(status='pass', passed=len(checks), checks=checks,
         evidence_layer='source_runtime_mcp_schema_compile_and_dry_run_only', native_acceptance='not_run',
         source_files=len(identity['source_hashes']), runtime_files=len(identity['runtime_hashes']),

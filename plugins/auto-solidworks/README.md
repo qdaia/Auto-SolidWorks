@@ -1,13 +1,13 @@
 # Auto SolidWorks 0.6.0
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-当前本地整合版本：`26.10.07`；修订：`local-integration-20261007`。整合 `.34.validation` 已实现的优化，保留原有建模与工程图能力；本轮验证范围为重新构建、离线回归及公开 MCP 编译／预演，不启动 SolidWorks。B01–B06 工程任务保持暂停且未全部完成。原生成功与失败按原工程修订和限定案例保留，不自动认证此版本；复杂 Boundary、Curvature Fill／G2、一般拓扑历史、标准螺纹配合及机构限位／耦合仍有缺口。详见[随包能力清单](skills/auto-solidworks/references/capability-manifest.json)及 `cad_get_capabilities`。
-<!-- Capability manifest SHA256: 04e0dc6afa7d8b14dc5ebde410f73c1ae0b050afaacbde725a504d9aec910ac1 -->
+当前本地整合版本：`26.10.11`；修订：`input-reuse-20261011`。整合 `.34.validation` 已实现的优化，保留原有建模与工程图能力；本轮验证范围为重新构建、离线回归及公开 MCP 编译／预演，不启动 SolidWorks。B01–B06 工程任务保持暂停且未全部完成。原生成功与失败按原工程修订和限定案例保留，不自动认证此版本；复杂 Boundary、Curvature Fill／G2、一般拓扑历史、标准螺纹配合及机构限位／耦合仍有缺口。详见[随包能力清单](skills/auto-solidworks/references/capability-manifest.json)及 `cad_get_capabilities`。
+<!-- Capability manifest SHA256: a154cbc0f3cbaf4bb5eb952ca94ef5a03fb20bd9c5654d42463f72fde2db9ea7 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 当前本地修复版完善文本单位和需求检查、Boundary 原生接口契约、独立整件几何验证、工程图布局分页与执行截止。能力和验收边界见 [根因修复说明](skills/auto-solidworks/references/root-hardening.md)。本次不启动 SolidWorks，修改后的原生功能未重新验收。
 
-当前修复版提供 18 个公共工具，包括无需启动 SolidWorks 的 `cad_execution_status` 和 `cad_pause_execution`。Gordon 路径保留固定版本 CurvesWB/TiGL 和 FreeCAD/OCC 内核。公开的 0.6.0 发布版仍是原有 15 个工具；本修复版仅本地安装，未发布。
+版本 26.10.11 默认提供 16 个工具，完整配置提供 21 个工具。新增输入存储与增量修改，保留执行状态、暂停及专用检查工具；Gordon 路径保留固定版本 CurvesWB/TiGL 和 FreeCAD/OCC 内核。
 
 本地 SolidWorks 参数化零件与装配建模插件。默认单位 mm，使用本机 SolidWorks，直接返回模型和指定导出文件。
 

@@ -2,14 +2,14 @@
 
 **简体中文** | [English](download.en.md) · [返回 README](../README.md)
 
-当前版本：**`26.10.07`（2026 年 10 月 7 日，按年/月/日排列）**。通过 Codex / MCP 在本机 SolidWorks 创建、检查和修改参数化零件与装配体，保存原生模型、STEP / STL 和工程图。
+当前版本：**`26.10.11`（2026 年 10 月 11 日，按年/月/日排列）**。通过 Codex / MCP 在本机 SolidWorks 创建、检查和修改参数化零件与装配体，保存原生模型、STEP / STL 和工程图。
 
-[Windows x64 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip) · [SHA-256 校验文件](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.07) · [新增内容](release-26.10.07.zh-CN.md)
+[Windows x64 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.11/auto-solidworks-26.10.11-windows-x64.zip) · [SHA-256 校验文件](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.11/auto-solidworks-26.10.11-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.11) · [新增内容](release-26.10.11.zh-CN.md)
 
 ## 安装
 
 1. 准备 Windows x64、已激活的本机 SolidWorks、.NET 9 Windows Desktop Runtime x64，以及支持插件的 Codex。
-2. 下载 `auto-solidworks-26.10.07-windows-x64.zip`，解压到长期保留的目录。
+2. 下载 `auto-solidworks-26.10.11-windows-x64.zip`，解压到长期保留的目录。
 3. 在解压目录运行：
 
    ```powershell
@@ -23,10 +23,10 @@
 ## 校验与包内容
 
 ```powershell
-Get-FileHash .\auto-solidworks-26.10.07-windows-x64.zip -Algorithm SHA256
-Get-Content .\auto-solidworks-26.10.07-windows-x64.zip.sha256
+Get-FileHash .\auto-solidworks-26.10.11-windows-x64.zip -Algorithm SHA256
+Get-Content .\auto-solidworks-26.10.11-windows-x64.zip.sha256
 ```
 
-核对两处摘要一致。ZIP 内另有逐文件 `SHA256SUMS.json`，并包含运行程序、18 个 MCP 工具、使用技能、安装脚本、文档和许可声明。
+核对两处摘要一致。ZIP 内另有逐文件 `SHA256SUMS.json`，并包含运行程序、16 个默认 MCP 工具（完整配置 21 个）、使用技能、安装脚本、文档和许可声明。
 
 Gordon 工具另需本地 FreeCAD；OCR 可选 Tesseract，PDF 栅格化可选 Poppler。源代码与测试另见仓库或 Release 的 `source-tests.zip`；直接安装请选择 Windows ZIP。

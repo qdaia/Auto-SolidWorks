@@ -8,7 +8,7 @@ if (Test-Path -LiteralPath $output) { throw 'Use a new output directory to prese
 New-Item -ItemType Directory -Path $output | Out-Null
 Push-Location $root
 try {
-    foreach ($name in @('PhysicalThreadRegression','NativeLifetimeRegression','DesignFeatureRegression','DesignExpressionRegression','DesignIntentRegression','EngineeringHardeningRegression','SurfaceBoundaryRegression','OfflineBoundaryRegression','AssemblyMobilityRegression','SemanticTopologyRegression','FillSupportRegression','BoundaryAdapterRegression')) {
+    foreach ($name in @('PhysicalThreadRegression','NativeLifetimeRegression','DesignFeatureRegression','DesignExpressionRegression','DesignIntentRegression','EngineeringHardeningRegression','SurfaceBoundaryRegression','OfflineBoundaryRegression','AssemblyMobilityRegression','SemanticTopologyRegression','FillSupportRegression','BoundaryAdapterRegression','TokenEconomyRegression','ModelInputRegression')) {
         & dotnet build "tests\$name\$name.csproj" -c Release -m:1 -nodeReuse:false "-p:SolidWorksInteropDir=$interop" -p:DebugType=none -p:DebugSymbols=false 2>&1 |
             Tee-Object -FilePath (Join-Path $output "$name-build.log")
         if ($LASTEXITCODE -ne 0) { throw "Build failed: $name" }
@@ -47,6 +47,10 @@ try {
     & dotnet 'tests\BoundaryAdapterRegression\bin\Release\net9.0\BoundaryAdapterRegression.dll' (Join-Path $output 'boundary') 2>&1 |
         Tee-Object -FilePath (Join-Path $output 'boundary.log')
     if ($LASTEXITCODE -ne 0) { throw 'Offline Boundary adapter regression failed.' }
+    & dotnet 'tests\TokenEconomyRegression\bin\Release\net9.0-windows\TokenEconomyRegression.dll' (Join-Path $output 'token-economy') 2>&1 | Tee-Object -FilePath (Join-Path $output 'token-economy.log')
+    if ($LASTEXITCODE -ne 0) { throw 'Token economy regression failed.' }
+    & dotnet 'tests\ModelInputRegression\bin\Release\net9.0-windows\ModelInputRegression.dll' (Join-Path $output 'model-input') 2>&1 | Tee-Object -FilePath (Join-Path $output 'model-input.log')
+    if ($LASTEXITCODE -ne 0) { throw 'Model input regression failed.' }
     & python scripts/check-plugin-contract.py --runtime 2>&1 | Tee-Object -FilePath (Join-Path $output 'source-runtime-contract.log')
     if ($LASTEXITCODE -ne 0) { throw 'Source/runtime contract drift.' }
     & python scripts/verify-local-integration-mcp.py (Join-Path $output 'mcp') 2>&1 |

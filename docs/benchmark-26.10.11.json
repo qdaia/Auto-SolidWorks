@@ -1,0 +1,161 @@
+{
+  "date": "2026-10-11",
+  "release_version": "26.10.11",
+  "measurement_version": "26.10.11.1",
+  "baseline_version": "26.10.07.1",
+  "source_commit": "409c09e8c6bbe703306f34d8e34a3aeb87e2607a",
+  "input_reuse": {
+    "context_chars": 113936,
+    "geometry_chars": 9579,
+    "coverage_request_before_chars": 114124,
+    "coverage_request_after_chars": 264,
+    "compile_request_before_chars": 123751,
+    "compile_request_after_chars": 385,
+    "correction_before_chars": 123756,
+    "correction_after_chars": 594,
+    "workflow_before_chars": 589879,
+    "workflow_after_chars": 125346,
+    "workflow_description": "initial uploads included; three coverage reviews + initial compile + one name correction/recompile",
+    "timing": {
+      "old_review_ms": [
+        61.22569999934058,
+        48.993000000336906,
+        51.715200001126505,
+        45.94829999950889,
+        46.90229999869189
+      ],
+      "new_review_ms": [
+        38.20059999998193,
+        37.329200000385754,
+        36.71870000107447,
+        36.46409999964817,
+        35.83989999970072
+      ],
+      "old_review_p50_ms": 48.993000000336906,
+      "new_review_p50_ms": 36.71870000107447
+    },
+    "actual_model_tokens": "not_measured",
+    "end_to_end_modeling_time": "not_measured",
+    "native_execution": "not_run",
+    "workflow_request_reduction": 0.7875055731768719
+  },
+  "compact_catalog_pre_release_comparison": {
+    "before": {
+      "catalog_chars": 406144,
+      "plan_response_chars": 5922,
+      "build_arguments_chars": 3573,
+      "tool_count": 18
+    },
+    "after": {
+      "catalog_chars": 11547,
+      "plan_response_chars": 1454,
+      "build_arguments_chars": 96,
+      "tool_count": 16,
+      "status_schema_chars": 830,
+      "drawing_summary_chars": 4454
+    },
+    "full_profile_catalog_chars": 219858,
+    "reductions": {
+      "catalog_chars": 0.9715691971320517,
+      "plan_response_chars": 0.7544748395812225,
+      "build_arguments_chars": 0.9731318219983207
+    }
+  },
+  "earlier_26_10_07_1": {
+    "catalog": [
+      406144,
+      10683
+    ],
+    "compilation_response": [
+      5836,
+      1331
+    ],
+    "build_arguments": [
+      3528,
+      96
+    ]
+  },
+  "native_comparison": [
+    {
+      "drawing": "arch_support",
+      "version": "26.10.07.1",
+      "first_draft_seconds": 311.151584,
+      "native_attempt_count": 3,
+      "native_attempts_total_seconds": 105.6894488,
+      "wall_seconds": 559.221114,
+      "complete": true
+    },
+    {
+      "drawing": "arch_support",
+      "version": "26.10.11.1",
+      "first_draft_seconds": 125.792236,
+      "native_attempt_count": 1,
+      "native_attempts_total_seconds": 34.1930593,
+      "wall_seconds": 195.404501,
+      "complete": true
+    },
+    {
+      "drawing": "hollow_shaft",
+      "version": "26.10.07.1",
+      "first_draft_seconds": 1011.829541,
+      "native_attempt_count": 5,
+      "native_attempts_total_seconds": 493.2945093,
+      "wall_seconds": 1865.101101,
+      "complete": false
+    },
+    {
+      "drawing": "hollow_shaft",
+      "version": "26.10.11.1",
+      "first_draft_seconds": 421.041257,
+      "native_attempt_count": 2,
+      "native_attempts_total_seconds": 360.0087993,
+      "wall_seconds": 943.915947,
+      "complete": false
+    }
+  ],
+  "shaft_incremental_rpc_chars": {
+    "before": 1920316,
+    "after": 1383,
+    "reduction": 0.9992798060319239
+  },
+  "arch_quality": {
+    "solid_count": 1,
+    "faces": 18,
+    "edges": 41,
+    "bbox_mm": [
+      92,
+      50,
+      40
+    ],
+    "volume_mm3": 62356.690420106555,
+    "surface_area_mm2": 16661.99145880745,
+    "declared_checks_passed_each": 13,
+    "native_reopen_each": true,
+    "step_geometric_checks_each": 9,
+    "step_body_faults_each": 0,
+    "z_translation_mm": 20,
+    "whole_model_aligned_boolean_comparison": false,
+    "full_drawing_equivalence": false
+  },
+  "shaft_quality": {
+    "complete_each": false,
+    "failed_operation_index": 70,
+    "cause": "curved_entry_M20_native_cosmetic_thread_not_supported",
+    "saved_verified_prefix_operations": 16,
+    "saved_prefix": "eight outer shaft sections only",
+    "unresolved_selection_station_difference_mm": 1.25,
+    "cone_angle_degrees": 120,
+    "cone_angle_basis": "explicit_user_assumption_not_source_dimension"
+  },
+  "billing_tokens": "not_measured",
+  "causal_speedup": "not_established",
+  "limitations": [
+    "single shared AI conversation",
+    "prewarmed same SolidWorks process",
+    "baseline first with debugging learning",
+    "user assumption wait not separately timed",
+    "shaft planning overlapped prior retries; native calls serialized",
+    "local request serialization does not measure LLM billed tokens",
+    "release rebuild has not repeated native full-capability certification"
+  ]
+}

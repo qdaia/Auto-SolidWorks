@@ -2,7 +2,7 @@
 
 [English](development.en.md)
 
-## 从源码构建 26.10.07
+## 从源码构建 26.10.11
 
 需要 Windows、.NET 9 SDK、Python 3.10+，以及本机已授权的 SolidWorks Interop 组件。
 
@@ -19,15 +19,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1
 构建后，选择一个尚不存在的输出目录：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-local-integration-offline.ps1 -OutputDirectory .\artifacts\offline-26.10.07
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-local-integration-offline.ps1 -OutputDirectory .\artifacts\offline-26.10.11
 ```
 
-脚本顺序运行 12 个回归套件、文档合同检查和公开 MCP 编译／预演。涉及原生适配器的模拟检查需要本机 Interop，但不会启动 SolidWorks。此版整合验证通过 1,101 项离线检查，安装后的公开接口另通过 128 项检查。
+脚本顺序运行 14 个回归套件、文档合同检查和公开 MCP 编译／预演。涉及原生适配器的模拟检查需要本机 Interop，但不会启动 SolidWorks。本版验证记录见[测试说明](benchmark-26.10.11.zh-CN.md)；离线通过不能作为原生全能力认证。
 
 MCP 检查可以单独运行：
 
 ```powershell
-python scripts/verify-local-integration-mcp.py artifacts/mcp-26.10.07
+python scripts/verify-local-integration-mcp.py artifacts/mcp-26.10.11
 ```
 
 输入位于 `tests/fixtures/local-integration/`。受控历史测试创建明确标注的路径占位文件，执行器被禁止启动；占位文件只验证输入路径与计划，不提供原生 CAD 证据。
@@ -39,8 +39,8 @@ python scripts/verify-local-integration-mcp.py artifacts/mcp-26.10.07
 ## 打包与隔离安装
 
 ```powershell
-python scripts/package-release.py --output dist/26.10.07
-python scripts/verify-release.py dist/26.10.07/auto-solidworks-26.10.07-windows-x64.zip --workdir artifacts/isolated-install-26.10.07
+python scripts/package-release.py --output dist/26.10.11
+python scripts/verify-release.py dist/26.10.11/auto-solidworks-26.10.11-windows-x64.zip --workdir artifacts/isolated-install-26.10.11
 ```
 
 打包器拒绝覆盖已有 ZIP。包内含运行程序、技能、文档、安装器和逐文件哈希；SolidWorks Interop 与 PDB 不随包分发。隔离验证使用独立 Codex 配置目录，核对文件哈希和安装后的 MCP 接口，不修改日常插件配置。

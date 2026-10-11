@@ -2,7 +2,7 @@
 
 [简体中文](development.md)
 
-## Build 26.10.07 from source
+## Build 26.10.11 from source
 
 Requires Windows, .NET 9 SDK, Python 3.10+ and Interop components from a licensed local SolidWorks installation.
 
@@ -19,15 +19,15 @@ Pass `-SolidWorksInteropDir` or set `SOLIDWORKS_INTEROP_DIR` for a custom instal
 After building, select a new output directory:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-local-integration-offline.ps1 -OutputDirectory .\artifacts\offline-26.10.07
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-local-integration-offline.ps1 -OutputDirectory .\artifacts\offline-26.10.11
 ```
 
-This runs 12 regression suites, document-contract checks and public MCP compilation/dry-run sequentially. Fake native-adapter checks require local Interop but do not start SolidWorks. Integration validation passed 1,101 offline checks; the installed public interface separately passed 128 checks.
+This runs 14 regression suites, document-contract checks and public MCP compilation/dry-run sequentially. Fake native-adapter checks require local Interop but do not start SolidWorks. See the [validation report](benchmark-26.10.11.en.md) for this release. Offline checks do not certify all native capabilities.
 
 For MCP checks alone:
 
 ```powershell
-python scripts/verify-local-integration-mcp.py artifacts/mcp-26.10.07
+python scripts/verify-local-integration-mcp.py artifacts/mcp-26.10.11
 ```
 
 Portable synthetic inputs are in `tests/fixtures/local-integration/`. The controlled-history test creates a clearly labeled path placeholder and prohibits executor startup. That file tests input-path/plan preflight only and is not native CAD evidence.
@@ -39,8 +39,8 @@ The workflow builds MCP, checks public structure and the version contract, and s
 ## Package and isolated installation
 
 ```powershell
-python scripts/package-release.py --output dist/26.10.07
-python scripts/verify-release.py dist/26.10.07/auto-solidworks-26.10.07-windows-x64.zip --workdir artifacts/isolated-install-26.10.07
+python scripts/package-release.py --output dist/26.10.11
+python scripts/verify-release.py dist/26.10.11/auto-solidworks-26.10.11-windows-x64.zip --workdir artifacts/isolated-install-26.10.11
 ```
 
 The packager refuses to overwrite an archive and includes runtime, skills, documentation, installer and per-file hashes. Proprietary SolidWorks Interop and PDB files are excluded. Installation verification uses a separate Codex configuration directory, checks file hashes and exercises the installed MCP interface.

@@ -20,30 +20,30 @@ Do not interpret an absent `cad_*` tool list as proof that Auto SolidWorks is un
 ## Connection workflow
 
 1. Call coding-tools `server_info`.
-2. Select the coding-tools link whose workspace is the intended local workspace. On the verified host this is:
-   `C:\Users\csj17\Desktop\CODEX TEST`
+2. Select the coding-tools link whose workspace is the intended local workspace returned by `server_info`. Do not assume another host's path.
 3. Locate the Auto SolidWorks plugin from the workspace rather than assuming that the current release folder name will never change. Prefer a directory containing all of:
    - `plugins/auto-solidworks/.codex-plugin/plugin.json`
    - `plugins/auto-solidworks/scripts/run-auto-solidworks-mcp.ps1`
    - `plugins/auto-solidworks/runtime/mcp/AutoSolidWorks.ModelingMcp.exe`
-4. The currently verified release fallback is:
-   `C:\Users\csj17\Desktop\CODEX TEST\Auto-SolidWorks-Release-0.6.0\plugins\auto-solidworks`
+4. If the workspace has no plugin, locate the active installed Auto SolidWorks cache using the local Codex plugin listing. Read its manifest and build identity to confirm the active version; do not fall back to an older development checkout merely because it exists.
 5. Start the MCP through its launcher:
    `scripts/run-auto-solidworks-mcp.ps1`
    Do not treat `AutoSolidWorks.ModelingMcp.exe` as an ordinary one-shot CLI. It is a stdio MCP server and needs a live stdin/stdout transport.
 6. When starting it through coding-tools `exec_command`, explicitly provide these Windows environment values if they are absent from the sandbox:
-   - `LOCALAPPDATA=C:\Users\csj17\AppData\Local`
-   - `USERPROFILE=C:\Users\csj17`
+   - `LOCALAPPDATA=<actual local app data directory on this host>`
+   - `USERPROFILE=<actual user profile directory on this host>`
 7. Do not use `tty=true`. The verified coding-tools Windows runtime has no ConPTY support and returns `TTY_UNSUPPORTED`. Use ordinary pipes.
 8. Keep stdin/stdout open and perform the MCP handshake in this order:
    - JSON-RPC `initialize`
    - `notifications/initialized`
    - optionally `tools/list`
    - then `tools/call`
-9. For `tools/call`, send:
+9. The default tool profile is compact. If the task requires projection/section capture or T17-T19 specialized acceptance tools, set `AUTO_SOLIDWORKS_TOOL_PROFILE=full` in the new MCP child process environment before initialization; this preserves all original tool names. Keep this separate from any unknown or pending native request; changing tool profiles never authorizes replay.
+
+10. For `tools/call`, send:
    `{"jsonrpc":"2.0","id":N,"method":"tools/call","params":{"name":"<tool>","arguments":{...}}}`
-10. Parse a successful tool result from `structuredContent` first. If it is absent, parse the JSON string in `content[0].text`.
-11. Close stdin and terminate or await the MCP child process cleanly when the task is finished.
+11. Parse a successful tool result from `structuredContent` first. If it is absent, parse the JSON string in `content[0].text`.
+12. Close stdin and terminate or await the MCP child process cleanly when the task is finished.
 
 ## Known failure signatures
 

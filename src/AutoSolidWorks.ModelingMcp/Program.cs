@@ -18,6 +18,7 @@ builder.Services.AddSingleton<RuleBasedTextCompiler>();
 builder.Services.AddSingleton<GenericPlanCompiler>();
 builder.Services.AddSingleton<ModelingIrValidator>();
 builder.Services.AddSingleton<ArtifactCacheStore>();
+builder.Services.AddSingleton<CompactArtifactStore>();
 builder.Services.AddSingleton<IModelingExecutor>(_ => new AutoStartingNamedPipeModelingExecutor(new()
 {
     PipeName = Environment.GetEnvironmentVariable("CAD_SOLIDWORKS_PIPE") ?? "auto-solidworks-modeling",
@@ -35,8 +36,11 @@ builder.Services.AddSingleton<ITextObservationProvider, LocalTextObservationProv
 builder.Services.AddSingleton<IPrimitiveObservationProvider, DeterministicPrimitiveObservationProvider>();
 builder.Services.AddSingleton<IObservationFusionService, ObservationFusionService>();
 builder.Services.AddSingleton<IEngineeringDrawingIngestionService, EngineeringDrawingIngestionService>();
-builder.Services.AddMcpServer().WithStdioServerTransport().WithTools<ModelingTools>(ModelingIrJson.Options).WithTools<GordonSurfaceTools>(ModelingIrJson.Options)
-    .WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, cancellationToken) =>
+var profile = Environment.GetEnvironmentVariable("AUTO_SOLIDWORKS_TOOL_PROFILE") ?? "compact";
+if (profile is not ("compact" or "full")) throw new ArgumentException("AUTO_SOLIDWORKS_TOOL_PROFILE 必须是 compact 或 full。");
+var mcp = builder.Services.AddMcpServer().WithStdioServerTransport().WithTools<CompactModelingTools>(ModelingIrJson.Options).WithTools<GordonSurfaceTools>(ModelingIrJson.Options);
+if (profile == "full") mcp.WithTools<AdvancedModelingTools>(ModelingIrJson.Options);
+mcp.WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, cancellationToken) =>
     {
         CallToolResult result;
         try { result = await next(context, cancellationToken); }
@@ -174,6 +178,7 @@ public sealed class ModelingTools
         current_native_acceptance = PluginCapabilityManifest.Current.GetProperty("current_native_acceptance"),
         native_evidence_policy = PluginCapabilityManifest.Current.GetProperty("native_evidence_policy"),
         local_integration = PluginCapabilityManifest.Current.GetProperty("local_integration"),
+        token_economy = PluginCapabilityManifest.Current.GetProperty("token_economy"),
         text_input = PluginCapabilityManifest.Current.GetProperty("text_input"),
         execution_deadline = PluginCapabilityManifest.Current.GetProperty("execution_deadline"),
         input_formats = new[] { "text", "pdf", "png", "jpg", "jpeg", "tif", "tiff" },

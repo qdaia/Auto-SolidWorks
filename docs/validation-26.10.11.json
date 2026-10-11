@@ -1,0 +1,213 @@
+{
+  "version": "26.10.11",
+  "revision": "input-reuse-20261011",
+  "status": "passed",
+  "fresh_build": true,
+  "source_identity_files": 160,
+  "runtime_identity_files": 61,
+  "contract_documents": 10,
+  "offline_suites": [
+    {
+      "suite": "boundary",
+      "result": {
+        "passed": 103
+      },
+      "check_count": 103,
+      "summary_sha256": "ead9a2038dd3d521939ea31c4c3618656885404ca9d676ea510fdd15219cab4d"
+    },
+    {
+      "suite": "curvature",
+      "result": {
+        "passed": 32
+      },
+      "check_count": 32,
+      "summary_sha256": "b59efbf0e978fbe2f641597176bd7336f95190604a6d28d1d66f3830162b5b7e"
+    },
+    {
+      "suite": "design-intent",
+      "result": {
+        "status": "pass",
+        "passed": 116
+      },
+      "check_count": 116,
+      "summary_sha256": "7d47ed0febe164b17ede9500ba27ef1b07c841044c8ce0fb75cbd3b632f24bb3"
+    },
+    {
+      "suite": "engineering",
+      "result": {
+        "passed": 47
+      },
+      "check_count": 47,
+      "summary_sha256": "b40938a1b196b5d6d45294304d00f9abb93720d8497cf9122694aedb3a09e310"
+    },
+    {
+      "suite": "expressions",
+      "result": {
+        "status": "pass",
+        "passed": 137
+      },
+      "check_count": 137,
+      "summary_sha256": "16c4a961c76a73b6f4ada90288c44895997c4bdca74ff7e69b6b7bde70e52249"
+    },
+    {
+      "suite": "features",
+      "result": {
+        "status": "pass",
+        "passed": 56
+      },
+      "check_count": 56,
+      "summary_sha256": "6ffd681e11597601e4da5833c71d93840fa21acd1364927eed72d1d3a94ebdea"
+    },
+    {
+      "suite": "fill-support",
+      "result": {
+        "passed": 48
+      },
+      "check_count": 48,
+      "summary_sha256": "819d3b59077506cf5d047f2993a405f88fe782ca46039d6c290f8349fd14094d"
+    },
+    {
+      "suite": "mcp",
+      "result": {
+        "status": "pass",
+        "passed": 128
+      },
+      "check_count": 128,
+      "summary_sha256": "824dec09b74473746be4775a5770fe379c9002aa48cc2ba4d0e23994a4e672db"
+    },
+    {
+      "suite": "mobility",
+      "result": {
+        "status": "pass",
+        "passed": 146
+      },
+      "check_count": 146,
+      "summary_sha256": "c7d63c820e7b81b3dafa2895c435852d5d2004f9975ad260b2639ac3990a376d"
+    },
+    {
+      "suite": "model-input",
+      "result": {
+        "success": true,
+        "count": 41
+      },
+      "check_count": 41,
+      "summary_sha256": "b849655acc73f27d7a315aaed3d5fa11f2a6710763e4e3c5935e715a8a2248d1"
+    },
+    {
+      "suite": "native-lifetime",
+      "result": {
+        "status": "pass",
+        "passed": 8
+      },
+      "check_count": 8,
+      "summary_sha256": "2621b00ffbd8239198080fe7d7cded8bbec42ca174eddad4d85359ea507f887c"
+    },
+    {
+      "suite": "physical-thread",
+      "result": {
+        "status": "pass",
+        "passed": 51
+      },
+      "check_count": 51,
+      "summary_sha256": "ff669fb4da286c77960c05c809f61ef9790636f18dc058b13b3be4ae05857dda"
+    },
+    {
+      "suite": "semantic",
+      "result": {
+        "status": "pass",
+        "passed": 170
+      },
+      "check_count": 170,
+      "summary_sha256": "c80d43a2200dbf69544712666979d6fd3d13f993260c527cd3f37d842c8790f4"
+    },
+    {
+      "suite": "text",
+      "result": {
+        "status": "pass",
+        "passed": 59
+      },
+      "check_count": 59,
+      "summary_sha256": "1d6f19faa2646e6dc0e9cbab75fe94309a196900faf6dfcaf63267feaec85c73"
+    },
+    {
+      "suite": "token-economy",
+      "result": {
+        "success": true,
+        "count": 57
+      },
+      "check_count": 57,
+      "summary_sha256": "4c30b16513e128d8ab76d660f47e653288ffa1881c97eebcd192ad81b50a063a"
+    }
+  ],
+  "public_mcp_checks": 128,
+  "retained_compact_mcp_checks": 23,
+  "input_reuse_public_mcp_checks": 22,
+  "compact_measurements": {
+    "before": {
+      "catalog_chars": 406144,
+      "plan_response_chars": 5894,
+      "build_arguments_chars": 3559,
+      "tool_count": 18
+    },
+    "after": {
+      "catalog_chars": 11547,
+      "plan_response_chars": 1412,
+      "build_arguments_chars": 96,
+      "tool_count": 16,
+      "status_schema_chars": 830,
+      "drawing_summary_chars": 4328
+    },
+    "full_profile_catalog_chars": 219858,
+    "reductions": {
+      "catalog_chars": 0.9715691971320517,
+      "plan_response_chars": 0.7604343400067866,
+      "build_arguments_chars": 0.973026130935656
+    }
+  },
+  "input_workflow_measurements": {
+    "context_chars": 113936,
+    "geometry_chars": 9579,
+    "coverage_request_before_chars": 114124,
+    "coverage_request_after_chars": 264,
+    "compile_request_before_chars": 123740,
+    "compile_request_after_chars": 374,
+    "correction_before_chars": 123745,
+    "correction_after_chars": 583,
+    "workflow_before_chars": 589857,
+    "workflow_after_chars": 125324,
+    "workflow_description": "initial uploads included; three coverage reviews + initial compile + one name correction/recompile",
+    "timing": {
+      "old_review_ms": [
+        60.357500000463915,
+        49.89519999980985,
+        46.83149999982561,
+        45.19500000060361,
+        47.32749999857333
+      ],
+      "new_review_ms": [
+        37.44929999993474,
+        35.87859999970533,
+        37.91389999969397,
+        37.66089999953692,
+        41.241099999751896
+      ],
+      "old_review_p50_ms": 47.32749999857333,
+      "new_review_p50_ms": 37.66089999953692
+    },
+    "actual_model_tokens": "not_measured",
+    "end_to_end_modeling_time": "not_measured",
+    "native_execution": "not_run",
+    "workflow_request_reduction": 0.7875349449103766
+  },
+  "isolated_install": {
+    "success": true,
+    "archive_files": 371,
+    "installed_files": 321,
+    "installed_hashes_match": true,
+    "isolated_codex_install": true,
+    "installed_smoke_passed": true
+  },
+  "native_release_recertification": "not_run; existing pre-release bounded comparison documented separately",
+  "billing_tokens": "not_measured",
+  "private_config_published": false
+}

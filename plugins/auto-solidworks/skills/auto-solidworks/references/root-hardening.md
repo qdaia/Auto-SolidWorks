@@ -1,8 +1,8 @@
 # Root hardening and evidence boundaries
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Current local integration version: `26.10.07`; revision: `local-integration-20261007`. Incorporates the implemented `.34.validation` optimizations and preserves existing modeling/drawing capabilities. This integration is checked by a fresh build, offline regressions and public MCP compile/dry-run without starting SOLIDWORKS. B01-B06 engineering remains paused and incomplete. Native successes and failures remain bound to their original revisions and bounded fixtures; this version is not natively recertified. Complex Boundary, Curvature Fill/G2, general changed topology, standard thread fits and mechanism limits/couplings remain open. Read the [bundled capability manifest](capability-manifest.json) and `cad_get_capabilities`.
-<!-- Capability manifest SHA256: 04e0dc6afa7d8b14dc5ebde410f73c1ae0b050afaacbde725a504d9aec910ac1 -->
+Current local integration version: `26.10.11`; revision: `input-reuse-20261011`. Incorporates the implemented `.34.validation` optimizations and preserves existing modeling/drawing capabilities. This integration is checked by a fresh build, offline regressions and public MCP compile/dry-run without starting SOLIDWORKS. B01-B06 engineering remains paused and incomplete. Native successes and failures remain bound to their original revisions and bounded fixtures; this version is not natively recertified. Complex Boundary, Curvature Fill/G2, general changed topology, standard thread fits and mechanism limits/couplings remain open. Read the [bundled capability manifest](capability-manifest.json) and `cad_get_capabilities`.
+<!-- Capability manifest SHA256: a154cbc0f3cbaf4bb5eb952ca94ef5a03fb20bd9c5654d42463f72fde2db9ea7 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 This is a local development revision. Current capabilities come from the bundled `capability-manifest.json`, embedded in the MCP executable; version drift is rejected and package creation checks generated skill/document summaries. Do not extrapolate earlier native fixture passes to changed source.

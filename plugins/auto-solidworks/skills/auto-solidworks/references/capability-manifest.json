@@ -1,6 +1,6 @@
 {
-  "version": "26.10.07",
-  "revision": "local-integration-20261007",
+  "version": "26.10.11",
+  "revision": "input-reuse-20261011",
   "development_validation": "current_local_integration_offline_validation",
   "current_native_acceptance": "not_recertified_local_integration_engineering_paused",
   "native_evidence_policy": "All native evidence is historical and bound to its original engineering revision. 26.10.07 integrates the final34 implementation with fresh offline checks; no native SOLIDWORKS recertification is claimed. B01-B06 remains paused and incomplete.",
@@ -422,9 +422,9 @@
     "source_build_identity_sha256": "099430ea4f26827a469042cdccc50077b18b96eace690699ae916da3565d6c22",
     "engineering_goal_status": "paused",
     "full_task_complete": false,
-    "native_recertification": "not_run_for_26.10.07",
+    "native_recertification": "not_run_for_26.10.11; bounded 26.10.11.1 comparison retained separately",
     "verification_scope": "fresh_build_offline_regressions_public_MCP_schema_compile_dry_run_and_local_install_identity",
-    "release_notes": "skills/auto-solidworks/references/local-integration-26.10.07.md",
+    "release_notes": "skills/auto-solidworks/references/release-26.10.11.md",
     "completed_implementation": [
       "bounded_Boundary_native_normal_creation_and_saved_controls",
       "bounded_Contact_Tangent_Fill_and_independent_continuity_checks",
@@ -452,5 +452,22 @@
       "B06_general_multimate_closed_loop_limits_gear_screw_coupling"
     ],
     "historical_handoff": "artifacts/native-acceptance-20261005/resume-03/handoff-20261005-144321/acceptance-progress-normalized-paused.json"
+  },
+  "token_economy": {
+    "default_tool_profile": "compact",
+    "full_tool_profile": "AUTO_SOLIDWORKS_TOOL_PROFILE=full",
+    "default_response_detail": "summary",
+    "full_response": "responseDetail=full",
+    "plan_handle": "planId; content_addressed_local_payload_and_compiler_source_recovery_identity",
+    "result_reader": "cad_read_result; JSON_Pointer_pagination_with_content_hash",
+    "contracts": "cad_get_contract; on_demand_complete_typed_JSON_schema",
+    "native_acceptance": "release_rebuild_not_natively_recertified; pre-release comparison arch passed declared checks, hollow shaft incomplete",
+    "actual_model_tokens": "not_measured; wire_characters_are_not_billing_tokens",
+    "input_handles": "cad_store_model_input; immutable context/draft with producer/source/recovery identity",
+    "incremental_edits": "JSON Patch add/replace/remove/test; atomic; unknown fields rejected; original validation unchanged",
+    "draft_handle": "cad_create_model_plan draftId and optional drawingContextId",
+    "drawing_review_handle": "cad_review_drawing_coverage drawingContextId; original coverage validation",
+    "native_speedup": "not_causally_established; same-session bounded comparison only; executor source preserved",
+    "benchmark_report": "docs/benchmark-26.10.11.zh-CN.md in source/download package"
   }
 }

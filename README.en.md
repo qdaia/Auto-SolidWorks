@@ -6,9 +6,9 @@ Auto SolidWorks is a local CAD plugin for Codex / MCP. It creates, inspects and 
 
 [简体中文](README.md) | **English**
 
-**Version `26.10.07` (October 7, 2026) · Windows x64 · 18 MCP tools **
+**Version `26.10.11` (October 11, 2026) · Windows x64 · 16 default MCP tools (21 in the full profile) **
 
-[Download Windows plugin](docs/download.en.md) · [What is new](docs/release-26.10.07.en.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.07) · [Build from source](docs/development.en.md)
+[Download Windows plugin](docs/download.en.md) · [What is new](docs/release-26.10.11.en.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.11) · [Build from source](docs/development.en.md)
 
 ## From input to deliverable
 
@@ -24,14 +24,14 @@ Provide an engineering image, PDF or explicit dimensions. The plugin turns the i
 | Drawings | First-angle views, native dimension import, view layout and pagination; SLDDRW / PDF |
 | Execution management | Status, pause, deadlines, cross-process leases, checkpoints and recovery identity checks |
 
-## Added on October 7, 2026 (version `26.10.07`)
+## Updated on October 11, 2026 (version `26.10.11`)
 
-- Chinese defaults for feature trees and drawings, and local Gordon surface generation.
-- Advanced loft/spatial-curve controls, surface-definition readback, configuration equations and feature suppression.
-- Persistent geometry history, complete spline/sphere revision checks, nominal physical threads and spatial-tree mechanism checks.
-- Assembly drawing dimension readback, pagination, execution status/pause tools and desktop Codex installation support.
+- Includes earlier token input reductions from compact catalogs, plan handles and summary/paginated results.
+- Reuses complete local drawing contexts/drafts and applies atomic incremental edits.
+- Measured request-text reductions: 78.75% for a workflow including initial upload, and 99.928% for one hollow-shaft edit. Billed tokens were not recorded.
+- Retains compilation, source identity and geometry checks; 16 default tools, 21 full-profile tools.
 
-See the [English release notes](docs/release-26.10.07.en.md) for all additions.
+See the [English release notes](docs/release-26.10.11.en.md) and [validation report](docs/benchmark-26.10.11.en.md).
 
 ## Examples
 
@@ -45,6 +45,8 @@ The three-view drawing and dimensions are used to create the arched base, uprigh
 
 ### Hollow shaft
 
+The image below is a historical example. Both new from-scratch comparison attempts stopped at a curved M20 thread; this image is not release-wide acceptance evidence.
+
 <picture><img src="docs/examples/hollow-shaft/model-preview.png" width="480" alt="Hollow shaft, isometric view"></picture>
 
 <picture><source srcset="docs/examples/hollow-shaft/drawing-preview.svg" type="image/svg+xml"><img src="docs/examples/hollow-shaft/drawing-preview.png" width="1200" alt="Hollow shaft engineering drawing, vector PDF preview"></picture>
@@ -54,7 +56,7 @@ Engineering drawing PDF: `docs/examples/hollow-shaft/drawing.pdf`
 ## Quick start
 
 1. Prepare Windows x64, an activated local SolidWorks installation, [.NET 9 Windows Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/9.0), and Codex with plugin support.
-2. Download and extract the [26.10.07 Windows package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip). Run this command in the extracted directory:
+2. Download and extract the [26.10.11 Windows package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.11/auto-solidworks-26.10.11-windows-x64.zip). Run this command in the extracted directory:
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
@@ -71,8 +73,8 @@ The installer prefers the CLI bundled with the Codex desktop app and prepares In
 CAD execution, native files and geometry checks run locally. Users install and license SolidWorks; Gordon also requires local FreeCAD. Image / PDF interpretation uses your selected model and service. OCR and PDF rasterization dependencies can be configured as needed.
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Version: `26.10.07`. Query `cad_get_capabilities` for available features, input constraints and validation scope, or read the [bundled capability manifest](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json). This release has a fresh build, 1,101 offline checks and 128 post-install public-interface checks; native fixture evidence remains tied to its original revision.
-<!-- Capability manifest SHA256: 04e0dc6afa7d8b14dc5ebde410f73c1ae0b050afaacbde725a504d9aec910ac1 -->
+Version: `26.10.11`. Query `cad_get_capabilities` for available features, input constraints and validation scope, or read the [bundled capability manifest](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json). This release includes compact catalogs, input/plan handles, atomic incremental edits and summary/paginated results. See the release validation report for measured scope; native fixture evidence remains tied to its original revision.
+<!-- Capability manifest SHA256: a154cbc0f3cbaf4bb5eb952ca94ef5a03fb20bd9c5654d42463f72fde2db9ea7 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 [Feature parameters](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md) · [Gordon guide](plugins/auto-solidworks/skills/auto-solidworks/references/gordon-surface.md) · [Surface controls](plugins/auto-solidworks/skills/auto-solidworks/references/surface-modeling.md) · [Geometry verification](plugins/auto-solidworks/skills/auto-solidworks/references/local-geometry-verification.md)

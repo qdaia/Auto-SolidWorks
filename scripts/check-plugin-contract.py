@@ -29,7 +29,7 @@ for p,value in ((plugin/'.codex-plugin/plugin.json',json.loads((plugin/'.codex-p
     if value!=version:errors.append(f'Version drift: {p} = {value}, manifest = {version}')
 for path,(zh,link) in docs.items():
     if manifest.get('local_integration') and path in (root/'README.md', root/'README.en.md'):
-        body=(f'版本：`{version}`。通过 `cad_get_capabilities` 查询当前功能、输入约束和验证范围，或阅读[随包能力清单]({link})。本版完成重新构建、1,101 项离线检查及安装后的 128 项公开接口检查；原生案例证据按其原始修订记录。' if zh else f'Version: `{version}`. Query `cad_get_capabilities` for available features, input constraints and validation scope, or read the [bundled capability manifest]({link}). This release has a fresh build, 1,101 offline checks and 128 post-install public-interface checks; native fixture evidence remains tied to its original revision.')
+        body=(f'版本：`{version}`。通过 `cad_get_capabilities` 查询当前功能、输入约束和验证范围，或阅读[随包能力清单]({link})。本版整合精简工具目录、输入／计划句柄、原子增量修改与摘要／分页结果；验收与测量范围见发布测试说明。原生案例证据按其原始修订记录。' if zh else f'Version: `{version}`. Query `cad_get_capabilities` for available features, input constraints and validation scope, or read the [bundled capability manifest]({link}). This release includes compact catalogs, input/plan handles, atomic incremental edits and summary/paginated results. See the release validation report for measured scope; native fixture evidence remains tied to its original revision.')
     elif manifest.get('local_integration') and zh:
         body=f'当前本地整合版本：`{version}`；修订：`{revision}`。整合 `.34.validation` 已实现的优化，保留原有建模与工程图能力；本轮验证范围为重新构建、离线回归及公开 MCP 编译／预演，不启动 SolidWorks。B01–B06 工程任务保持暂停且未全部完成。原生成功与失败按原工程修订和限定案例保留，不自动认证此版本；复杂 Boundary、Curvature Fill／G2、一般拓扑历史、标准螺纹配合及机构限位／耦合仍有缺口。详见[随包能力清单]({link})及 `cad_get_capabilities`。'
     elif manifest.get('local_integration'):

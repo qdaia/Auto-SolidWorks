@@ -6,9 +6,9 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 
 **简体中文** | [English](README.en.md)
 
-**版本 `26.10.07`· Windows x64 · 18 个 MCP 工具 **
+**版本 `26.10.11`（2026 年 10 月 11 日） · Windows x64 · 16 个默认 MCP 工具（完整配置 21 个） **
 
-[下载 Windows 插件](docs/download.zh-CN.md) · [本次新增内容](docs/release-26.10.07.zh-CN.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.07) · [从源码构建](docs/development.md)
+[下载 Windows 插件](docs/download.zh-CN.md) · [本次新增内容](docs/release-26.10.11.zh-CN.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.11) · [从源码构建](docs/development.md)
 
 ## 从输入到交付
 
@@ -24,14 +24,14 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 | 工程图 | 第一角投影视图、原生尺寸导入、视图布局与分页；SLDDRW / PDF |
 | 执行管理 | 状态查询、暂停、截止时间、跨进程租约、检查点与恢复身份核对 |
 
-## 2026 年 10 月 7 日新增（版本 `26.10.07`）
+## 2026 年 10 月 11 日更新（版本 `26.10.11`）
 
-- 中文设计树与工程图默认文本，以及本地 Gordon 曲面生成。
-- 高级放样与三维曲线控制、曲面定义读回、配置方程和特征抑制。
-- 持久几何历史、完整样条与球面修订检查、名义实体螺纹和空间树机构检查。
-- 装配工程图尺寸读回、分页布局、执行状态与暂停工具、桌面版 Codex 安装支持。
+- 整合上次精简工具目录、计划句柄与摘要／分页结果的 token 输入优化。
+- 完整图纸上下文和草案在本机复用，局部修正通过原子增量编辑提交。
+- 含首次上传的接口工作流请求文本减少 78.75%；空心轴同一局部修正减少 99.928%。计费 token 未记录。
+- 保留原编译、来源身份及几何验收；默认 16 个工具，完整配置 21 个。
 
-完整条目见[中文更新说明](docs/release-26.10.07.zh-CN.md)。
+完整数据与边界见[中文更新说明](docs/release-26.10.11.zh-CN.md)和[测试说明](docs/benchmark-26.10.11.zh-CN.md)。
 
 ## 测试案例
 
@@ -45,6 +45,8 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 
 ### 空心轴
 
+下图为历史示例。本次两版从零对照均未完成曲面 M20 螺纹，不能将历史截图作为本版完整验收证据。
+
 <picture><img src="docs/examples/hollow-shaft/model-preview.png" width="480" alt="空心轴等轴视图"></picture>
 
 <picture><source srcset="docs/examples/hollow-shaft/drawing-preview.svg" type="image/svg+xml"><img src="docs/examples/hollow-shaft/drawing-preview.png" width="1200" alt="空心轴工程图 PDF 矢量预览"></picture>
@@ -54,7 +56,7 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 ## 快速开始
 
 1. 准备 Windows x64、已激活的本机 SolidWorks、[.NET 9 Windows Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)，以及支持插件的 Codex。
-2. 下载并解压 [26.10.07 Windows 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.07/auto-solidworks-26.10.07-windows-x64.zip)，在解压目录运行：
+2. 下载并解压 [26.10.11 Windows 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.11/auto-solidworks-26.10.11-windows-x64.zip)，在解压目录运行：
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
@@ -71,8 +73,8 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 CAD 执行、原生文件和几何检查在本机完成。SolidWorks 由使用者安装并授权；Gordon 另需本地 FreeCAD。图片 / PDF 的理解使用你选择的模型与服务，OCR 和 PDF 栅格化依赖可按需配置。
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-版本：`26.10.07`。通过 `cad_get_capabilities` 查询当前功能、输入约束和验证范围，或阅读[随包能力清单](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json)。本版完成重新构建、1,101 项离线检查及安装后的 128 项公开接口检查；原生案例证据按其原始修订记录。
-<!-- Capability manifest SHA256: 04e0dc6afa7d8b14dc5ebde410f73c1ae0b050afaacbde725a504d9aec910ac1 -->
+版本：`26.10.11`。通过 `cad_get_capabilities` 查询当前功能、输入约束和验证范围，或阅读[随包能力清单](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json)。本版整合精简工具目录、输入／计划句柄、原子增量修改与摘要／分页结果；验收与测量范围见发布测试说明。原生案例证据按其原始修订记录。
+<!-- Capability manifest SHA256: a154cbc0f3cbaf4bb5eb952ca94ef5a03fb20bd9c5654d42463f72fde2db9ea7 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 [功能参数](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md) · [Gordon 使用](plugins/auto-solidworks/skills/auto-solidworks/references/gordon-surface.md) · [曲面控制](plugins/auto-solidworks/skills/auto-solidworks/references/surface-modeling.md) · [几何验证](plugins/auto-solidworks/skills/auto-solidworks/references/local-geometry-verification.md)
