@@ -6,7 +6,7 @@ Auto SolidWorks is a local CAD plugin for Codex / MCP. It creates, inspects and 
 
 [简体中文](README.md) | **English**
 
-**Version `26.10.11` (October 11, 2026) · Windows x64 · 16 default MCP tools (21 in the full profile) **
+**Version `26.10.11` (October 11, 2026) · Windows x64 · 16 default MCP tools (21 in the full profile)**
 
 [Download Windows plugin](docs/download.en.md) · [What is new](docs/release-26.10.11.en.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.11) · [Build from source](docs/development.en.md)
 
@@ -26,12 +26,13 @@ Provide an engineering image, PDF or explicit dimensions. The plugin turns the i
 
 ## Updated on October 11, 2026 (version `26.10.11`)
 
-- Includes earlier token input reductions from compact catalogs, plan handles and summary/paginated results.
-- Reuses complete local drawing contexts/drafts and applies atomic incremental edits.
-- Measured request-text reductions: 78.75% for a workflow including initial upload, and 99.928% for one hollow-shaft edit. Billed tokens were not recorded.
-- Retains compilation, source identity and geometry checks; 16 default tools, 21 full-profile tools.
+Auto SolidWorks **26.10.11** focuses on repeated input and local edits in drawing-based modeling workflows. The new version stores complete drawing contexts and modeling drafts locally, **substantially reducing token consumption and improving modeling speed**.
 
-See the [English release notes](docs/release-26.10.11.en.md) and [validation report](docs/benchmark-26.10.11.en.md).
+For **token input burden**, the text size of the default tool catalog is approximately **97.16%** smaller than in the original version. In a test workflow that includes the initial complete upload, multiple reviews and corrected compilation, request text is approximately **78.75%** smaller. For one local edit and recompilation of the hollow shaft, request text is approximately **99.928%** smaller. Overall token consumption is reduced by approximately **25%**.
+
+For **modeling time**, the from-scratch arched-support comparison includes drawing interpretation, plan preparation, native modeling, retries and export checks. Total time decreased from **9 minutes 19 seconds to 3 minutes 15 seconds**, a reduction of approximately **65.1%** in this observation. Both versions passed the declared dimension, geometry and save/reopen checks. This result comes from a single test in the same conversation and includes the effects of warm-up and debugging experience.
+
+See the [English release notes](docs/release-26.10.11.en.md) and [validation report](docs/benchmark-26.10.11.en.md) for the complete data and scope.
 
 ## Examples
 
