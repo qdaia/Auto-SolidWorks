@@ -15,7 +15,6 @@ Auto SolidWorks is a local CAD plugin for Codex / MCP. It creates, inspects and 
 - Adds driving hole positions, sketch quality readback, actual geometry edit probes, and bounded flange, plate and hole-family recipes.
 - Validates native capability evidence against task scope, runtime hashes and the SolidWorks revision. Source bindings, body validity and final save/reopen gates remain required.
 - Retains essential final review: one bounded success summary and actual review of an isometric/necessary-view contact sheet.
-- Source and installable package match the locally installed version. The reverted accuracy-first drawing workflow patch is excluded.
 
 See the [release notes](docs/release-26.10.13-opt.1.en.md) for validation scope and limits.
 
