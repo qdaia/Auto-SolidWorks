@@ -59,6 +59,8 @@ public sealed record ExecutionDeadlineOptions
 
 public sealed record OutputSpec
 {
+    public IReadOnlyList<string> PreviewViews { get; init; }=["isometric","front","top","right","left"];
+    public string? PreviewScopeReason { get; init; }
     public string? NativePath { get; init; }
     public IReadOnlyList<string> ExportPaths { get; init; } = [];
     public bool OverwriteAllowed { get; init; }
@@ -101,6 +103,9 @@ public abstract record ModelingOperation
 
 public sealed record ProfileSketchOperation : ModelingOperation
 {
+    public string? CenterPositionDimensionName { get; init; }
+    public string? CenterPositionDimensionAxis { get; init; }
+    public bool RequireEditable { get; init; }
     public bool AutoDimensionPrimitives { get; init; }
     public bool RequireFullyDefined { get; init; }
     public IReadOnlyList<SketchConstraintSpec> Constraints { get; init; } = [];

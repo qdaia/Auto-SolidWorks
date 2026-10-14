@@ -33,6 +33,8 @@ public static class DrawingLayoutPlanner
     public static DrawingLayoutPlan Create(DrawingLayoutOptions? options=null)
     {
         var o=options??new();
+        if(!double.IsFinite(o.ScheduleRowHeightMm)||o.ScheduleRowHeightMm<7||o.ScheduleRowHeightMm>20)
+            throw new ArgumentException("DRAWING_ROW_HEIGHT_RANGE: schedule_row_height_mm="+o.ScheduleRowHeightMm.ToString(System.Globalization.CultureInfo.InvariantCulture)+"；允许 7..20 mm，默认 9 mm。",nameof(options));
         if(!double.IsFinite(o.SheetWidthMm)||!double.IsFinite(o.SheetHeightMm)||o.SheetWidthMm<210||o.SheetWidthMm>2000||o.SheetHeightMm<210||o.SheetHeightMm>2000||
            !double.IsFinite(o.MarginMm)||o.MarginMm<10||o.MarginMm>40||!double.IsFinite(o.ViewGapMm)||o.ViewGapMm<10||o.ViewGapMm>40||
            !double.IsFinite(o.ScheduleRowHeightMm)||o.ScheduleRowHeightMm<7||o.ScheduleRowHeightMm>20)

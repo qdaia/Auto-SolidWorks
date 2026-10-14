@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 namespace CadModeling.Ir;
 
 [JsonConverter(typeof(JsonStringEnumConverter<SketchEntityPart>))]
-public enum SketchEntityPart { Segment, StartPoint, EndPoint, CenterPoint }
+public enum SketchEntityPart { Segment, StartPoint, EndPoint, CenterPoint, Origin }
 public sealed record SketchEntityReference
 {
     public int PrimitiveIndex { get; init; }

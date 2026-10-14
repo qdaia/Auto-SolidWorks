@@ -3,8 +3,12 @@ namespace CadModeling.Core;
 public sealed record ModelInspectionRequest(string InputPath, IReadOnlyList<EntityQuery>? Queries = null, ModelVerificationSpec? Verification = null,
     IReadOnlyList<GeometryRef>? GeometryReferences = null, IReadOnlyList<MeasurementQuery>? Measurements = null,
     string? DocumentRevision = null, string? SourceRevisionId = null, IReadOnlyList<ConnectivityInspectionQuery>? ConnectivityQueries = null,
-    IReadOnlyList<NativeEditabilityProbeSpec>? EditabilityProbes = null);
-public sealed record NativeEditabilityProbeSpec(string ProbeId,string DimensionName,double TrialValue,DrawingValueUnit Unit=DrawingValueUnit.Millimeter,string? FeatureName=null);
+    IReadOnlyList<NativeEditabilityProbeSpec>? EditabilityProbes = null,bool RequireEditableSketches=false);
+public sealed record NativeEditabilityProbeSpec(string ProbeId,string DimensionName,double TrialValue,DrawingValueUnit Unit=DrawingValueUnit.Millimeter,string? FeatureName=null)
+{
+    public ModelVerificationSpec? TrialVerification { get; init; }
+    public ModelVerificationSpec? RestoreVerification { get; init; }
+}
 public sealed record NativeEditabilityProbeResult(string ProbeId,string DimensionName,bool Passed,string Message)
 {
     public string? ModelSha256 { get; init; }
@@ -19,6 +23,10 @@ public sealed record NativeEditabilityProbeResult(string ProbeId,string Dimensio
     public bool RestoreSucceeded { get; init; }
     public bool RestoreRebuildSucceeded { get; init; }
     public bool ModelFileUnchanged { get; init; }
+    public bool? TrialGeometryPassed { get; init; }
+    public bool? RestoreGeometryPassed { get; init; }
+    public string? TrialVerificationFingerprint { get; init; }
+    public string? RestoreVerificationFingerprint { get; init; }
 }
 public sealed record ModelDimension(string Name, double SystemValue, string Kind)
 {
@@ -31,6 +39,7 @@ public sealed record ModelDimension(string Name, double SystemValue, string Kind
 public sealed record ModelFeatureInfo(string Name, string Type, bool Suppressed, string? PersistentReference, IReadOnlyList<ModelDimension> Dimensions)
 {
     public int? SketchConstraintStatus { get; init; }
+    public SketchQualityObservation? SketchQuality { get; init; }
     /// <summary>Names obtained from the native feature's direct GetParents dependency list.</summary>
     public IReadOnlyList<string> ParentFeatureNames { get; init; }=[];
     /// <summary>Producer-owned persistent refs of edges selected by supported native fillet/chamfer feature definitions.</summary>
@@ -54,6 +63,9 @@ public sealed record ModelInspection(bool Success, string Message, string InputP
     IReadOnlyList<ModelEntityInfo>? Entities = null)
 {
     public NativeBodyValidity? BodyValidity { get; init; }
+    public string GeometryStatus { get; init; }="unverifiable";
+    public string ParametricStatus { get; init; }="unverifiable";
+    public string VisualStatus { get; init; }="not_observed";
     public string? RequestId { get; init; }
     public bool OutcomeUnknown { get; init; }
     public string? ModelSha256 { get; init; }

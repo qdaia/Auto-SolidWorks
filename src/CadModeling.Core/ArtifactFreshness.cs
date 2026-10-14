@@ -56,7 +56,7 @@ public static class ArtifactFreshness
             [CacheArtifactKind.CoverageReport]=Set("source.sha256","source.revision","model.sha256","plan.fingerprint","required_scope.fingerprint","validator.version","model.reopened"),
             [CacheArtifactKind.ModelDiff]=Set("baseline.model.sha256","candidate.model.sha256","required_scope.fingerprint","diff.version","baseline.reopened","candidate.reopened"),
             [CacheArtifactKind.RepairValidation]=Set("source.sha256","source.revision","baseline.model.sha256","candidate.model.sha256","plan.fingerprint","required_scope.fingerprint","repair.version","execution_receipt.fingerprint","candidate.reopened"),
-            [CacheArtifactKind.NativeEditability]=Set("model.sha256","feature_tree.fingerprint","executor.version","solidworks.version","model.reopened")
+            [CacheArtifactKind.NativeEditability]=Set("model.sha256","feature_tree.fingerprint","executor.version","solidworks.version","model.reopened","editability.request.fingerprint","validator.version")
         };
 
     public static FreshnessDecision Evaluate(CachedArtifact cached,FreshnessContext current)

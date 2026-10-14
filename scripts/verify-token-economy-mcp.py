@@ -97,7 +97,8 @@ try:
     caps=session.call('cad_get_capabilities',{})
     expected_version=json.loads((plugin/'.codex-plugin/plugin.json').read_text(encoding='utf-8'))['version']
     check(caps['server_version']==expected_version and caps['tool_profile']=='compact','新版本与默认配置可发现')
-    check(caps['current_native_acceptance']=='not_recertified_local_integration_engineering_paused','当前原生验收边界保留')
+    expected_native=json.loads((plugin/'skills/auto-solidworks/references/capability-manifest.json').read_text(encoding='utf-8'))['current_native_acceptance']
+    check(caps['current_native_acceptance']==expected_native and expected_native.startswith(('not_run','not_recertified')),'当前原生验收未运行边界与本地候选一致')
     schema=session.call('cad_get_contract',dict(contract='draft'))
     check('verification' in json.dumps(schema) and 'design_intent' in json.dumps(schema),'完整合同按需读取')
     compilation=session.call('cad_create_model_plan',dict(text='80 x 50 x 20 mm plate',nativeOutputPath=comparison_output))

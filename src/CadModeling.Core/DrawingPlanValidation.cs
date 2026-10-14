@@ -9,6 +9,7 @@ public static class DrawingPlanValidation
     {
         if(draft.DrawingContext is not { } context) return [];
         var errors=new List<ModelingDiagnostic>();
+        errors.AddRange(SourceInterpretationValidation.Validate(context));
         errors.AddRange(DrawingOmissionValidation.Diagnostics(context));
         void Error(string text,string path) => errors.Add(new("DRAWING_BINDING",DiagnosticSeverity.Error,text,path));
         if(!Path.IsPathFullyQualified(context.SourcePath) || !File.Exists(context.SourcePath)) Error("绘制源必须是一个现有的绝对路径。","drawing_context.source_path");
@@ -116,6 +117,7 @@ public static class DrawingPlanValidation
             yield return new("DRAWING_COMPILED_CHANGED",DiagnosticSeverity.Error,"绘制绑定或操作在编译后更改。请重新编译修正后的类型化草案。","drawing_binding_digest");
         if(plan.DrawingContext is { } context)
         {
+            foreach(var error in SourceInterpretationValidation.Validate(context)) yield return error;
             if(!File.Exists(context.SourcePath) || plan.DrawingSourceSha256!=FileHash(context.SourcePath))
                 yield return new("DRAWING_SOURCE_CHANGED",DiagnosticSeverity.Error,"源图在编译后更改或消失。读取当前源图并重新编译。","drawing_context.source_path");
             foreach(var error in ValidateCoverage(context,plan.Operations.Select(o=>o.Id).ToArray(),plan.Verification)) yield return error;

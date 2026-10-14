@@ -6,6 +6,7 @@ using CadModeling.Ir;
 internal sealed partial class ExecutorPipeServer
 {
     private string? _activeNativeRequest;
+    private readonly ConcurrentDictionary<string,int> _traceAttempts=new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string,ExecutorServiceResponse> _completedRequests=new(StringComparer.Ordinal);
     private readonly string _receiptRoot=Path.GetFullPath(Environment.GetEnvironmentVariable("CAD_EXECUTOR_RECEIPTS_DIR")??Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"AutoSolidWorks","executor-receipts"));
     private string ReceiptPath(string id)=>Path.Combine(_receiptRoot,id+".json");
@@ -62,6 +63,8 @@ internal sealed partial class ExecutorPipeServer
             if(acquired.Failure is not null)return acquired.Failure;
             WriteReceipt(requestId,action,"active");
             submitted=true;
+            var traceAttempt=request.Plan is {} tracedPlan?_traceAttempts.AddOrUpdate(ModelingPlanIdentity.Fingerprint(tracedPlan),1,(_,n)=>n+1):(int?)null;
+            using var requestTiming=PerformanceTrace.Begin("request."+action,requestId,attempt:traceAttempt);
             result=await DispatchCoreAsync(request,requestDeadline.Token);
             result=result with{RequestId=requestId,DeadlineExceeded=DateTimeOffset.UtcNow>=expires};
             _completedRequests[requestId]=result;

@@ -21,6 +21,10 @@ public sealed record DrawingPlanView
 }
 public sealed record DrawingDimensionFact
 {
+    /// <summary>Original drawing value when an explicitly authorized deviation is executed.</summary>
+    public double? NominalValue { get; init; }
+    public string? DeviationReason { get; init; }
+    public string? DeviationAuthorization { get; init; }
     public bool Critical { get; init; } = true;
     public required string Id { get; init; }
     public required string OperationId { get; init; }
@@ -36,6 +40,9 @@ public sealed record DrawingDimensionFact
 }
 public sealed record DrawingPlanContext
 {
+    /// <summary>Opt-in for legacy callers; mandatory in the current drawing workflow.</summary>
+    public bool RequireInterpretationReview { get; init; }
+    public IReadOnlyList<SourceInterpretationReview> InterpretationReviews { get; init; } = [];
     /// <summary>Independent source inventory and explicit visual review. Required for complete drawing plans.</summary>
     public DrawingOmissionReview? OmissionReview { get; init; }
     public IReadOnlyList<DrawingFeatureRequirement> Features { get; init; } = [];

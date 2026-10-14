@@ -12,3 +12,4 @@ plugins/auto-solidworks/runtime/
 !.env.example
 *.user
 *.suo
+plugins/auto-solidworks/skills/auto-solidworks/references/native-evidence*/

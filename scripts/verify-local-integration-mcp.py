@@ -86,7 +86,12 @@ try:
     capabilities = call('cad_get_capabilities', {})
     expected_version=json.loads((plugin/'.codex-plugin/plugin.json').read_text(encoding='utf-8'))['version']
     check(capabilities['server_version']==expected_version, 'source runtime offline version')
-    check(capabilities['current_native_acceptance'] == 'not_recertified_local_integration_engineering_paused', 'native acceptance explicitly unrun')
+    expected_native=json.loads((plugin/'skills/auto-solidworks/references/capability-manifest.json').read_text(encoding='utf-8'))['current_native_acceptance']
+    if expected_native == 'dynamic_scoped_evidence':
+        check(capabilities['current_native_acceptance'] == capabilities['current_native_evidence']['status'], 'native acceptance matches identity-validated current evidence')
+        check(capabilities['current_native_acceptance'] in ('not_run','scoped_native_verified','stale_or_unverifiable'), 'current evidence never grants universal native certification')
+    else:
+        check(capabilities['current_native_acceptance'] == expected_native and expected_native.startswith(('not_run','not_recertified')), 'native acceptance explicitly unrun and matches candidate manifest')
     check(capabilities['design_intent_authoring']['native_acceptance'].startswith('historical26_') and 'not_natively_recertified' in capabilities['design_intent_authoring']['native_acceptance'], 'authoring evidence historical only for this release')
     check(capabilities['offline_modeling_boundaries']['native_acceptance'].startswith('historical26_') and 'not_natively_recertified' in capabilities['offline_modeling_boundaries']['native_acceptance'], 'text and mobility evidence historical only for this release')
     check('unavailable_and_rejected' in capabilities['offline_modeling_boundaries']['assembly_native_mobility_adapter'], 'moving native basis limitation public')

@@ -36,6 +36,10 @@ public static partial class ModelingRecovery
     {
         if(!plan.Recovery.Enabled) return new HashSet<string>();
         if(plan.Recovery.AfterOperationIds.Count>0) return plan.Recovery.AfterOperationIds.ToHashSet(StringComparer.Ordinal);
+        if(plan.Recovery.CheckpointMode==CheckpointMode.Explicit)return new HashSet<string>();
+        if(plan.Recovery.CheckpointMode==CheckpointMode.EveryNFeatures)
+            return plan.Operations.Where(o=>o is not ProfileSketchOperation).Select((o,index)=>(o,index))
+                .Where(p=>(p.index+1)%plan.Recovery.FeatureInterval==0).Select(p=>p.o.Id).ToHashSet(StringComparer.Ordinal);
         var first=plan.Operations.Count>2?plan.Operations.FirstOrDefault(o=>o is ExtrudeBossOperation ||
             o is NativeFeatureOperation { Options.Kind: NativeFeatureKind.RevolveBoss or NativeFeatureKind.LoftBoss or NativeFeatureKind.SweepBoss }):null;
         return first is null?new HashSet<string>():new HashSet<string>(StringComparer.Ordinal){first.Id};
@@ -44,6 +48,8 @@ public static partial class ModelingRecovery
     {
         var errors=new List<ModelingDiagnostic>();
         void Error(string text)=>errors.Add(new("RECOVERY_INVALID",DiagnosticSeverity.Error,text,"recovery"));
+        if(!Enum.IsDefined(plan.Recovery.CheckpointMode)||plan.Recovery.FeatureInterval is <1 or >200)
+            Error("检查点模式或特征间隔无效；间隔必须为1..200。");
         if(plan.Recovery.Directory is { } directory&&!Path.IsPathFullyQualified(directory)) Error("检查点目录必须是绝对路径。");
         if(!plan.Recovery.Enabled&&plan.Recovery.ResumeManifestPath is not null) Error("恢复需要 recovery.enabled=true。");
         foreach(var id in plan.Recovery.AfterOperationIds)

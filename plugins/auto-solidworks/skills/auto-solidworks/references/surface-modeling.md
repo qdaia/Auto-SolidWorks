@@ -1,8 +1,8 @@
 # Surface workflows
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Current local integration version: `26.10.11`; revision: `input-reuse-20261011`. Incorporates the implemented `.34.validation` optimizations and preserves existing modeling/drawing capabilities. This integration is checked by a fresh build, offline regressions and public MCP compile/dry-run without starting SOLIDWORKS. B01-B06 engineering remains paused and incomplete. Native successes and failures remain bound to their original revisions and bounded fixtures; this version is not natively recertified. Complex Boundary, Curvature Fill/G2, general changed topology, standard thread fits and mechanism limits/couplings remain open. Read the [bundled capability manifest](capability-manifest.json) and `cad_get_capabilities`.
-<!-- Capability manifest SHA256: a154cbc0f3cbaf4bb5eb952ca94ef5a03fb20bd9c5654d42463f72fde2db9ea7 -->
+Local optimization version: `26.10.13-opt.1`; revision: `parametric-recipes-evidence-20261013`. Editable hole positions, native sketch quality and geometry-changing probes, bounded mechanical recipes, direction/depth contracts and declared preview/checkpoint scopes. Native evidence is validated per task, SOLIDWORKS revision and runtime hash; untested tasks remain uncertified. Source and final save/reopen gates remain required. Read the [bundled capability manifest](capability-manifest.json) and cad_get_capabilities.
+<!-- Capability manifest SHA256: b227e0bec254da978b871b777ea1a9ae03b37a4c73948deb082bcc0c0c7795d5 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 Current revision is defined in the bundled capability manifest. The trim adapter displays selectable regions and releases locks in finally; `SurfaceTrim.merge` controls sewing. Boundary now uses InsertNetBlend2 ordered selection roles, checks the selected inventory and reads back both curve families. Selected edge Contact/Tangent Fill and seam fixtures now have native saved readback. Boundary itself was not rerun in this upgrade, and Curvature Fill failed retained-control acceptance. Use [advanced modeling](advanced-modeling.md) for current scope; no broad G2 certificate is claimed.

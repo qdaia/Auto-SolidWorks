@@ -251,7 +251,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                     plan.Output.NativePath, PlanFingerprint: ModelingPlanIdentity.Fingerprint(plan));
             // Once COM work is queued, cancellation becomes a pause request. Do not cancel the STA
             // delegate itself: a synchronous SolidWorks call must be allowed to reach a known boundary.
-            return await _sta.InvokeAsync(() => ExecuteOnSta(plan,cancellationToken), CancellationToken.None);
+            var traceRequestId=PerformanceTrace.CurrentRequestId;
+            var traceAttempt=PerformanceTrace.CurrentAttempt;
+            return await _sta.InvokeAsync(() => ExecuteOnSta(plan,cancellationToken,traceRequestId,traceAttempt), CancellationToken.None);
         }
         finally { _serialGate.Release(); }
     }
@@ -286,9 +288,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
         }
     }
 
-    private static ExecutionResult ExecuteOnSta(ModelingPlan plan,CancellationToken cancellationToken)
+    private static ExecutionResult ExecuteOnSta(ModelingPlan plan,CancellationToken cancellationToken,string? traceRequestId=null,int? traceAttempt=null)
     {
-        using var timing = CadModeling.Ir.PerformanceTrace.Begin("native.execute");
+        using var timing = CadModeling.Ir.PerformanceTrace.Begin("native.execute",traceRequestId,attempt:traceAttempt);
         var evidence = new List<ExecutionEvidence>();
         GeometrySnapshot? geometry = null;
         IReadOnlyList<StableFeatureReference>? featureReferences = null;
@@ -383,7 +385,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 activeOperationId=operation.Id;
                 try
                 {
-                    using var operationTiming = PerformanceTrace.Begin("native.feature_com");
+                    using var operationTiming = PerformanceTrace.Begin("native.feature_com",operationId:operation.Id);
                     switch (operation)
                     {
                         case NativeFeatureOperation native:
@@ -512,11 +514,12 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                     measurements["check_id"]=check.Id;
                     var affected=plan.DrawingContext?.Features.Where(f=>f.VerificationCheckIds.Contains(check.Id)).SelectMany(f=>f.OperationIds).Distinct().ToArray()??[];
                     measurements["affected_operation_ids"]=string.Join(",",affected);
-                    evidence.Add(new("source_requirement",check.Message,check.Passed,measurements,check.Passed?null:"SOURCE_REQUIREMENT_MISMATCH",ExecutionFailureCategory.GeometryQuality,
+                    measurements["verification_status"]=check.Status;
+                    evidence.Add(new("source_requirement",check.Message,check.Passed,measurements,check.Passed?null:check.Status=="unverifiable"?"SOURCE_REQUIREMENT_UNVERIFIABLE":"SOURCE_REQUIREMENT_MISMATCH",ExecutionFailureCategory.GeometryQuality,
                         !check.Passed,"检测测量特征的几何形状是否符合源要求；不要削弱期望。",affected.Length==1?affected[0]:null));
                 }
-                if(!verification.Passed) throw new CadExecutionException("SOURCE_REQUIREMENT_MISMATCH",ExecutionFailureCategory.GeometryQuality,true,
-                    "实际模型不符合声明来源的要求。","纠正违规特征并从兼容的检查点重建。");
+                if(!verification.Passed) throw new CadExecutionException(NativeFailureDiagnostics.RequirementCode(verification),ExecutionFailureCategory.GeometryQuality,true,
+                    "来源要求验收未通过；分别查看 mismatch 与 unverifiable 检查。","先核对验收类型和测量目标；确认实测不符后纠正特征，不得削弱源期望。");
             }
             var output = Path.GetFullPath(plan.Output.NativePath!);
             if(cancellationToken.IsCancellationRequested)return PauseAtBoundary("停止在验证后，但在原生输出保存之前。",null);
@@ -552,21 +555,27 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                          (Name: "front", Id: (int)swStandardViews_e.swFrontView),
                          (Name: "top", Id: (int)swStandardViews_e.swTopView),
                          (Name: "right", Id: (int)swStandardViews_e.swRightView),
-                         (Name: "left", Id: (int)swStandardViews_e.swLeftView)
-                     })
+                         (Name: "left", Id: (int)swStandardViews_e.swLeftView),
+                         (Name: "back", Id: (int)swStandardViews_e.swBackView)
+                     }.Where(view=>plan.Output.PreviewViews.Contains(view.Name,StringComparer.Ordinal)))
             {
+                using var previewTiming=PerformanceTrace.Begin("native.preview");
                 var preview = Path.Combine(
                     Path.GetDirectoryName(output)!,
                     $"{Path.GetFileNameWithoutExtension(output)}.{view.Name}.bmp");
                 if(cancellationToken.IsCancellationRequested)return PauseAtBoundary("停止在下一次预览之前；部分输出被保留。",null);
                 model.ShowNamedView2("", view.Id);
                 model.ViewZoomtofit2();
+                // Zoom-to-fit uses the live viewport; fixed-size BMP exports can have a smaller frame.
+                // Leave native framing margin so the exported silhouette is not cropped.
+                model.IActiveView.ZoomByFactor(0.65);
                 model.GraphicsRedraw2();
                 var previewOk = Convert.ToBoolean(model.SaveBMP(preview, 1280, 960));
                 if (!previewOk || !File.Exists(preview) || new FileInfo(preview).Length == 0)
                     throw new IOException($"SolidWorks 未导出非空的{view.Name}预览。");
                 previewPaths[view.Name] = preview;
                 evidence.Add(Pass("preview", $"已导出{view.Name}审阅预览。",
+                    ("acceptance_scope", "image_file_written_only"), ("visual_coverage", "unverified_requires_source_image_review"),
                     ("view", view.Name), ("path", preview),
                     ("bytes", new FileInfo(preview).Length.ToString(CultureInfo.InvariantCulture))));
             }
@@ -626,13 +635,17 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 throw new InvalidOperationException("SAVED_FEATURE_MISMATCH: 重开后的最终文件缺少预期特征。");
             VerifyGeometryQuality(reopened.Geometry,plan.Acceptance,evidence);
             SavedModelRequirements.Validate(plan,reopened);
+            foreach(var sketch in plan.Operations.OfType<ProfileSketchOperation>().Where(s=>s.AutoDimensionPrimitives||s.RequireEditable))
+                if((reopened.Features??[]).SingleOrDefault(f=>f.Name==sketch.Name)?.SketchQuality?.Status!="passed")
+                    throw new CadExecutionException("SAVED_SKETCH_NOT_EDITABLE",ExecutionFailureCategory.GeometryQuality,false,
+                        "重开草图的设计参数、消费关系或固定实体检查未通过："+sketch.Name,"查看草图质量回执并修正设计参数。");
             if (boxEdgeHistory is not null && (reopened.GeometryRefResolutions.Count != 1
                 || reopened.GeometryRefResolutions[0] is not { Status:GeometryRefResolutionStatus.Resolved,Rebound:true }
                 || !GeometryRefResolver.IsVerifiedResolution(reopened.GeometryRefResolutions[0])))
                 throw new InvalidOperationException("生产持久历史未能在最终保存重开后通过公开引用解析及完整回执重验。");
             verification=reopened.Verification;
             if(ModelVerification.HasChecks(plan.Verification) && verification is not {Passed:true})
-                throw new CadExecutionException("SAVED_REQUIREMENT_MISMATCH",ExecutionFailureCategory.GeometryQuality,true,
+                throw new CadExecutionException(verification is null?"SAVED_REQUIREMENT_UNVERIFIABLE":NativeFailureDiagnostics.RequirementCode(verification,true),ExecutionFailureCategory.GeometryQuality,true,
                     "保存的模型读回未能满足源要求。","检验保存的结果；不要将其作为验证的结果交付。");
             evidence.Add(Pass("saved_model_readback","最终文件已重新打开、重建并通过特征、原生实体有效性及基础几何验收。",
                 ("sha256",reopened.ModelSha256??"")));
@@ -650,7 +663,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                     positive_volume = !plan.Acceptance.Geometry.RequirePositiveVolume || geometry.VolumeMm3 > 0,
                     valid_topology = nativeValidity.Passed,
                     expected_outputs_exist = expectedOutputs.All(path => File.Exists(path)),
-                    previews_created = previewPaths.Count == 5,
+                    previews_created = previewPaths.Count == plan.Output.PreviewViews.Count,
                     previews_not_blank = previewPaths.Values.All(path => new FileInfo(path).Length > 0)
                 },
                 model = new
@@ -680,7 +693,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
 
             if(cancellationToken.IsCancellationRequested)return PauseAtBoundary("停止在最后一次读回后；不要将过期请求报告为按时的成功。",null);
             return new(true, "completed", "SolidWorks 创建、重建、测量并保存了该模型。",
-                evidence, output, geometry, featureReferences, planFingerprint) {Verification=verification,Recovery=RecoveryState(plan,checkpointPath,checkpoint,null)};
+                evidence, output, geometry, featureReferences, planFingerprint) {Verification=verification,Recovery=RecoveryState(plan,checkpointPath,checkpoint,null),
+                    GeometryStatus="passed",ParametricStatus=reopened.ParametricStatus,VisualStatus="files_written_pending_review",
+                    PerformanceTracePath=PerformanceTrace.CurrentFilePath};
 
             ExecutionResult PauseAtBoundary(string message,string? completedInFlightOperationId)
             {
@@ -737,6 +752,8 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
     {
         model.ClearSelection2(true);
         _activeFrame = operation.Frame;
+        _activeSketchOrigin = null;
+        _activeOriginArc = null;
         if (operation.PlaneId is { } planeId)
         {
             SelectFeature(model, ResolveFeature(model, objects, planeId), false, 0);
@@ -818,8 +835,12 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
         }
         ApplySketchEditing(model, activeSketch, operation, primitiveSegments, mathUtility, sketchToModel);
         if(operation.AutoDimensionPrimitives)DimensionSimplePrimitives(model,activeSketch,operation,primitiveSegments);
-        if(operation.RequireFullyDefined && activeSketch.GetConstrainedStatus()!=(int)swConstrainedStatus_e.swFullyConstrained)
-            throw new InvalidOperationException("SKETCH_NOT_FULLY_DEFINED: 草图未通过完全定义验收（原生状态="+activeSketch.GetConstrainedStatus()+"）。");
+        var constraintStatus=activeSketch.GetConstrainedStatus();
+        if(operation.RequireFullyDefined && constraintStatus!=(int)swConstrainedStatus_e.swFullyConstrained)
+        {
+            var diagnostic=NativeFailureDiagnostics.SketchStatus(constraintStatus);
+            throw new InvalidOperationException(diagnostic.Code+": "+diagnostic.Message+diagnostic.Hint);
+        }
         model.SketchManager.InsertSketch(true);
         var sketchFeature = model.IFeatureByPositionReverse(0)
                             ?? throw new InvalidOperationException("无法获取新创建的草图特征。");
@@ -1003,7 +1024,8 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
             true, false, !operation.ReverseDirection, endCondition, 0, Mm(operation.DepthMm), 0d,
             false, false, false, false, 0d, 0d, false, false, false, false,
             false, false, true, false, false, false, startCondition, Mm(operation.StartOffsetMm), operation.ReverseStartOffset, true);
-        if (feature is null) throw new InvalidOperationException("FeatureCut4 返回 null。");
+        if (feature is null) throw new InvalidOperationException(FormattableString.Invariant(
+            $"CUT_EXTRUDE_NULL: FeatureCut4 返回 null；sketch={operation.SketchId}，reverse_direction={operation.ReverseDirection}，api_flip={!operation.ReverseDirection}，end={operation.EndCondition}，depth_mm={operation.DepthMm}，start_offset_mm={operation.StartOffsetMm}。内核未给出唯一根因；核对草图法向/实体一侧、切除交集及孔壁零厚度，保留标称尺寸与失败回执。"));
         feature.Name = operation.Name;
         return feature;
     }
@@ -1406,7 +1428,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                                exception.Message.Contains("引用", StringComparison.Ordinal) ||
                                exception.Message.Contains("基准", StringComparison.Ordinal);
         return new(
-            referenceFailure ? "REFERENCE_RESOLUTION_FAILED" : "FEATURE_CREATION_FAILED",
+            referenceFailure ? "REFERENCE_RESOLUTION_FAILED" : exception.Message.StartsWith("SKETCH_OVER_CONSTRAINED:",StringComparison.Ordinal)?"SKETCH_OVER_CONSTRAINED":
+                exception.Message.StartsWith("SKETCH_NOT_FULLY_DEFINED:",StringComparison.Ordinal)?"SKETCH_NOT_FULLY_DEFINED":
+                exception.Message.StartsWith("CUT_EXTRUDE_NULL:",StringComparison.Ordinal)?"CUT_EXTRUDE_NULL":"FEATURE_CREATION_FAILED",
             referenceFailure ? ExecutionFailureCategory.ReferenceResolution : ExecutionFailureCategory.FeatureCreation,
             true,
             $"操作 {operation.Id}（{operation.Name}）失败：{exception.Message}",

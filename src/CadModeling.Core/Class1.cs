@@ -100,6 +100,10 @@ public sealed record ExecutionResult(
     IReadOnlyList<StableFeatureReference>? FeatureReferences = null,
     string? PlanFingerprint = null)
 {
+    public string GeometryStatus { get; init; }="unverifiable";
+    public string ParametricStatus { get; init; }="unverifiable";
+    public string VisualStatus { get; init; }="not_observed";
+    public string? PerformanceTracePath { get; init; }
     public ModelVerificationResult? Verification { get; init; }
     public ModelingRecoveryState? Recovery { get; init; }
     public string? RequestId { get; init; }
@@ -252,6 +256,13 @@ public sealed class ModelingIrValidator
         }
 
         var nativePath = plan.Output.NativePath;
+        var permittedViews=new[]{"isometric","front","top","right","left","back"};
+        ErrorIf(plan.Output.PreviewViews.Count is <1 or >6||plan.Output.PreviewViews.Distinct().Count()!=plan.Output.PreviewViews.Count||
+            plan.Output.PreviewViews.Any(v=>!permittedViews.Contains(v))||!plan.Output.PreviewViews.Contains("isometric"),
+            "OUT_PREVIEW_SCOPE","预览需要唯一的受支持视图，并保留等轴测。","output.preview_views");
+        ErrorIf((plan.DrawingContext is not null && new[]{"isometric","front","top","right","left"}.Any(v=>!plan.Output.PreviewViews.Contains(v))) ||
+            (plan.Output.PreviewViews.Count<5 && string.IsNullOrWhiteSpace(plan.Output.PreviewScopeReason)),
+            "OUT_PREVIEW_COVERAGE","缩减视图需要明确覆盖理由；图纸建模保留全部标准视图。","output.preview_scope_reason");
         if (plan.SourceModelPath is { } source)
         {
             ErrorIf(!Path.IsPathFullyQualified(source) || !File.Exists(source), "SOURCE_MODEL", "源模型必须是一个现有的绝对文件路径。", "source_model_path");
@@ -518,6 +529,7 @@ public sealed partial class RuleBasedTextCompiler
 {
     public CompilationResult Compile(string text, string? nativeOutputPath = null)
     {
+        if(MechanicalRecipes.TryCompileText(text,nativeOutputPath) is {} recipe)return recipe;
         var diagnostics = new List<ModelingDiagnostic>();
         if (string.IsNullOrWhiteSpace(text))
             return new(null, [new("NL001", DiagnosticSeverity.Error, "自然语言输入为空。", "text")]);

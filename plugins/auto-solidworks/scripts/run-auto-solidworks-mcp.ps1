@@ -3,12 +3,15 @@ $pluginRoot = Split-Path -Parent $PSScriptRoot
 $env:CAD_SOLIDWORKS_EXECUTOR = Join-Path $pluginRoot 'runtime\executor\CadModeling.Executor.SolidWorks.exe'
 $pipeHasher = [System.Security.Cryptography.SHA256]::Create()
 try {
-    $executorBytes = [System.IO.File]::ReadAllBytes((Join-Path $pluginRoot 'runtime\executor\CadModeling.Executor.SolidWorks.dll'))
-    $executorHash = [System.BitConverter]::ToString($pipeHasher.ComputeHash($executorBytes))
-    $pipeBytes = $pipeHasher.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($pluginRoot.ToLowerInvariant() + $executorHash))
+    $runtimeIdentity = $pluginRoot.ToLowerInvariant()
+    foreach ($runtimeName in @('CadModeling.Executor.SolidWorks.dll','CadModeling.Core.dll','CadModeling.Ir.dll')) {
+        $runtimeBytes = [System.IO.File]::ReadAllBytes((Join-Path $pluginRoot ('runtime\executor\'+$runtimeName)))
+        $runtimeIdentity += '|' + $runtimeName + ':' + [System.BitConverter]::ToString($pipeHasher.ComputeHash($runtimeBytes))
+    }
+    $pipeBytes = $pipeHasher.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($runtimeIdentity))
     $pipeSuffix = ([System.BitConverter]::ToString($pipeBytes)).Replace('-', '').Substring(0, 16).ToLowerInvariant()
 } finally { $pipeHasher.Dispose() }
-$env:CAD_SOLIDWORKS_PIPE = 'auto-solidworks-26-10-11-' + $pipeSuffix
+$env:CAD_SOLIDWORKS_PIPE = 'auto-solidworks-26-10-13-opt1-' + $pipeSuffix
 $ocrConfigPath = Join-Path $env:LOCALAPPDATA 'AutoSolidWorks\dependencies\ocr.json'
 if (Test-Path -LiteralPath $ocrConfigPath) {
     $ocrConfig = Get-Content -LiteralPath $ocrConfigPath -Raw | ConvertFrom-Json

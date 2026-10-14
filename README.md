@@ -6,9 +6,18 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 
 **简体中文** | [English](README.en.md)
 
-**版本 `26.10.11`（2026 年 10 月 11 日） · Windows x64 · 16 个默认 MCP 工具（完整配置 21 个） **
+**版本 `26.10.13-opt.1` · 2026 年 10 月 14 日同步 · Windows x64 · 16 个默认 MCP 工具（完整配置 21 个）**
 
-[下载 Windows 插件](docs/download.zh-CN.md) · [本次新增内容](docs/release-26.10.11.zh-CN.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.11) · [从源码构建](docs/development.md)
+[下载 Windows 插件](docs/download.zh-CN.md) · [本次更新说明](docs/release-26.10.13-opt.1.zh-CN.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.13-opt.1) · [从源码构建](docs/development.md)
+
+## 2026 年 10 月 14 日同步（版本 `26.10.13-opt.1`）
+
+- 增加可驱动孔位、草图质量读回和实际几何编辑探针，以及法兰、孔板和孔族的机械配方。
+- 原生能力证据按任务、运行库哈希和 SolidWorks 修订号验证；来源绑定、实体有效性及保存重开验收继续保留。
+- 保留必要收尾验收：读取一份成功摘要，实际审查等轴测及必要源视图合成图。
+- 本次源码和安装包与本地已安装版本同步；全图纸准确度优先流程补丁已撤销，不包含在本次发布中。
+
+详细范围见[更新说明](docs/release-26.10.13-opt.1.zh-CN.md)。
 
 ## 从输入到交付
 
@@ -55,7 +64,7 @@ Auto SolidWorks **26.10.11** 主要优化了工程图建模过程中的重复输
 ## 快速开始
 
 1. 准备 Windows x64、已激活的本机 SolidWorks、[.NET 9 Windows Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)，以及支持插件的 Codex。
-2. 下载并解压 [26.10.11 Windows 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.11/auto-solidworks-26.10.11-windows-x64.zip)，在解压目录运行：
+2. 下载并解压 [26.10.13-opt.1 Windows 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.13-opt.1/auto-solidworks-26.10.13-opt.1-windows-x64.zip)，在解压目录运行：
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
@@ -72,8 +81,8 @@ Auto SolidWorks **26.10.11** 主要优化了工程图建模过程中的重复输
 CAD 执行、原生文件和几何检查在本机完成。SolidWorks 由使用者安装并授权；Gordon 另需本地 FreeCAD。图片 / PDF 的理解使用你选择的模型与服务，OCR 和 PDF 栅格化依赖可按需配置。
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-版本：`26.10.11`。通过 `cad_get_capabilities` 查询当前功能、输入约束和验证范围，或阅读[随包能力清单](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json)。本版整合精简工具目录、输入／计划句柄、原子增量修改与摘要／分页结果；验收与测量范围见发布测试说明。原生案例证据按其原始修订记录。
-<!-- Capability manifest SHA256: a154cbc0f3cbaf4bb5eb952ca94ef5a03fb20bd9c5654d42463f72fde2db9ea7 -->
+本地优化版本：`26.10.13-opt.1`；修订：`parametric-recipes-evidence-20261013`。增加可驱动孔位、草图质量与实际几何编辑探针、机械配方、方向与深度合同、可声明预览和检查点策略。原生证据按任务范围、SolidWorks修订号及运行库哈希验证；不认证未测任务。保留全部来源及最终保存重开门禁。详见[随包能力清单](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json)与 cad_get_capabilities。
+<!-- Capability manifest SHA256: b227e0bec254da978b871b777ea1a9ae03b37a4c73948deb082bcc0c0c7795d5 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 [功能参数](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md) · [Gordon 使用](plugins/auto-solidworks/skills/auto-solidworks/references/gordon-surface.md) · [曲面控制](plugins/auto-solidworks/skills/auto-solidworks/references/surface-modeling.md) · [几何验证](plugins/auto-solidworks/skills/auto-solidworks/references/local-geometry-verification.md)

@@ -82,8 +82,13 @@ public sealed record BoundsCheck
     public double ToleranceMm { get; init; } = 0.05;
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<CylinderCoverage>))]
+public enum CylinderCoverage { CompleteWall, TrimmedAxisAndDiameter }
+
 public sealed record CylinderGroupCheck
 {
+    /// <summary>Trimmed mode checks analytic axes/diameters/count only, never full wall coverage.</summary>
+    public CylinderCoverage Coverage { get; init; } = CylinderCoverage.CompleteWall;
     public required string Id { get; init; }
     public required string SourceLiteral { get; init; }
     public IReadOnlyList<string> SourceDimensionIds { get; init; } = [];
@@ -112,8 +117,12 @@ public sealed record NativeDimensionCheck
     public double Tolerance { get; init; } = 0.05;
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<CheckpointMode>))]
+public enum CheckpointMode { Automatic, Explicit, EveryNFeatures }
 public sealed record ModelingRecoveryOptions
 {
+    public CheckpointMode CheckpointMode { get; init; }=CheckpointMode.Automatic;
+    public int FeatureInterval { get; init; }=5;
     public bool Enabled { get; init; } = true;
     public string? Directory { get; init; }
     public IReadOnlyList<string> AfterOperationIds { get; init; } = [];

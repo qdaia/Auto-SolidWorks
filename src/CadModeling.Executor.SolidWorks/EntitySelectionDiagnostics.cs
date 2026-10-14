@@ -15,6 +15,31 @@ internal sealed partial class SolidWorksComExecutor
             ["selection_scope"]=scope,["candidate_count"]=candidates.Length.ToString(CultureInfo.InvariantCulture),
             ["match_count"]=matches.ToString(CultureInfo.InvariantCulture),["feature_id"]=query.FeatureId??"<none>",
             ["tolerance_mm"]=query.ToleranceMm.ToString("G12",CultureInfo.InvariantCulture)};
+        data["query_json"]=System.Text.Json.JsonSerializer.Serialize(query,ModelingIrJson.Options);
+        data["diagnostic_scope"]="仅声明的选择范围；候选诊断不得自动拓宽范围或选最近项";
+        data["candidate_diagnostics_truncated"]=(candidates.Length>1000).ToString();
+        var filters=new List<(string Name,EntityQuery Filter)>{("entity_kind",new(){Kind=query.Kind})};
+        if(query.Geometry!=GeometryKind.Any)filters.Add(("geometry",new(){Kind=query.Kind,Geometry=query.Geometry}));
+        if(query.PositionMm is not null)filters.Add(("position_mm",new(){Kind=query.Kind,PositionMm=query.PositionMm,ToleranceMm=query.ToleranceMm}));
+        if(query.Direction is not null)filters.Add(("direction",new(){Kind=query.Kind,Direction=query.Direction}));
+        if(query.RadiusMm is not null)filters.Add(("radius_mm",new(){Kind=query.Kind,RadiusMm=query.RadiusMm,ToleranceMm=query.ToleranceMm}));
+        if(query.LengthMm is not null)filters.Add(("length_mm",new(){Kind=query.Kind,LengthMm=query.LengthMm,ToleranceMm=query.ToleranceMm}));
+        if(query.AreaMm2 is not null)filters.Add(("area_mm2",new(){Kind=query.Kind,AreaMm2=query.AreaMm2,AreaToleranceMm2=query.AreaToleranceMm2}));
+        if(query.AdjacentFaceCount is not null)filters.Add(("adjacent_face_count",new(){Kind=query.Kind,AdjacentFaceCount=query.AdjacentFaceCount}));
+        if(query.StartPointMm is not null)filters.Add(("start_point_mm",new(){Kind=query.Kind,StartPointMm=query.StartPointMm,ToleranceMm=query.ToleranceMm}));
+        if(query.EndPointMm is not null)filters.Add(("end_point_mm",new(){Kind=query.Kind,EndPointMm=query.EndPointMm,ToleranceMm=query.ToleranceMm}));
+        var rejectedFilters=candidates.Take(25).Select((entity,index)=>
+        {
+            var failed=new List<string>();
+            foreach(var filter in filters)
+            {
+                try{if(!MatchesEntity(entity,filter.Filter))failed.Add(filter.Name);}
+                catch(Exception ex){failed.Add(filter.Name+":unavailable:"+ex.GetType().Name);}
+            }
+            return new {candidate_index=index,rejected_filters=failed};
+        }).ToArray();
+        data["candidate_filter_results_json"]=System.Text.Json.JsonSerializer.Serialize(rejectedFilters,ModelingIrJson.Options);
+        data["candidate_filter_results_truncated"]=(candidates.Length>25).ToString();
         if(query.PositionMm is {} p)
         {
             var nearby=new List<(double Distance,string Description)>();

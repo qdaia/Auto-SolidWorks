@@ -13,8 +13,12 @@ public static class PerformanceTrace
     private static long _sequence;
     private static long _writeFailures;
     public static long WriteFailures => Interlocked.Read(ref _writeFailures);
+    public static string? CurrentRequestId => Current.Value?.RequestId;
+    public static int? CurrentAttempt => Current.Value?.Attempt;
+    public static string? CurrentFilePath => Environment.GetEnvironmentVariable(DirectoryVariable) is {Length:>0} directory&&Path.IsPathFullyQualified(directory)
+        ?Path.Combine(directory,$"timing-{Environment.ProcessId}-{ProcessInstance}.jsonl"):null;
 
-    public static IDisposable Begin(string stage)
+    public static IDisposable Begin(string stage,string? requestId=null,string? operationId=null,int? attempt=null)
     {
         var directory = Environment.GetEnvironmentVariable(DirectoryVariable);
         if (string.IsNullOrWhiteSpace(directory)) return Disabled.Instance;
@@ -22,7 +26,7 @@ public static class PerformanceTrace
         try
         {
             if (!Path.IsPathFullyQualified(directory)) throw new IOException("跟踪目录必须是绝对路径。");
-            var span = new Span(directory, stage, Current.Value);
+            var span = new Span(directory, stage, Current.Value,requestId,operationId,attempt);
             Current.Value = span;
             return span;
         }
@@ -58,8 +62,11 @@ public static class PerformanceTrace
         public void Dispose() { }
     }
 
-    private sealed class Span(string directory, string stage, Span? parent) : IDisposable
+    private sealed class Span(string directory, string stage, Span? parent,string? requestId,string? operationId,int? attempt) : IDisposable
     {
+        public string? RequestId { get; }=requestId??parent?.RequestId;
+        public string? OperationId { get; }=operationId??parent?.OperationId;
+        public int? Attempt { get; }=attempt??parent?.Attempt;
         private readonly long _id = Interlocked.Increment(ref _sequence);
         private readonly long _started = Stopwatch.GetTimestamp();
         private readonly DateTimeOffset _startedUtc = DateTimeOffset.UtcNow;
@@ -79,6 +86,7 @@ public static class PerformanceTrace
                     schema_version = 1, process_id = Environment.ProcessId, process_instance = ProcessInstance,
                     executable_path = Environment.ProcessPath, span_id = _id, parent_span_id = parent?._id,
                     stage, thread_id = _thread, started_utc = _startedUtc,
+                    request_id=RequestId,operation_id=OperationId,attempt=Attempt,
                     started_ticks = _started, ended_ticks = ended, frequency = Stopwatch.Frequency,
                     elapsed_ms = (ended - _started) * 1000d / Stopwatch.Frequency,
                     write_failures = WriteFailures,

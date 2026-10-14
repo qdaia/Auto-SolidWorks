@@ -1,0 +1,15 @@
+{
+  "source_text": "80x60x12孔板，两个通孔直径6，沉孔直径12深4，中心(-15,10)与(15,-10)",
+  "operations": [],
+  "recipe": {
+    "kind": "HoleFamily",
+    "width_mm": 80,
+    "height_mm": 60,
+    "thickness_mm": 12,
+    "hole_diameter_mm": 6,
+    "hole_kind": "Counterbore",
+    "counterbore_diameter_mm": 12,
+    "counterbore_depth_mm": 4,
+    "hole_centers": [{"xmm": -15, "ymm": 10}, {"xmm": 15, "ymm": -10}]
+  }
+}

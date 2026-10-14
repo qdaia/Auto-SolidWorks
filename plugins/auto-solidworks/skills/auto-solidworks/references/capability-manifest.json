@@ -1,9 +1,9 @@
 {
-  "version": "26.10.11",
-  "revision": "input-reuse-20261011",
+  "version": "26.10.13-opt.1",
+  "revision": "parametric-recipes-evidence-20261013",
   "development_validation": "current_local_integration_offline_validation",
-  "current_native_acceptance": "not_recertified_local_integration_engineering_paused",
-  "native_evidence_policy": "All native evidence is historical and bound to its original engineering revision. 26.10.07 integrates the final34 implementation with fresh offline checks; no native SOLIDWORKS recertification is claimed. B01-B06 remains paused and incomplete.",
+  "current_native_acceptance": "dynamic_scoped_evidence",
+  "native_evidence_policy": "Current native evidence is task-scoped and validated against runtime hashes, SOLIDWORKS revision and retained saved-file inspections. Historical evidence does not certify the current version or untested tasks.",
   "semantic_topology": {
     "source_implementation": true,
     "reference_field": "geometryReferences[].semantic",
@@ -469,5 +469,84 @@
     "drawing_review_handle": "cad_review_drawing_coverage drawingContextId; original coverage validation",
     "native_speedup": "not_causally_established; same-session bounded comparison only; executor source preserved",
     "benchmark_report": "docs/benchmark-26.10.11.zh-CN.md in source/download package"
+  },
+  "report_issue_hardening": {
+    "source_interpretation": "structured source hypotheses with localized supporting and contradicting observations; selected contradictions fail closed; require_interpretation_review=true is mandatory in new drawing workflow; legacy omitted flag emits warning",
+    "preflight": [
+      "duplicate automatic/manual circle driving dimensions rejected",
+      "nominal circular boss/hole radial tangency risk warnings",
+      "explicit hole direction trace",
+      "bounded right-hand revolve start/mid/end trace",
+      "unequal chamfer face-order warning"
+    ],
+    "verification": [
+      "explicit CompleteWall versus TrimmedAxisAndDiameter; trimmed mode never certifies full wall",
+      "missing target versus measured mismatch codes",
+      "actual native dimension names for missing checks",
+      "integer count tolerances positive and less than 0.5",
+      "explicit nominal/executed source deviation records"
+    ],
+    "receipts": "content-addressed named mutex plus fully flushed same-directory atomic rename; no mutation replay after artifact failure",
+    "preview": "file-written evidence explicitly distinct from visual coverage; actual clipping correction remains unverified",
+    "native_acceptance": "not_run",
+    "limits": [
+      "structured reviews do not authenticate independent human interpretation or detect undeclared counterevidence",
+      "legacy callers must opt into strict interpretation review",
+      "analytic nominal tangency is a risk, not a unique native kernel diagnosis",
+      "direction traces are analytic proposals and require native/source readback",
+      "native chamfer face ordering is not automatically remapped",
+      "whole-part image/BREP equivalence and preview clipping remain uncertified"
+    ],
+    "reference": "skills/auto-solidworks/references/report-issue-hardening.md"
+  },
+  "integrated_workflow": {
+    "drawing_read_prepares_pending_context_by_default": true,
+    "read_opt_out": "prepareReview=false",
+    "pending_context_handle": "review_workspace.drawing_context_input_id",
+    "worklist_handle": "review_workspace.worklist_artifact_id",
+    "semantic_review_automatic": false,
+    "all_inventory_candidates_retained": true,
+    "raw_region_hashes_checked": true,
+    "error_prioritized_summary": true,
+    "task_scoped_skill_reading": true,
+    "strict_source_and_native_gates_preserved": true,
+    "native_acceptance": "not_run",
+    "independent_visual_analysis_timing": "not_measured",
+    "end_to_end_speedup": "not_measured"
+  },
+  "mini_workflow": {
+    "focus": "source_interpretation_dimension_binding_and_modeling",
+    "batch_source_gaps_in_existing_compile_response": true,
+    "additional_mcp_tools": 0,
+    "source_gap_review": "agent_checks_source_first_then_batches_only_unresolved_user_questions",
+    "mandatory_checks": [
+      "source_interpretation",
+      "complete_dimension_bindings",
+      "omission_coverage",
+      "save_reopen_rebuild",
+      "native_body_validity",
+      "independent_source_geometry"
+    ],
+    "native_speedup": "not_measured",
+    "reference": "skills/auto-solidworks/references/batch-clarification-workflow.md"
+  },
+  "optimization_workflow": {
+    "editable_circle_positions": true,
+    "native_sketch_quality": true,
+    "probe_geometry_and_restore_checks": true,
+    "mechanical_recipes": [
+      "Flange",
+      "HolePlate",
+      "HoleFamily:Through/Blind/Counterbore"
+    ],
+    "declared_preview_scope": true,
+    "checkpoint_modes": [
+      "Automatic",
+      "Explicit",
+      "EveryNFeatures"
+    ],
+    "native_evidence_index": "current-native-evidence.json",
+    "native_acceptance": "read_dynamic_evidence",
+    "end_to_end_speedup": "requires_bounded_benchmark"
   }
 }

@@ -136,14 +136,14 @@ public sealed class ModelingTools
     public static Task<ModelInspection> InspectModel(IModelingExecutor executor,string inputPath,
         EntityQuery[]? queries=null,ModelVerificationSpec? verification=null,CancellationToken cancellationToken=default,
         GeometryRef[]? geometryReferences=null,MeasurementQuery[]? measurements=null,string? documentRevision=null,
-        string? sourceRevisionId=null,ConnectivityInspectionQuery[]? connectivityQueries=null,NativeEditabilityProbeSpec[]? editabilityProbes=null)
+        string? sourceRevisionId=null,ConnectivityInspectionQuery[]? connectivityQueries=null,NativeEditabilityProbeSpec[]? editabilityProbes=null,bool requireEditableSketches=false)
     {
         var errors=ModelVerification.Validate((verification??new()) with { Bindings=[] },null).ToArray();
         // Standalone inspection reuses expected measurements; source binding was checked during compilation.
         if(errors.Length>0)
             throw new ArgumentException(string.Join(" ",errors.Select(e=>e.Message)));
         return executor.InspectAsync(new(Path.GetFullPath(inputPath),queries,verification,geometryReferences,measurements,
-            documentRevision,sourceRevisionId,connectivityQueries,editabilityProbes),cancellationToken);
+            documentRevision,sourceRevisionId,connectivityQueries,editabilityProbes,requireEditableSketches),cancellationToken);
     }
 
     [McpServerTool(Name="cad_capture_projection",ReadOnly=true,Destructive=false,Idempotent=true,OpenWorld=false,UseStructuredContent=true)]
@@ -159,7 +159,19 @@ public sealed class ModelingTools
     [McpServerTool(Name = "cad_get_capabilities", ReadOnly = true, Destructive = false,
         Idempotent = true, OpenWorld = false, UseStructuredContent = true)]
     [Description("列出本地零件／装配体建模操作、原生特征类型、单位、格式、工作流程及当前能力限制。")]
-    public static object Capabilities() => new
+    public static object Capabilities()
+    {
+        var complete = System.Text.Json.JsonSerializer.SerializeToNode(CapabilityContract(), ModelingIrJson.Options)!.AsObject();
+        var packageRoot = Directory.GetParent(AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar))?.Parent?.FullName;
+        if (packageRoot is not null)
+        {
+            complete["current_native_evidence"] = CapabilityEvidence.Read(packageRoot, complete["server_version"]!.GetValue<string>());
+            complete["current_native_acceptance"] = complete["current_native_evidence"]!["status"]!.DeepClone();
+        }
+        return complete;
+    }
+
+    private static object CapabilityContract() => new
     {
         server_version = typeof(ModelingTools).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion,
         mode = "modeling_only",
@@ -176,6 +188,9 @@ public sealed class ModelingTools
         physical_thread_contract = PluginCapabilityManifest.Current.GetProperty("physical_thread_contract"),
         concentric_tree_mobility = PluginCapabilityManifest.Current.GetProperty("concentric_tree_mobility"),
         current_native_acceptance = PluginCapabilityManifest.Current.GetProperty("current_native_acceptance"),
+        report_issue_hardening = PluginCapabilityManifest.Current.GetProperty("report_issue_hardening"),
+        integrated_workflow = PluginCapabilityManifest.Current.GetProperty("integrated_workflow"),
+        mini_workflow = PluginCapabilityManifest.Current.TryGetProperty("mini_workflow",out var miniWorkflow) ? miniWorkflow : default,
         native_evidence_policy = PluginCapabilityManifest.Current.GetProperty("native_evidence_policy"),
         local_integration = PluginCapabilityManifest.Current.GetProperty("local_integration"),
         token_economy = PluginCapabilityManifest.Current.GetProperty("token_economy"),
@@ -253,6 +268,8 @@ public sealed class ModelingTools
         }
         return new {
             success = compilation.Success,
+            source_interpretation_review_status = draft?.DrawingContext is null ? "not_applicable" : !compilation.Success ? "incomplete" :
+                draft.DrawingContext.RequireInterpretationReview ? "declared_source_interpretations_checked" : "legacy_not_required",
             drawing_review_status = draft?.DrawingContext is null ? "not_applicable" : !compilation.Success ? "incomplete" :
                 draft.DrawingContext.OmissionReview is null ? "partial_unreviewed" : "declared_review_complete",
             full_drawing_equivalence = false,

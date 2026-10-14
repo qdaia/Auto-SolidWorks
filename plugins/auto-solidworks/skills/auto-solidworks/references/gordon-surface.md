@@ -1,8 +1,8 @@
 # Local Gordon curve-network surfaces
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Current local integration version: `26.10.11`; revision: `input-reuse-20261011`. Incorporates the implemented `.34.validation` optimizations and preserves existing modeling/drawing capabilities. This integration is checked by a fresh build, offline regressions and public MCP compile/dry-run without starting SOLIDWORKS. B01-B06 engineering remains paused and incomplete. Native successes and failures remain bound to their original revisions and bounded fixtures; this version is not natively recertified. Complex Boundary, Curvature Fill/G2, general changed topology, standard thread fits and mechanism limits/couplings remain open. Read the [bundled capability manifest](capability-manifest.json) and `cad_get_capabilities`.
-<!-- Capability manifest SHA256: a154cbc0f3cbaf4bb5eb952ca94ef5a03fb20bd9c5654d42463f72fde2db9ea7 -->
+Local optimization version: `26.10.13-opt.1`; revision: `parametric-recipes-evidence-20261013`. Editable hole positions, native sketch quality and geometry-changing probes, bounded mechanical recipes, direction/depth contracts and declared preview/checkpoint scopes. Native evidence is validated per task, SOLIDWORKS revision and runtime hash; untested tasks remain uncertified. Source and final save/reopen gates remain required. Read the [bundled capability manifest](capability-manifest.json) and cad_get_capabilities.
+<!-- Capability manifest SHA256: b227e0bec254da978b871b777ea1a9ae03b37a4c73948deb082bcc0c0c7795d5 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 `cad_build_gordon_surface` was introduced in historical development version `0.6.0+surface.20260930.1`; current package/version status is in the bundled capability manifest. It calls the **unmodified upstream CurvesWB/TiGL Gordon interpolator**, pinned at `e47b47927f59c87b93a1820c9f6ad4b4dc187076`, through a separate local FreeCAD Python process. FreeCAD 1.1.4 / OCC 7.8.1 is the previously tested runtime. Execution is offline and does not launch SolidWorks; this hardening revision does not rerun FreeCAD/native import acceptance.

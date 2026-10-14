@@ -326,6 +326,15 @@ internal sealed partial class SolidWorksComExecutor
             ?? throw new InvalidOperationException($"没有在{o.Kind}之后的特征。");
         if(feature.GetID()==previousFeatureId) throw new InvalidOperationException($"SolidWorks 未能为{o.Kind}创建新的特征。");
         feature.Name=operation.Name;
+        if(o.CountDimensionName is {} countName)
+        {
+            if(o.Kind is not (NativeFeatureKind.CircularPattern or NativeFeatureKind.LinearPattern))
+                throw new InvalidOperationException("数量尺寸名称仅适用于阵列。");
+            var counts=ReadNativeFeatureDimensions(model,feature).Where(d=>d.ParameterType=="swDimensionParamTypeInteger"&&Math.Abs(d.SystemValue-o.Count)<1e-8).ToArray();
+            if(counts.Length!=1||model.Parameter(counts[0].Name) is not IDimension countDimension)
+                throw new InvalidOperationException("原生阵列数量参数未唯一识别。");
+            countDimension.Name=countName;
+        }
         ConfigureComplexLoft(model,feature,o);
         VerifyComplexLoft(model,feature,o,objects);
         VerifyAdvancedDefinition(model,feature,o,objects);

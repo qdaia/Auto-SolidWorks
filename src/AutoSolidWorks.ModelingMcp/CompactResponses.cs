@@ -85,6 +85,7 @@ public static class CompactResponses
             if (node[key] is not JsonArray entries) continue;
             var actionable = entries.Where(e => e is JsonObject && (e["passed"]?.GetValue<bool>() == false
                 || key is "diagnostics" or "issues" || e["code"]?.GetValue<string>()?.Contains("UNAVAILABLE", StringComparison.Ordinal) == true)).ToArray();
+            if (key == "diagnostics") actionable = actionable.OrderByDescending(DiagnosticPriority).ToArray();
             summary[key + "_actionable_count"] = actionable.Length;
             summary[key + "_truncated"] = actionable.Length > 12;
             summary[key] = new JsonArray(actionable.Take(12).Select(e => (JsonNode?)Summarize((JsonObject)e!)).ToArray());
@@ -95,5 +96,13 @@ public static class CompactResponses
             summary["pages_truncated"] = pages.Count > 12;
         }
         return summary;
+    }
+
+    private static int DiagnosticPriority(JsonNode? diagnostic)
+    {
+        if (diagnostic?["severity"] is not JsonValue severity) return 0;
+        if (severity.TryGetValue<int>(out var numeric)) return numeric;
+        return severity.TryGetValue<string>(out var text) ? text.ToLowerInvariant() switch
+        { "error" => 2, "warning" => 1, _ => 0 } : 0;
     }
 }

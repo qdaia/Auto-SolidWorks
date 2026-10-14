@@ -1,0 +1,14 @@
+{
+  "source_text": "法兰外径120、中心孔60、厚12；6个直径9通孔均布于PCD90，起始角0度",
+  "operations": [],
+  "recipe": {
+    "kind": "Flange",
+    "outer_diameter_mm": 120,
+    "inner_diameter_mm": 60,
+    "thickness_mm": 12,
+    "hole_diameter_mm": 9,
+    "pitch_circle_diameter_mm": 90,
+    "hole_count": 6,
+    "start_angle_degrees": 0
+  }
+}

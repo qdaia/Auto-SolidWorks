@@ -44,14 +44,20 @@ public static partial class ModelVerification
         }
         foreach(var c in spec.CylinderGroups)
         {
-            if(!Positive(c.DiameterMm)||!Positive(c.LengthMm)||!Positive(c.ToleranceMm)||!Finite(c.Direction)||Norm(c.Direction)<1e-12 ||
+            if(!Enum.IsDefined(c.Coverage)||!Positive(c.DiameterMm)||
+               (c.Coverage==CylinderCoverage.CompleteWall ? !Positive(c.LengthMm) : c.LengthMm!=0)||!Positive(c.ToleranceMm)||!Finite(c.Direction)||Norm(c.Direction)<1e-12 ||
                !double.IsFinite(c.DirectionToleranceDegrees)||c.DirectionToleranceDegrees<0||c.DirectionToleranceDegrees>=90 ||
-               c.AxisStartsMm.Count==0||c.AxisStartsMm.Any(p=>!Finite(p))) Error($"圆柱检查 '{c.Id}' 有无效的尺寸、方向、公差或轴开始。");
+               c.AxisStartsMm.Count==0||c.AxisStartsMm.Any(p=>!Finite(p))) Error($"圆柱检查 '{c.Id}' 的直径、公差和方向须有效；CompleteWall 长度必须大于0，TrimmedAxisAndDiameter 长度必须为0（不认证整壁长度）。");
             for(var i=0;i<c.AxisStartsMm.Count;i++) for(var j=0;j<i;j++)
                 if(Norm(Sub(c.AxisStartsMm[i],c.AxisStartsMm[j]))<=c.ToleranceMm) Error($"圆柱检查 '{c.Id}' 有预期的圆柱重复。");
         }
         foreach(var c in spec.NativeDimensions)
-            if(string.IsNullOrWhiteSpace(c.DimensionName)||!double.IsFinite(c.Value)||!Positive(c.Tolerance)||!Enum.IsDefined(c.Unit)) Error($"原生尺寸检查 '{c.Id}' 无效。");
+        {
+            if(string.IsNullOrWhiteSpace(c.DimensionName)||!double.IsFinite(c.Value)||!Positive(c.Tolerance)||!Enum.IsDefined(c.Unit))
+                Error($"原生尺寸检查 '{c.Id}' 需要实际 dimension_name、有限 value 和正 tolerance；计数可用 0.01 公差，不能使用0。");
+            if(c.Unit==DrawingValueUnit.Unitless && (c.Value<0||c.Value!=Math.Truncate(c.Value)||c.Tolerance>=.5))
+                Error($"原生整数/计数检查 '{c.Id}' 需要非负整数期望值，以及小于0.5的正公差，防止接受错误实例数。");
+        }
         foreach(var c in spec.Bounds)
             if(!Finite(c.SizeMm)||c.SizeMm.X<0||c.SizeMm.Y<0||c.SizeMm.Z<0||!Positive(c.ToleranceMm)) Error($"边界检查 '{c.Id}' 无效。");
         if(context is null && spec.Bindings.Count>0) Error("源验证绑定需要 drawing_context。");
@@ -69,7 +75,7 @@ public static partial class ModelVerification
             if(check.Item4 is NativeDimensionCheck dimension && binding.ParameterPath=="value") value*=UnitFactor(dimension.Unit);
             var allowed=binding.ParameterPath=="value"&&check.Item4 is NativeDimensionCheck ||
                 check.Item4 is BoundsCheck && binding.ParameterPath.StartsWith("size_mm.",StringComparison.Ordinal) ||
-                check.Item4 is CylinderGroupCheck && (binding.ParameterPath is "diameter_mm" or "length_mm" or "expected_count" || binding.ParameterPath.StartsWith("axis_starts_mm.",StringComparison.Ordinal)) ||
+                check.Item4 is CylinderGroupCheck cylinderCheck && (binding.ParameterPath is "diameter_mm" or "expected_count" || binding.ParameterPath=="length_mm"&&cylinderCheck.Coverage==CylinderCoverage.CompleteWall || binding.ParameterPath.StartsWith("axis_starts_mm.",StringComparison.Ordinal)) ||
                 check.Item4 is SurfaceSampleCheck && (binding.ParameterPath is "diameter_mm" or "radius_mm" or "cone_half_angle_degrees" or "cone_included_angle_degrees" || binding.ParameterPath.StartsWith("points_mm.",StringComparison.Ordinal) || binding.ParameterPath.StartsWith("center_mm.",StringComparison.Ordinal)) ||
                 check.Item4 is BoundaryClearanceCheck && (binding.ParameterPath=="minimum_distance_mm" || binding.ParameterPath.StartsWith("points_mm.",StringComparison.Ordinal)) ||
                 check.Item4 is WholeModelCheck && binding.ParameterPath is "solid_body_count" or "surface_body_count" or "face_count" or "edge_count" or "open_edge_count" ||
@@ -83,7 +89,8 @@ public static partial class ModelVerification
     public static ModelVerificationResult Evaluate(ModelVerificationSpec spec, IReadOnlyList<MeasuredCylinder> cylinders,
         IReadOnlyDictionary<string,double> nativeSystemValues, GeometrySnapshot? geometry,
         IReadOnlyDictionary<string,IReadOnlyList<LocalPointMeasurement>>? localMeasurements=null, WholeModelMeasurement? wholeModel=null,
-        IReadOnlyDictionary<string,ShapeMeasurement>? shapeMeasurements=null)
+        IReadOnlyDictionary<string,ShapeMeasurement>? shapeMeasurements=null,
+        IReadOnlyCollection<string>? availableNativeDimensionNames=null)
     {
         var results=new List<VerificationCheckResult>();
         results.AddRange(EvaluateShapeChecks(spec,shapeMeasurements));
@@ -94,7 +101,8 @@ public static partial class ModelVerification
         foreach(var check in spec.NativeDimensions)
         {
             if(!nativeSystemValues.TryGetValue(check.DimensionName,out var actual)||!double.IsFinite(actual))
-            { results.Add(new(check.Id,false,"unverifiable","保存的模型未暴露所请求的活动原生尺寸。")); continue; }
+            { results.Add(new(check.Id,false,"unverifiable","保存的模型未暴露所请求的活动原生尺寸；先读取实际名称，不得按相近数值猜选。",
+                new Dictionary<string,string>{["requested_name"]=check.DimensionName,["available_active_names"]=string.Join("; ",(availableNativeDimensionNames??nativeSystemValues.Keys.ToArray()).Order(StringComparer.Ordinal))})); continue; }
             var factor=check.Unit==DrawingValueUnit.Degree ? 180/Math.PI : check.Unit==DrawingValueUnit.Unitless?1:1000/UnitFactor(check.Unit);
             var measured=actual*factor;
             var passed=Math.Abs(measured-check.Value)<=check.Tolerance;
@@ -136,10 +144,12 @@ public static partial class ModelVerification
             var end=Add(start,Scale(direction,check.LengthMm));
             var t0=Dot(start,direction); var t1=Dot(end,direction); var lateral=Sub(start,Scale(direction,t0));
             var matches=merged.Select((m,i)=>(m,i)).Where(x=>Norm(Sub(x.m.Lateral,lateral))<=check.ToleranceMm &&
-                Math.Abs(x.m.Start-Math.Min(t0,t1))<=check.ToleranceMm&&Math.Abs(x.m.End-Math.Max(t0,t1))<=check.ToleranceMm).ToArray();
+                (check.Coverage==CylinderCoverage.TrimmedAxisAndDiameter ||
+                Math.Abs(x.m.Start-Math.Min(t0,t1))<=check.ToleranceMm&&Math.Abs(x.m.End-Math.Max(t0,t1))<=check.ToleranceMm)).ToArray();
             if(matches.Length!=1 || used.Contains(matches.FirstOrDefault().i)&&matches.Length==1)
             {failures.Add($"没有具有所请求的轴向长度的唯一圆柱体{Point(start)}。");continue;}
             var (actual,index)=matches[0];used.Add(index);
+            if(check.Coverage==CylinderCoverage.TrimmedAxisAndDiameter) continue;
             var fullArea=2*Math.PI*actual.Radius*(actual.End-actual.Start);
             // Partial/open/intersected cylindrical walls are not certified as complete drilled holes.
             if(fullArea<=0||Math.Abs(actual.Area/fullArea-1)>0.002)
@@ -147,8 +157,10 @@ public static partial class ModelVerification
         }
         if(check.ExactCount&&merged.Count!=check.AxisStartsMm.Count) failures.Add($"此直径／方向预期有{check.AxisStartsMm.Count}个圆柱面，实际测得{merged.Count}个。");
         var passed=failures.Count==0;
-        return new(check.Id,passed,passed?"passed":incomplete?"unverifiable":"mismatch",passed?"实际的圆柱壁匹配直径、轴线、轴向起始/结束和数量。":string.Join(" ",failures),
+        return new(check.Id,passed,passed?"passed":incomplete?"unverifiable":"mismatch",passed?
+            check.Coverage==CylinderCoverage.CompleteWall?"实际的圆柱壁匹配直径、轴线、轴向起始/结束和数量。":"裁剪圆柱的解析直径、轴线和数量匹配；未认证整壁长度、周向覆盖、孔底或贯通性，需另行局部/连接性检查。":string.Join(" ",failures),
             new Dictionary<string,string>{["expected_count"]=check.AxisStartsMm.Count.ToString(CultureInfo.InvariantCulture),["measured_count"]=merged.Count.ToString(CultureInfo.InvariantCulture),
+                ["coverage"]=check.Coverage.ToString(),["scope"]=check.Coverage==CylinderCoverage.CompleteWall?"complete_cylinder_wall":"trimmed_cylinder_axes_diameters_count",
                 ["measured_axes_and_spans_mm"]=string.Join("; ",merged.Select(m=>$"轴向 {Point(m.Lateral)}；t {F(m.Start)}..{F(m.End)}；直径 {F(m.Radius*2)}"))});
     }
     private static bool TryField(JsonElement node,string path,out double value)

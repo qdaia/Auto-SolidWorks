@@ -9,6 +9,7 @@ internal sealed partial class SolidWorksComExecutor
     {
         object Entity(SketchEntityReference r)
         {
+            if(r.Part==SketchEntityPart.Origin)return NativeSketchOrigin(model,sketch);
             if(r.PrimitiveIndex<0 || r.PrimitiveIndex>=primitives.Count || r.SegmentIndex<0 || r.SegmentIndex>=primitives[r.PrimitiveIndex].Length)
                 throw new ArgumentException("草图实体引用位于创建的原始段落之外。");
             var segment=primitives[r.PrimitiveIndex][r.SegmentIndex];
@@ -46,6 +47,8 @@ internal sealed partial class SolidWorksComExecutor
                 SketchConstraintKind.Perpendicular=>swConstraintType_e.swConstraintType_PERPENDICULAR,
                 SketchConstraintKind.Midpoint=>swConstraintType_e.swConstraintType_ATMIDDLE,
                 _=>swConstraintType_e.swConstraintType_FIXED };
+            if(relation.Kind is SketchConstraintKind.Horizontal or SketchConstraintKind.Vertical&&relation.Entities.All(r=>Entity(r) is ISketchPoint))
+                kind=relation.Kind==SketchConstraintKind.Horizontal?swConstraintType_e.swConstraintType_HORIZPOINTS:swConstraintType_e.swConstraintType_VERTPOINTS;
             if(sketch.RelationManager.AddRelation(relation.Entities.Select(r=>new System.Runtime.InteropServices.DispatchWrapper(Entity(r))).ToArray(),(int)kind) is null)
                 throw new InvalidOperationException($"无法添加{relation.Kind}草图关系。");
         }

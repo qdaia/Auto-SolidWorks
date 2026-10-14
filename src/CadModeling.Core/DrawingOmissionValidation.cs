@@ -225,12 +225,12 @@ public static partial class DrawingOmissionValidation
         bool Equal(double a, double b) => Math.Abs(a - b) <= 1e-7 * Math.Max(1, Math.Abs(b));
         // Candidate numbers are in the source's stated unit. Compare literal values, never infer physical sizes from pixels.
         var plainCount=kind=="linear"&&Regex.IsMatch(decision.CorrectedLiteral??c.Literal,@"^\s*\d+\s*$",RegexOptions.CultureInvariant);
-        if (!facts.Any(f => Equal(f.Value, value.Value) && (f.Unit != DrawingValueUnit.Unitless||plainCount) &&
+        if (!facts.Any(f => Equal(SourceInterpretationValidation.SourceLiteralValue(f), value.Value) && (f.Unit != DrawingValueUnit.Unitless||plainCount) &&
             ((kind is "angle") == (f.Unit == DrawingValueUnit.Degree))))
             issue("DRAWING_OMISSION_QUANTITY", "标注值没有匹配的源尺寸绑定；检查其字面值、单位和目标值。", c);
-        if (multiplicity is > 1 && !facts.Any(f => f.Unit == DrawingValueUnit.Unitless && Equal(f.Value, multiplicity.Value)))
+        if (multiplicity is > 1 && !facts.Any(f => f.Unit == DrawingValueUnit.Unitless && Equal(SourceInterpretationValidation.SourceLiteralValue(f), multiplicity.Value)))
             issue("DRAWING_OMISSION_COUNT", "特征重复标注需要一个明确的无单位计数维度绑定到模型及其验证。", c);
-        if(secondary is { } sv && !facts.Any(f=>Equal(f.Value,sv) && (kind=="chamfer"?f.Unit==DrawingValueUnit.Degree:f.Unit!=DrawingValueUnit.Degree&&f.Unit!=DrawingValueUnit.Unitless)))
+        if(secondary is { } sv && !facts.Any(f=>Equal(SourceInterpretationValidation.SourceLiteralValue(f),sv) && (kind=="chamfer"?f.Unit==DrawingValueUnit.Degree:f.Unit!=DrawingValueUnit.Degree&&f.Unit!=DrawingValueUnit.Unitless)))
             issue("DRAWING_OMISSION_QUANTITY", "标注的次级值（螺距、角度或规格）没有匹配的尺寸绑定。", c);
     }
 

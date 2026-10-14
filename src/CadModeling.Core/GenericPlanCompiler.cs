@@ -40,6 +40,9 @@ public enum GenericCurveKind
 /// </summary>
 public sealed record GenericModelDraft
 {
+    public IReadOnlyList<string>? PreviewViews { get; init; }
+    public string? PreviewScopeReason { get; init; }
+    public MechanicalRecipeSpec? Recipe { get; init; }
     public ExecutionDeadlineOptions ExecutionDeadline { get; init; } = new();
     public ModelVerificationSpec Verification { get; init; } = new();
     public ModelingRecoveryOptions Recovery { get; init; } = new();
@@ -63,6 +66,9 @@ public sealed record GenericModelDraft
 
 public sealed record GenericOperationDraft
 {
+    public string? CenterPositionDimensionName { get; init; }
+    public string? CenterPositionDimensionAxis { get; init; }
+    public bool RequireEditable { get; init; }
     public bool AutoDimensionPrimitives { get; init; }
     public bool RequireFullyDefined { get; init; }
     public IReadOnlyList<SketchConstraintSpec> Constraints { get; init; } = [];
@@ -132,7 +138,14 @@ public sealed partial class GenericPlanCompiler
         bool overwriteAllowed = false)
     {
         using var timing = CadModeling.Ir.PerformanceTrace.Begin("plan.compile");
+        if(draft.Recipe is not null)
+        {
+            var expanded=MechanicalRecipes.Expand(draft);
+            if(expanded.Diagnostics.Any(d=>d.Severity==DiagnosticSeverity.Error))return new(null,expanded.Diagnostics);
+            draft=expanded.Draft!;
+        }
         var diagnostics = new List<ModelingDiagnostic>();
+        diagnostics.AddRange(ModelingPreflight.Validate(draft));
         diagnostics.AddRange(DrawingPlanValidation.Validate(draft));
         if (string.IsNullOrWhiteSpace(draft.Name))
             diagnostics.Add(Error("GPC001", "一个通用模型草案需要一个名称。", "draft.name"));
@@ -171,6 +184,8 @@ public sealed partial class GenericPlanCompiler
             Operations = operations,
             Output = new()
             {
+                PreviewViews=draft.PreviewViews??["isometric","front","top","right","left"],
+                PreviewScopeReason=draft.PreviewScopeReason,
                 NativePath = nativeOutputPath,
                 ExportPaths = exportPaths ?? [],
                 OverwriteAllowed = overwriteAllowed
@@ -266,6 +281,9 @@ public sealed partial class GenericPlanCompiler
         return new ProfileSketchOperation
         {
             AutoDimensionPrimitives = source.AutoDimensionPrimitives,
+            CenterPositionDimensionName=source.CenterPositionDimensionName,
+            CenterPositionDimensionAxis=source.CenterPositionDimensionAxis,
+            RequireEditable = source.RequireEditable,
             RequireFullyDefined = source.RequireFullyDefined,
             Constraints = source.Constraints,
             Dimensions = source.Dimensions,
@@ -291,8 +309,12 @@ public sealed partial class GenericPlanCompiler
             diagnostics.Add(Error("GPC030", "挤出需要 sketch_id。", $"{path}.sketch_id"));
         if (source.EndCondition is null)
             diagnostics.Add(Error("GPC031", "挤出需要显式的 end_condition 特征。", $"{path}.end_condition"));
+        if (source.DepthMm is null && source.EndCondition is ExtrudeEndCondition.ThroughAll or ExtrudeEndCondition.UpToNext or ExtrudeEndCondition.UpToSurface)
+            source = source with { DepthMm = 0 };
         if (source.DepthMm is null)
-            diagnostics.Add(Error("GPC032", "挤出需要显式的depth_mm；仅使用0来生成UpToSurface。", $"{path}.depth_mm"));
+            diagnostics.Add(Error("GPC032", "Blind/MidPlane 挤出需要显式的正 depth_mm；贯穿/到下一面/到曲面不需要制造深度。", $"{path}.depth_mm"));
+        if (source.DepthMm is { } depth && (!double.IsFinite(depth) || depth < 0))
+            diagnostics.Add(Error("GPC032", "挤出深度必须为有限且非负的毫米值。", $"{path}.depth_mm"));
         if (string.IsNullOrWhiteSpace(source.SketchId) || source.EndCondition is null || source.DepthMm is null)
             return null;
 

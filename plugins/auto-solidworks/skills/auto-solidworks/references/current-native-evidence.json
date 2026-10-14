@@ -1,0 +1,839 @@
+{
+  "schema_version": 1,
+  "runtime_version": "26.10.13-opt.1",
+  "recorded_utc": "2026-10-13T12:43:26.707940+00:00",
+  "runtime_hashes": {
+    "runtime/mcp/AutoSolidWorks.ModelingMcp.dll": "c7374651e5a80c7a322f64b750579f995df793ad07d16d377112932781f9c085",
+    "runtime/mcp/CadModeling.Core.dll": "ec91681610dfe51a7379aa0c39a5394b4d3ac6d612b4ba84f53b68e630b53392",
+    "runtime/mcp/CadModeling.Ir.dll": "b9936816051ee6d3c46da2e595941efff10ea413fdb85882ab739e5ffe5c8277",
+    "runtime/executor/CadModeling.Executor.SolidWorks.dll": "3079f3a282d847d9a3f3beaaa77e0d6775c97369d0eb07de358007b71f02a7e5",
+    "runtime/executor/CadModeling.Core.dll": "ec91681610dfe51a7379aa0c39a5394b4d3ac6d612b4ba84f53b68e630b53392",
+    "runtime/executor/CadModeling.Ir.dll": "b9936816051ee6d3c46da2e595941efff10ea413fdb85882ab739e5ffe5c8277"
+  },
+  "task_families": [
+    {
+      "id": "recipe-flange",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches",
+        "pcd90-to92:trial_actual_geometry_and_restoration",
+        "holes6-to7:trial_actual_geometry_and_restoration",
+        "hole-diameter9-to10:trial_actual_geometry_and_restoration",
+        "thickness12-to14:trial_actual_geometry_and_restoration"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/flange.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/flange.sldprt",
+          "sha256": "923fbdae0549fcb5cff14ef251aac37f16f8a97fa94f1e10489bcfe3600475a0"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/inspection.json",
+          "sha256": "568846a44b0897264e9e75d259bc0acf1ec47b93d5565dee3dd1e22bab726b2c"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/request.json",
+          "sha256": "4d56b16ee1d26cac2518b6c576133de992bb02c2926958621a6f64e560b2cc80"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/plan.json",
+          "sha256": "f2dea087999b0a36646f7f6c681d94339ded0babda15ca4a5f228a7e20cea950"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/build.json",
+          "sha256": "dffa6791548c686702723c9c885b05b466d095515c221084a6f8ef7170798b43"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/flange.isometric.bmp",
+          "sha256": "1aaaebbcc2ac8ecaaa133b7edbca2b7117da7c960d6f47500c8eb55dd8bed35b"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/flange.front.bmp",
+          "sha256": "e0cefa1382e586deb279633d31dde4be3ecdaaeefb966a65807ddf0112659a17"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/flange.top.bmp",
+          "sha256": "06a27ba51d7c7f5e65f6b856c055c52b639793c2186e3bcceaee831f5dee6baa"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/flange.right.bmp",
+          "sha256": "2ce4fee9ec2cf679a35086608b5533c12caf862a8d3753c91974b3c340c8541d"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/flange.left.bmp",
+          "sha256": "08aeac1b0093518294967614f1613179a23c98dc7b2c720f28c4a1d98fd09910"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/reviewed-previews.jpg",
+          "sha256": "11074096dfb605fbeda8b4da6a583eb0f2716a30f3920c3be10f71f768176049"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-flange/visual-review.json",
+          "sha256": "4c8ccedb07e92892cf97a3bc479f63c689c2c53b784f409cf29c5bbb2ca10b77"
+        }
+      ]
+    },
+    {
+      "id": "recipe-plate",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/plate.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/plate.sldprt",
+          "sha256": "522ae422f21473762d4cd5a1fa7e9f801455eeeb384e5333dd70f8a0b634a93f"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/inspection.json",
+          "sha256": "a42c79fbd6a7e0a222bb297f92ac3a8d611b6f321bc3a499fb49ce3167bf4d01"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/request.json",
+          "sha256": "fab9df7b5330983f98c904c55c432dfe8c9fc107dbf745df2ac1a112a7eefbf8"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/plan.json",
+          "sha256": "30e76d14bfac2b52bd2d24bb935dd8e886f1b6aaaf4bd558747a6f03356c64c5"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/build.json",
+          "sha256": "c6c3dbdc9a5a92533832aa06e8accaaae38caee4bf694cb29af23fe6158de2b3"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/plate.isometric.bmp",
+          "sha256": "2e54763a17744ad0d9eaaa7cbcf117019cf524c1b716a41c5396b4330be5f9a6"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/plate.front.bmp",
+          "sha256": "823f423de0f69281e0010e651bc1744ec1d6ff9ae96c0b153e4286c68c007d49"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/plate.top.bmp",
+          "sha256": "60cbe7a07a87bc655941d8874df67b888e10bee4542023ffe3673aa98426d1f3"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/plate.right.bmp",
+          "sha256": "a31c2b6b1fc0a09580a8d37f456260ac537a87476147809f9cc5ec791f7e7fd8"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/plate.left.bmp",
+          "sha256": "ce1c3953c1d77e62aa183137453df9b890f5f33871b2112bf460c46adac50619"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/reviewed-previews.jpg",
+          "sha256": "2b7303fd596cb632fc979ed0458b08573f70553e087fe22e1f20ac13e4869c47"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-plate/visual-review.json",
+          "sha256": "8c352488aa2eadd8267c44abccdc716a9f0abbfa8f0b1447b0a1ea99687d22be"
+        }
+      ]
+    },
+    {
+      "id": "recipe-blind",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/blind.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/blind.sldprt",
+          "sha256": "db16e153e9bce2dcef47bfde6735dd7ef489f61105840d1de9df6eb278af698d"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/inspection.json",
+          "sha256": "cd76c9df46c8ee275f59daf9a3269e3937ee600d3ed8c872364f6b7ce46e103c"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/request.json",
+          "sha256": "7d6bf523bff57bb3b06e031c4dee8331a0b25018599762551757ac850aeaab59"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/plan.json",
+          "sha256": "764d2c2daa3ecfdd9f02cfdd0ee4ca821ee9d46ddee858cfeb59958f5c836647"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/build.json",
+          "sha256": "42f60a9d4973998fd54cc276fcef151c7bb8d79181655318cf0832f744fbf7c1"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/blind.isometric.bmp",
+          "sha256": "cae3d80cb3e6b1c22b346b08770acf8a58ed5e391741012dc9ee87d1eaa43159"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/blind.front.bmp",
+          "sha256": "8f61c56374e5c323a07335bcfb365b7ad45198afb548ff7ca4fcda9b382b2993"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/blind.top.bmp",
+          "sha256": "3d0c32d00198e431a8ca3e725b48144104c755d79aff67002f5cb8d052068618"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/blind.right.bmp",
+          "sha256": "ecc5472d2ac55b629efd0046874abe427a04904d867192fef2787775fb4069bb"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/blind.left.bmp",
+          "sha256": "a1f5c11ebe53e61b12eefbf65df428bbb8d5e298469de499af9081e08dce42e6"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/blind.back.bmp",
+          "sha256": "8f61963c900d334ab4b7132c948889892b53095c84aca7df7c58bbc0ef57f77c"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/reviewed-previews.jpg",
+          "sha256": "0548c820aeddfa081a43bf378c8ee100a90f9db8b555c8b893cf3628670d367d"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-blind/visual-review.json",
+          "sha256": "d3ad194aa45f9f90d3ade528867d2415237368bfb23a0376726ece4e974fa495"
+        }
+      ]
+    },
+    {
+      "id": "recipe-counterbore",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/counterbore.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/counterbore.sldprt",
+          "sha256": "1fd9cdf2e9233f51768b8f66c0341e21a8c961463bdfdd0928bbbbc580366090"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/inspection.json",
+          "sha256": "a6ae67f0be137a197b7bc55468dd342c12de1a6b68a6fd27b473083a64ad9ea3"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/request.json",
+          "sha256": "bf68f5352874f7029824244bdf85ab3d9df323ff10094da90bc1186593303cf1"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/plan.json",
+          "sha256": "f8110c4ac081f9cabbf533b1fa21c676535e6924083a2f30170d6666d27fd0a8"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/build.json",
+          "sha256": "cec9c03711503b31e7d99bd51a2fd6fca73026b5ece64223f403725839c9d820"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/counterbore.isometric.bmp",
+          "sha256": "311e339d4c751a1bafce16b76595f7a2f8426635dbd9d4e3b1c66049ff7e63a8"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/counterbore.front.bmp",
+          "sha256": "7c93a31f7336d07077dc5f54defb710c30162858cea73ad06b3837d6bee0f790"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/counterbore.top.bmp",
+          "sha256": "589d1a2952858b58ff2d22e081594204f16815be52d770e8a2330391674d3c8c"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/counterbore.right.bmp",
+          "sha256": "ec375863cf9cc2427f4994f114046ee092f0442c14cd2c372356dfb24e05e292"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/counterbore.left.bmp",
+          "sha256": "6aae26453405301c1ee278944c3b7b9aefb1b217cd1ae57380e9438745a7cf69"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/counterbore.back.bmp",
+          "sha256": "dec89a44bb89fa71fdf74dc1ca9965401cfc56a538d8ffb2d6e94339c523adbc"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/reviewed-previews.jpg",
+          "sha256": "41ec08762e0bdf51f8a5b45019d5504a107b06027fb9c27b4d1b923e15e7add5"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/recipe-counterbore/visual-review.json",
+          "sha256": "9a2ad4edf54970478e33e7a34b77bc25de684f9daad191f8ca00a29b59967fc6"
+        }
+      ]
+    },
+    {
+      "id": "independent-hole-positions",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches",
+        "move-hole-x:trial_actual_geometry_and_restoration"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/flange.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/flange.sldprt",
+          "sha256": "8b6346767a72adef193382d52dff64311cc822ee9ae8c5e572b593b7e29ccfb6"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/inspection.json",
+          "sha256": "53ca984e8385e7133454688f8d6b08ef7ba7f80b9119bae5ffed56e4da34c2da"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/request.json",
+          "sha256": "605c649ee56844f58fbbfd177438ea4ea46abfe92f837ca769f745a6a3dd71ac"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/plan.json",
+          "sha256": "4d5de1bdc49d41c3cd28088acb1124ee288f56033746ccf1f3dda26e8ff99ac4"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/build.json",
+          "sha256": "03fb2d18a1f750bcde020be1d0e9fc9b470f73cf2ed75bc9034388bf591e6bca"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/flange.isometric.bmp",
+          "sha256": "dda23ef83495e87ceed3a19784ceb118685055ea60bc619e4b677a585d8382a6"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/flange.front.bmp",
+          "sha256": "f6b5e8653d99c0e5d100767d2c8469d42a63766b1ed83c28ef82129a9e85919c"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/flange.top.bmp",
+          "sha256": "7b6382b5aad16cc09843e9a6280f763d8ce4a4527e67d5b5a1c1b62e573936c5"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/flange.right.bmp",
+          "sha256": "8b2f0146c66dd58f3897245a0097a22aa8881ca4cadacbf1bba30ecfb0402b6d"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/flange.left.bmp",
+          "sha256": "a43ae31e707542ae61b2a867ab634d15990d997b412d68b88d57d7f214c4547d"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/reviewed-previews.jpg",
+          "sha256": "a50c0277fdcca85c63732818393dd681b714640d7752b77cca03c96d0f9e0796"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/independent-hole-positions/visual-review.json",
+          "sha256": "85ee24718d5677d9656282514f53ec4f6db536084120fa30e74f5a6a4359be18"
+        }
+      ]
+    },
+    {
+      "id": "direction-front",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/direction-front/front.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/direction-front/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/direction-front/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/front.sldprt",
+          "sha256": "8d2f3342060dff2a7aba17ba94dfdf1b77fb8df8bde2b1f464a52c02ddf0c99c"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/inspection.json",
+          "sha256": "a8264920616be1e55ccffe1b2f7047eff5fd0e9717533c7fc201872798ce80ed"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/request.json",
+          "sha256": "877bcf22862463f7e453819bb191ad96dece2cdf50f4f2f7ab3aec05546bebfb"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/plan.json",
+          "sha256": "43d302571281cf7ca9748fe6187ab9e937931db000761e6714016a722a12e2dd"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/build.json",
+          "sha256": "7180966645294c0829d7d5d19479954a0a2d43e36a9e87552eb5be54e45e14d1"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/front.isometric.bmp",
+          "sha256": "30fcfe7aba6c301fd768e7d414617440e78d9c7557ff00759fbc7642f5801cd0"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/front.front.bmp",
+          "sha256": "3ab93db0ed61b39dca5a2c1a86e20eac17e3f19dba11f487ebcfc46cf19628f4"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/front.top.bmp",
+          "sha256": "2bc74e0be84f37e9bc63974b4fcc3a0e4b25d1351dcbc7a8b752bec193972dc3"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/front.right.bmp",
+          "sha256": "045138f42446dde2d858553e0490d2da907705534bd2127947a6d00b90ed2de8"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/front.left.bmp",
+          "sha256": "b1cc36e1782b53b52b6d6b3fbee9ba2ee6ce339ba1bc04e1a85276bcb26f9e11"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/reviewed-previews.jpg",
+          "sha256": "b302e10bc512a86836f3b9606ccd8d8ed700fa8a662095f8871eae05b707f1ae"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front/visual-review.json",
+          "sha256": "d3c65558f839a21b3a4d27038868f74ecf835fea104727fdf2d005858ea16dcc"
+        }
+      ]
+    },
+    {
+      "id": "direction-front-reverse",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/front-reverse.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/front-reverse.sldprt",
+          "sha256": "9e6eea21e762387b9fd71a2b793d09e5307f24fc604854e06355d36c11fa3bf3"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/inspection.json",
+          "sha256": "feeef9c5166f3361005debe4bae9fa3f0a2d9daf2959f4990acbd4b5fb7d9a15"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/request.json",
+          "sha256": "833ac2da99f6fc6889b66c00c836914ad6a8cb7b9be2ea8c004a0287226dd00f"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/plan.json",
+          "sha256": "6d33ffc756b95fb51ffaa6a85ee284d997576418d30dc52279aeb59d9060f56a"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/build.json",
+          "sha256": "28587546acb359abb8f498166b912b93350f02cfee969557bb4c6f5a91b7968a"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/front-reverse.isometric.bmp",
+          "sha256": "09a9f2b99d0dc1c580f3573d89d6cf516c2ff8f1750ce8a704a6749032f3e0d8"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/front-reverse.front.bmp",
+          "sha256": "7d94829739f838b57ec3c9a639c20963758a70e3393d3e4691df271a5036dce3"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/front-reverse.top.bmp",
+          "sha256": "2bc74e0be84f37e9bc63974b4fcc3a0e4b25d1351dcbc7a8b752bec193972dc3"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/front-reverse.right.bmp",
+          "sha256": "045138f42446dde2d858553e0490d2da907705534bd2127947a6d00b90ed2de8"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/front-reverse.left.bmp",
+          "sha256": "b1cc36e1782b53b52b6d6b3fbee9ba2ee6ce339ba1bc04e1a85276bcb26f9e11"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/reviewed-previews.jpg",
+          "sha256": "f69a074ec967cff181d44859b4c6a87e61b0c2cfd22667711d03fa968f4eff9e"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-front-reverse/visual-review.json",
+          "sha256": "b2a2f2bc1474e391aeffe9206421259a4b8a6e66f87ed8a6f2d9b4a46db4e302"
+        }
+      ]
+    },
+    {
+      "id": "direction-top",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/direction-top/top.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/direction-top/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/direction-top/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/top.sldprt",
+          "sha256": "d88a1cc6879ce3d92e167ec7b50610b4a431db1a91d85ba5299cc8a8b5c87571"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/inspection.json",
+          "sha256": "4bfaa041464e3ac6f6a58c4dc7bad4abbd60ea58167e5dc1ec067b10a6a0ecc0"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/request.json",
+          "sha256": "3c2c70632e1fa59e73ea4c7433a774b136a54a4bb9ec65050992eda3bdcbc5d2"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/plan.json",
+          "sha256": "25663193264127f4c9d8e4b21cf8fca8043647d96e9c088350f6995de926aca9"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/build.json",
+          "sha256": "5539daf04a61a163c16c6f7fdf4b2552f21a85b6a97d5c18becccd295a333b20"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/top.isometric.bmp",
+          "sha256": "6b3671cea2fc2a1c1ddbe4595ca29e7ad58b8664a197a71131fac48d84ac0cbe"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/top.front.bmp",
+          "sha256": "46fa807a43a02cb8100d146b02302300ff69ffc8e1954debb84e205821008831"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/top.top.bmp",
+          "sha256": "72126b6aa7f0a405605e57ee4c26662b3d6f2f5cf6a15f6ebcd0c72527de05af"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/top.right.bmp",
+          "sha256": "ccd179dd2a49a7977d3d76565b471b2c521efb618addbc03d45770cc71a5a35a"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/top.left.bmp",
+          "sha256": "0f504693e12214695f418fa7565fcb6acc8ad00d95ca1d0adaa643fc54051b71"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/reviewed-previews.jpg",
+          "sha256": "7fef814c73cb22fa4ba80b96f3dc63e97c110e60545006f775842734d3e5c5a8"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-top/visual-review.json",
+          "sha256": "fb6dac85805acd9ba264024c5c2e50f4790f1ccbbb1021dd2f05a48b47f85c8c"
+        }
+      ]
+    },
+    {
+      "id": "direction-right",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/direction-right/right.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/direction-right/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/direction-right/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/right.sldprt",
+          "sha256": "977650d4dc5c6932356aaab84542bae7de6f4fa047fc631c6297b371e3e9c25d"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/inspection.json",
+          "sha256": "962d7ebfc00f018a36a50482ad0246148f2e25b4f9cd4bdcacd8bbd5dc397e07"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/request.json",
+          "sha256": "a688b4774c59b0fa57d08381c639e33dde4bcb37ddd978eca5f331e8090a7da4"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/plan.json",
+          "sha256": "e3d6bc9c6f30db82417561d7370d6102ba8a1bff593958797daaf25b08fd73b0"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/build.json",
+          "sha256": "3e27fe1a61ee720ad8a9d7244023b676231b1f2046b2fdcd5385edb0828b3ada"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/right.isometric.bmp",
+          "sha256": "e05db08ad8394ae86cc4e17dbe038292be53114ba968bc69845cc9d1a22d5223"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/right.front.bmp",
+          "sha256": "cf2fae735a98c083133b735d18589994898428a92a80711445435bdb3cd5d7d7"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/right.top.bmp",
+          "sha256": "6b736ce6675367eb051ffaf76fcc2dbe019024fe232020cdca857f1f5586c343"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/right.right.bmp",
+          "sha256": "24a743b0c94576ea2dc3cb57309161b32f9daa4553adc4d4662fb2a0bb221de9"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/right.left.bmp",
+          "sha256": "f323378f4e3603925087834af6b3f652ddc1abf54704ca160ea7315838982eb4"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/reviewed-previews.jpg",
+          "sha256": "3a6438dffdc7c4be58bc4a271a59f8548aaad7d58c780d95c726cbc80c88b55b"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-right/visual-review.json",
+          "sha256": "a6a0ebf95e73c6964da1de3ab7995925e8a7c626e81548c39c4649553d2a083e"
+        }
+      ]
+    },
+    {
+      "id": "direction-midplane",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/midplane.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/midplane.sldprt",
+          "sha256": "22e31e5fa5bf5cd60ebf9b0eae1940d9589913a61ebf0527df177c72c0b4d1be"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/inspection.json",
+          "sha256": "eafb5f100780bd780e7881e2b0456c3ef4f88e8c4469041f882e52a1fef17543"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/request.json",
+          "sha256": "c883a172db6a0894a4bad5a9ab7f838862ccba88aeb79bc76026bfd62215b4b6"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/plan.json",
+          "sha256": "13782ab33c34917de8510c34b1f11255c318fab2e1beb33d32c52540a2d44dd2"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/build.json",
+          "sha256": "c955b404abc515a1e2e8ff04400de3c3ba155eccbc18b4b7f6c5128c7e2ac7d2"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/midplane.isometric.bmp",
+          "sha256": "b3f4ba0dd26f8065fd4550541046f34f2f5e4e5cec21139d207d71258d6758ea"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/midplane.front.bmp",
+          "sha256": "3ab93db0ed61b39dca5a2c1a86e20eac17e3f19dba11f487ebcfc46cf19628f4"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/midplane.top.bmp",
+          "sha256": "2bc74e0be84f37e9bc63974b4fcc3a0e4b25d1351dcbc7a8b752bec193972dc3"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/midplane.right.bmp",
+          "sha256": "045138f42446dde2d858553e0490d2da907705534bd2127947a6d00b90ed2de8"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/midplane.left.bmp",
+          "sha256": "b1cc36e1782b53b52b6d6b3fbee9ba2ee6ce339ba1bc04e1a85276bcb26f9e11"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/reviewed-previews.jpg",
+          "sha256": "043cf0d4e185e8040cb388165989fab0d71685f270d7a6efaf6f894e030c7f7a"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-midplane/visual-review.json",
+          "sha256": "1d82cadb0712b2f80e93659b0904d21b6dea9d1d226d5fb2b882da882196db8d"
+        }
+      ]
+    },
+    {
+      "id": "direction-frame",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/frame.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/frame.sldprt",
+          "sha256": "65a6bb4acae4fdcef989418f7a03fb727bdd142d6f7a45f7e7aeb287d980c499"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/inspection.json",
+          "sha256": "b04093e533b87734f2c50be78639f6e03194d6087cc680641056c6a89f63aee3"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/request.json",
+          "sha256": "5cdbae2a28a2875d9eba55345e38994b920b9676f1c8b30ba4a49f7b30f61dd1"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/plan.json",
+          "sha256": "42dee3a655f1ffcf958528d30358c99160b7dcdf96b0268db5bd4af2bbc97cbb"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/build.json",
+          "sha256": "d041f5a2ef64ce2b3a4e02652df525bb8c8800df9124e0bef11bd6201212dc87"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/frame.isometric.bmp",
+          "sha256": "eeda3646b609150624b5d9b56b991374afcc52b2f65c488a6ab3224d86d9d168"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/frame.front.bmp",
+          "sha256": "4f61f9ffaf0af2f7118b6e2e415a37e9e657de2ee6586e8c5ed183cf1dab719b"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/frame.top.bmp",
+          "sha256": "2e4e94853165e3d55a395ec1646c3687709024395f8e79089dbbf3030ca47809"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/frame.right.bmp",
+          "sha256": "ee157cee00e0f1c5595b276c4183232954296c97fe40f14391ab444a3d690df6"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/frame.left.bmp",
+          "sha256": "2dcb33674ab607b4a1eb302de562e455fbb1a0fa2d4f173f2f952c8dbbe631e3"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/reviewed-previews.jpg",
+          "sha256": "fed376e9b662d72a036ca33ff4c27ada8354cf8b3ad9c209fbef346d1ae9696e"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/direction-frame/visual-review.json",
+          "sha256": "4911b2fa97ff5eaeaa52b406b1d35950fb7aab574a233cd260e4d7ced012d973"
+        }
+      ]
+    },
+    {
+      "id": "UpToNext",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/UpToNext.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/UpToNext.sldprt",
+          "sha256": "370bac632528dcb0bb9d784ebff7d7fe5458b15b9e5d69527604eb4c89635daa"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/inspection.json",
+          "sha256": "023d5d2d7dbb89b1be44b26af4a10248c83ac7ca9fdaf878987feb43af85bcec"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/request.json",
+          "sha256": "11cac78853891a84c3838130bf863a174cd3ede9cfd50c05f733dbb007b868d4"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/plan.json",
+          "sha256": "10f9c76987498992e84f7f6004dfff4f8f0761fc4b332f5d514f99a5eec0d0e3"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/build.json",
+          "sha256": "fdb670018fb52d4674b93b8a2650737a8c92501b47dd033025d686d02bb18227"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/UpToNext.isometric.bmp",
+          "sha256": "ee3e8fdafd6d77f088bc1926d7111a3ffd4428dc3f8030ded0890fda423538dc"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/UpToNext.front.bmp",
+          "sha256": "50bcad08bffda2451f826ac9d27c56b604d5ad1104114c8fd629420608068378"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/UpToNext.top.bmp",
+          "sha256": "674ef2828e25f7eebfac2fe6b32f45f973d416e18a7d62f4e00f598c95672f2e"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/UpToNext.right.bmp",
+          "sha256": "bedc607970a35743d87b42997c0f8240f3dac15f3a05f9203720ddc2d24c3ac6"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/UpToNext.left.bmp",
+          "sha256": "d7e910cc028c7f19dcac95ed294ca8446a4028d08eba73e7161032fa3b1f30e1"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/reviewed-previews.jpg",
+          "sha256": "0a7d4328da7dcba9571f05bce17a86eb4958b3d55b10a9f3200572777ce27ea5"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToNext/visual-review.json",
+          "sha256": "004fefef94b11a6d13a0817d6a586c7117b74758f9ee9a33df386b3c44a6667c"
+        }
+      ]
+    },
+    {
+      "id": "UpToSurface",
+      "solidworks_revision": "33.0.0",
+      "scope": [
+        "saved_native_reopen_rebuild_body_validity",
+        "whole_model_inventory",
+        "fully_defined_editable_consumed_design_sketches"
+      ],
+      "model_path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/UpToSurface.sldprt",
+      "inspection_path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/inspection.json",
+      "visual_review_path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/visual-review.json",
+      "files": [
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/UpToSurface.sldprt",
+          "sha256": "acbb315c070114ed59e40cacf8a3c8822ae2fc8c67dac871f9093e9176f94d4c"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/inspection.json",
+          "sha256": "0f620b2cb68ba6a7c3ddd617afff297a2f54079c2da79a3c612eafe723830e48"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/request.json",
+          "sha256": "6d9bb39191321de5647ba5c58715f5ce053ceecdbc7e8c484d7ab9ce12d87a3f"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/plan.json",
+          "sha256": "823a9432f4a0ffa13f634425a8d78808ad23e2e62372a93c90ddd5a44a7b0999"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/build.json",
+          "sha256": "7ea2f80e0c43fc6bd0107b890b322e3cd2595e86a4e3a06c6aa282e8a0cecea1"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/UpToSurface.isometric.bmp",
+          "sha256": "ee3e8fdafd6d77f088bc1926d7111a3ffd4428dc3f8030ded0890fda423538dc"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/UpToSurface.front.bmp",
+          "sha256": "50bcad08bffda2451f826ac9d27c56b604d5ad1104114c8fd629420608068378"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/UpToSurface.top.bmp",
+          "sha256": "674ef2828e25f7eebfac2fe6b32f45f973d416e18a7d62f4e00f598c95672f2e"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/UpToSurface.right.bmp",
+          "sha256": "bedc607970a35743d87b42997c0f8240f3dac15f3a05f9203720ddc2d24c3ac6"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/UpToSurface.left.bmp",
+          "sha256": "d7e910cc028c7f19dcac95ed294ca8446a4028d08eba73e7161032fa3b1f30e1"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/reviewed-previews.jpg",
+          "sha256": "c0c88312b426bad5c5037d300822ae82dcab38d856265d01e23386e218835550"
+        },
+        {
+          "path": "skills/auto-solidworks/references/native-evidence-final/UpToSurface/visual-review.json",
+          "sha256": "47f260bec10f1528b71c0d75a7de2d04a29cb658c75a321d4cbf7b79fa9587d7"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Only retained explicit text geometry; no drawing interpretation, assembly, complex surface or simulation certification.",
+    "Retained optimized geometry was revalidated under the final delivery runtime. Current acceptance is saved-file/native readback within the listed scopes.",
+    "Visual review is separate from native file-writing and does not certify full drawing/BREP equivalence."
+  ]
+}

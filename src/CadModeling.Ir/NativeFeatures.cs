@@ -61,6 +61,7 @@ public enum WeldmentEndCondition { Miter=1, Butt1=2, Butt2=3, Trim=4 }
 
 public sealed record NativeFeatureOptions
 {
+    public string? CountDimensionName { get; init; }
     public SpatialCurveOptions? SpatialCurve { get; init; }
     public HelixOptions? Helix { get; init; }
     public PhysicalThreadOptions? PhysicalThread { get; init; }

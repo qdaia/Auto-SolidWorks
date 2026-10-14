@@ -1,0 +1,26 @@
+{
+  "workflow_revision": "26.10.13-opt.1",
+  "base_version": "26.10.11mini",
+  "runtime_revision": "parametric-recipes-evidence-20261013",
+  "scope": "parametric_quality_recipes_contracts_performance_evidence",
+  "source_interpretation_automatic": false,
+  "native_validation": "dynamic_scoped_identity_bound",
+  "end_to_end_speedup": "requires_bounded_benchmark",
+  "reference": "skills/auto-solidworks/references/batch-clarification-workflow.md",
+  "final_review": {
+    "revision": "essential-final-review-1",
+    "scope": "agent_orchestration_only_runtime_binary_unchanged",
+    "success_receipt_read": "one_bounded_summary_with_saved_file_identity",
+    "visual_review": "one_contact_sheet_isometric_and_necessary_source_views",
+    "ordinary_part_target_seconds": [
+      30,
+      60
+    ],
+    "target_is_hard_deadline": false,
+    "additional_inspection": "new_requirement_missing_evidence_identity_change_or_visual_discrepancy",
+    "declared_checks_must_pass": true,
+    "save_reopen_rebuild_body_validity_preserved": true,
+    "runtime_preview_generation": "unchanged",
+    "helper": "scripts/summarize-final-review.py"
+  }
+}

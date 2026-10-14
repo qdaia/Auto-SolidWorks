@@ -139,9 +139,28 @@ public sealed class CompactArtifactStore
         var id = kind + "_" + hash;
         Directory.CreateDirectory(root);
         var path = System.IO.Path.Combine(root, id + ".json");
-        try { using var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None); stream.Write(bytes); stream.Flush(true); }
-        catch (IOException) when (File.Exists(path))
-        { if (!File.ReadAllBytes(path).AsSpan().SequenceEqual(bytes)) throw new IOException("已有结果文件身份不匹配，拒绝覆盖。"); }
+        using var mutex = new Mutex(false,"AutoSolidWorksArtifact_"+hash);
+        var held=false;
+        try
+        {
+            try { held=mutex.WaitOne(TimeSpan.FromSeconds(10)); }
+            catch(AbandonedMutexException) { held=true; }
+            if(!held)throw new IOException("结果文件发布锁超时；保留原始执行 request_id，先查询执行状态，不得重放原生修改。");
+            if(File.Exists(path))
+            {
+                if(!File.ReadAllBytes(path).AsSpan().SequenceEqual(bytes))throw new IOException("已有结果文件身份不匹配，拒绝覆盖。");
+            }
+            else
+            {
+                // Readers only see the final name after a fully flushed same-directory rename.
+                // Interrupted temporary files are retained for diagnosis, never directly deleted.
+                var temporary=path+"."+Guid.NewGuid().ToString("N")+".pending";
+                using(var stream=new FileStream(temporary,FileMode.CreateNew,FileAccess.Write,FileShare.None))
+                {stream.Write(bytes);stream.Flush(true);}
+                File.Move(temporary,path,false);
+            }
+        }
+        finally { if(held)mutex.ReleaseMutex(); }
         return new(id, hash, path);
     }
 

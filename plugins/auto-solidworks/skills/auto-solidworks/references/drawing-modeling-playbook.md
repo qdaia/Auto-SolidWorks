@@ -38,6 +38,9 @@ Typed sketches are created without automatic snapping. If an exact circle still 
 
 ## Read back and deliver
 
+Default to the essential final-review workflow in [essential-final-review.md](essential-final-review.md). Read one bounded acceptance summary and inspect one contact sheet with the isometric and source-matching necessary views. Preserve complete receipts without streaming every successful entry. Do not run a separate final inspection, a dense sampling sweep or editability trials after an unchanged successful saved-file acceptance unless a specific new requirement, missing evidence or visual discrepancy needs it. Declare necessary source geometry checks in the initial plan instead.
+
+
 Inspect the saved native model for bodies, dimensions, relevant feature depths, pattern spacing and critical holes. Use radius-query tolerances and group numerically near-equal radii. A split cylindrical surface may yield several faces per hole, so use location/direction and ownership when counts are ambiguous.
 
 The executor hides construction geometry without suppressing its dependent features and saves an isometric opening view. Inspect actual previews for completeness and framing: nonzero file size alone does not establish a usable image.

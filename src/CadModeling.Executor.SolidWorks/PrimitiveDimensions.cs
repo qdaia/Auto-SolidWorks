@@ -28,9 +28,7 @@ internal sealed partial class SolidWorksComExecutor
             {
                 case CircleProfile circle:
                     var arc=primitives[i].OfType<ISketchArc>().Single();
-                    // Source center coordinates are positional design intent; leave only the diameter editable.
-                    if(sketch.RelationManager.AddRelation(new[]{new System.Runtime.InteropServices.DispatchWrapper(arc.GetCenterPoint2())},(int)swConstraintType_e.swConstraintType_FIXED) is null)
-                        throw new InvalidOperationException("无法锚定圆心源位置。");
+                    DimensionCircleCenter(model,sketch,arc,i,operation);
                     Add((ISketchSegment)arc,i==0?"直径":"孔径_"+i,circle.DiameterMm);
                     break;
                 case CenteredRectangleProfile rectangle:

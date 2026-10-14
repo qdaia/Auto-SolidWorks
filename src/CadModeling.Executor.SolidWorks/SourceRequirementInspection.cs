@@ -48,6 +48,7 @@ internal sealed partial class SolidWorksComExecutor
         catch(Exception ex)
         { measurementErrors.AddRange(spec.CylinderGroups.Select(c=>new VerificationCheckResult(c.Id,false,"unverifiable","实际的圆柱几何无法测量："+ex.Message))); }
         var dimensions=new Dictionary<string,double>(StringComparer.Ordinal);
+        var availableDimensionNames=new HashSet<string>(StringComparer.Ordinal);
         foreach(var check in spec.NativeDimensions)
         {
             var split=check.DimensionName.Split('@');
@@ -56,11 +57,13 @@ internal sealed partial class SolidWorksComExecutor
             if(owner is null||owner.IsSuppressed()) continue;
             var dimension=model.Parameter(check.DimensionName) as IDimension;
             if(dimension is not null) dimensions[check.DimensionName]=dimension.GetSystemValue2("");
+            else foreach(var actual in ReadNativeFeatureDimensions(model,owner))
+                if(actual.Name.EndsWith("@"+owner.Name,StringComparison.Ordinal))availableDimensionNames.Add(actual.Name);
         }
         var measuredSpec=measurementErrors.Count>0?spec with {CylinderGroups=[]}:spec;
         var localMeasurements=MeasureLocalRequirements(model,spec);
         var wholeModel=spec.WholeModelChecks.Count>0?MeasureWholeModel(model,geometry):null;
-        var evaluated=ModelVerification.Evaluate(measuredSpec,cylinders,dimensions,geometry,localMeasurements,wholeModel,MeasureShapeRequirements(model,spec));
+        var evaluated=ModelVerification.Evaluate(measuredSpec,cylinders,dimensions,geometry,localMeasurements,wholeModel,MeasureShapeRequirements(model,spec),availableDimensionNames);
         return new(evaluated.Checks.Concat(measurementErrors).ToArray());
     }
 
@@ -80,6 +83,8 @@ internal sealed partial class SolidWorksComExecutor
             var areaBudget=areaChecks.Length>0?areaChecks.Min(c=>c.AreaToleranceMm2)/(4*faces.Length):0;
             var areas=new Dictionary<int,(double Area,double Error)>();
             var areaFailures=new Dictionary<int,string>();
+            // Never share across rebuild/save/reopen. Tolerance and normals are evaluated per request.
+            var closestPoints=new InspectionPassCache<double[]>();
             foreach(var request in requests)
             {
                 var points=new List<LocalPointMeasurement>();
@@ -92,7 +97,8 @@ internal sealed partial class SolidWorksComExecutor
                         try
                         {
                             // IFace2 (trimmed topology), not ISurface's unbounded analytic extension.
-                            var cp=ToDoubles(face.GetClosestPointOn(point.X/1000,point.Y/1000,point.Z/1000),5,"草图面上最接近点");
+                            var cp=closestPoints.GetOrQuery(faceIndex,point,()=>
+                                ToDoubles(face.GetClosestPointOn(point.X/1000,point.Y/1000,point.Z/1000),5,"草图面上最接近点"));
                             var closest=new Vector3(cp[0]*1000,cp[1]*1000,cp[2]*1000);
                             if(!ModelVerification.Finite(closest))throw new InvalidOperationException("非有限最接近点。");
                             LocalSurfaceKind? kind=null;double? diameter=null,angle=null,area=null,radius=null;Vector3? center=null;double areaError=0;var normal=new Vector3(0,0,0);

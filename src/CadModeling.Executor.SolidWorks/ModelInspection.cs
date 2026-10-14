@@ -11,7 +11,8 @@ internal sealed partial class SolidWorksComExecutor
     public async Task<ModelInspection> InspectAsync(ModelInspectionRequest request,CancellationToken cancellationToken=default)
     {
         await _serialGate.WaitAsync(cancellationToken);
-        try { return await _sta.InvokeAsync(()=>InspectOnSta(request),cancellationToken); }
+        var traceRequestId=PerformanceTrace.CurrentRequestId;
+        try { return await _sta.InvokeAsync(()=> {using var requestSpan=PerformanceTrace.Begin("native.inspect.request",traceRequestId);return InspectOnSta(request);},cancellationToken); }
         finally { _serialGate.Release(); }
     }
     private static ModelInspection InspectOnSta(ModelInspectionRequest request,SldWorks? borrowedApplication=null,
@@ -151,7 +152,9 @@ internal sealed partial class SolidWorksComExecutor
                 var source=InspectOnStaWithCleanValidation(request with{EditabilityProbes=[]},app,validateSavedDefinitions,validateCleanSavedDefinitions);
                 if(!source.Success||source.ModelSha256!=modelSha||DrawingPlanValidation.FileHash(request.InputPath)!=modelSha)
                     throw new IOException("原保存的模型检视失败或在隔离探针后改变："+source.Message);
-                return source with{EditabilityProbes=editabilityProbes};
+                return source with{Success=source.Success&&editabilityProbes.All(p=>p.Passed),EditabilityProbes=editabilityProbes,
+                    ParametricStatus=editabilityProbes.All(p=>p.Passed)?source.ParametricStatus:"failed",
+                    Message=editabilityProbes.All(p=>p.Passed)?source.Message:"保存模型已读取，但声明的编辑探针未通过；查看试算与恢复证据。"};
             }
             validateSavedDefinitions?.Invoke(model);
             var features=new List<ModelFeatureInfo>(); var visited=new HashSet<int>();
@@ -166,6 +169,7 @@ internal sealed partial class SolidWorksComExecutor
                     uniqueDimensions.TryAdd(dim.Name,(dim,feature.Name));
                 features.Add(new(feature.Name,feature.GetTypeName2(),feature.IsSuppressed(),Persistent(model,feature),[])
                 {SketchConstraintStatus=feature.GetSpecificFeature2() is ISketch inspectedSketch?inspectedSketch.GetConstrainedStatus():null,
+                    SketchQuality=feature.GetTypeName2() is "ProfileFeature" or "3DProfileFeature"?ReadSketchQuality(feature):null,
                     DrivingEdgePersistentReferences=ReadDrivingEdgeReferences(model,feature),
                     ParentFeatureNames=(feature.GetParents() as object[]??[]).OfType<IFeature>().Select(p=>p.Name).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()});
                 for(var child=feature.IGetFirstSubFeature();child is not null;child=child.IGetNextSubFeature()) Visit(child);
@@ -175,6 +179,13 @@ internal sealed partial class SolidWorksComExecutor
             features=features.Select(f=>f with {Dimensions=uniqueDimensions.Values.Where(d=>
                 (featureNames.Contains(d.Dimension.Name.Split('@').Last())?d.Dimension.Name.Split('@').Last():d.FirstFeature)==f.Name)
                 .Select(d=>d.Dimension).ToArray()}).ToList();
+            features=features.Select(f=>f.SketchQuality is null?f:f with {SketchQuality=f.SketchQuality with {
+                DrivingDimensionCount=f.Dimensions.Count(d=>d.Driving==true),
+                ConsumedBy=features.Where(other=>other.ParentFeatureNames.Contains(f.Name)&&
+                    other.Type is not ("ProfileFeature" or "3DProfileFeature")).Select(other=>other.Name).ToArray(),
+                ReferenceOnly=f.Type=="3DProfileFeature"&&features.Any(other=>other.Type=="RefAxis"&&other.ParentFeatureNames.Contains(f.Name))&&
+                    !features.Any(other=>other.Type is not ("RefAxis" or "ProfileFeature" or "3DProfileFeature")&&other.ParentFeatureNames.Contains(f.Name))
+            }}).ToList();
             var entities=new List<ModelEntityInfo>();
             foreach(var query in request.Queries??[])
             foreach(var entity in ResolveEntities(model,new Dictionary<string,object>(),query))
@@ -225,9 +236,14 @@ internal sealed partial class SolidWorksComExecutor
                 JsonSerializer.Serialize(features.Select(f=>new{f.Name,f.Type,f.Suppressed,f.PersistentReference,f.ParentFeatureNames,Dimensions=f.Dimensions.Select(d=>new{d.Name,d.SystemValue,d.ParameterType,d.Unit,d.Value})}),ModelingIrJson.Options))));
             if(!ReadInspectionHash(request.InputPath).Equals(modelSha,StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("只读检查改变了保存的模型字节；证据被丢弃了。");
-            return new(verification?.Passed??true,verification is { Passed:false }?"模型读取成功，但源要求验证失败。":"读取模型特征、尺寸和几何形状而不保存更改。",request.InputPath,
+            var sketchQualities=features.Where(f=>f.SketchQuality is not null).Select(f=>f.SketchQuality!).ToArray();
+            var parametricStatus=sketchQualities.Length==0?"not_applicable":sketchQualities.All(q=>q.Status=="passed")?"passed":
+                sketchQualities.Any(q=>!q.Complete)?"unverifiable":"review_required";
+            return new((verification?.Passed??true)&&editabilityProbes.All(p=>p.Passed)&&
+                (!request.RequireEditableSketches||parametricStatus=="passed"),verification is { Passed:false }?"模型读取成功，但源要求验证失败。":"读取模型特征、尺寸和几何形状而不保存更改。",request.InputPath,
                 measured,features,entities) {
                 ModelSha256=modelSha,ModelReopened=owned&&nativeModel,CaptureComplete=true,RebuildSucceeded=rebuildSucceeded,FeatureTreeFingerprint=featureTreeFingerprint,
+                GeometryStatus=verification is {Passed:false}?"failed":"passed",ParametricStatus=parametricStatus,
                 BodyValidity=bodyValidity,
                 Verification=verification,Cylinders=cylinders,Cones=model is IPartDoc?MeasureCones(model):[],Spheres=model is IPartDoc?MeasureSpheres(model):[],CosmeticThreads=cosmeticThreads,
                 GeometryRefResolutions=refResults,Measurements=directional,ConnectivityChecks=connectivity,
@@ -352,6 +368,9 @@ internal sealed partial class SolidWorksComExecutor
                 {ModelSha256=originalFileSha,FeatureName=ownerName,Unit=probe.Unit,RequestedTrialValue=probe.TrialValue,OriginalSystemValue=original,TrialSystemValue=trial});
                 continue;
             }
+            var baselineGeometry=MeasureGeometry(model);
+            var baselineCylinders=model is IPartDoc?MeasureCylinders(model):[];
+            bool? trialGeometryPassed=null;bool? restoreGeometryPassed=null;
             var trialRebuild=false;var restore=false;var restoreRebuild=false;double? trialReadback=null;double? restoreReadback=null;string? error=null;
             try
             {
@@ -363,9 +382,15 @@ internal sealed partial class SolidWorksComExecutor
                     trialReadback=dimension.GetSystemValue2("");
                     if(!trialRebuild||!EditabilityReadbackMatches(trial,trialReadback))
                         error="试重建/读回未能证明所请求的原生参数实际上已经改变。";
+                    RequireValidNativeBodies(model);
+                    if(probe.TrialVerification is { } trialSpec)
+                    {
+                        trialGeometryPassed=ModelVerification.HasChecks(trialSpec)&&VerifySourceRequirements(model,trialSpec,MeasureGeometry(model),out _).Passed;
+                        if(trialGeometryPassed!=true)error="试算参数读回，但目标几何没有通过声明的检查。";
+                    }
                 }
             }
-            catch(Exception ex) when(ex is COMException or InvalidCastException) {error="试更新失败："+ex.Message;}
+            catch(Exception ex) when(ex is COMException or InvalidCastException or InvalidOperationException or ArgumentException) {error="试更新失败："+ex.Message;}
             finally
             {
                 try
@@ -377,9 +402,14 @@ internal sealed partial class SolidWorksComExecutor
                         restoreReadback=dimension.GetSystemValue2("");
                         if(!restoreRebuild||!EditabilityReadbackMatches(original,restoreReadback))
                             error=(error is null?"":" ")+"恢复重建/读回未将原生参数恢复为其原生值。";
+                        RequireValidNativeBodies(model);
+                        restoreGeometryPassed=SameProbeGeometry(baselineGeometry,MeasureGeometry(model),baselineCylinders,model is IPartDoc?MeasureCylinders(model):[]);
+                        if(probe.RestoreVerification is { } restoreSpec)
+                            restoreGeometryPassed=restoreGeometryPassed==true&&ModelVerification.HasChecks(restoreSpec)&&VerifySourceRequirements(model,restoreSpec,MeasureGeometry(model),out _).Passed;
+                        if(restoreGeometryPassed!=true)error="恢复参数后实际几何未恢复。";
                     }
                 }
-                catch(COMException ex) {error=(error is null?"":" ")+"恢复失败："+ex.Message;}
+                catch(Exception ex) when(ex is COMException or InvalidOperationException or ArgumentException) {error=(error is null?"":" ")+"恢复失败："+ex.Message;}
             }
             var unchanged=Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(inputPath))).Equals(originalFileSha,StringComparison.OrdinalIgnoreCase);
             var passed=error is null&&trialRebuild&&restore&&restoreRebuild&&trialReadback is not null&&restoreReadback is not null&&unchanged;
@@ -387,12 +417,21 @@ internal sealed partial class SolidWorksComExecutor
                 error??"试/重建/恢复/文件完整性探测未完成成功。")
             {ModelSha256=originalFileSha,FeatureName=ownerName,Unit=probe.Unit,RequestedTrialValue=probe.TrialValue,OriginalSystemValue=original,TrialSystemValue=trial,
                 TrialReadbackSystemValue=trialReadback,RestoreReadbackSystemValue=restoreReadback,TrialRebuildSucceeded=trialRebuild,RestoreSucceeded=restore,
-                RestoreRebuildSucceeded=restoreRebuild,ModelFileUnchanged=unchanged});
+                RestoreRebuildSucceeded=restoreRebuild,ModelFileUnchanged=unchanged,TrialGeometryPassed=trialGeometryPassed,RestoreGeometryPassed=restoreGeometryPassed,
+                TrialVerificationFingerprint=probe.TrialVerification is null?null:Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(probe.TrialVerification,ModelingIrJson.Options)))),
+                RestoreVerificationFingerprint=probe.RestoreVerification is null?null:Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(probe.RestoreVerification,ModelingIrJson.Options))))});
         }
         return results;
     }
     private static bool RequiresIsolatedNativeCopy(string extension,IReadOnlyList<NativeEditabilityProbeSpec> probes) =>
         (extension.Equals(".sldprt",StringComparison.OrdinalIgnoreCase)||extension.Equals(".sldasm",StringComparison.OrdinalIgnoreCase))&&probes.Count>0;
+    private static bool SameProbeGeometry(GeometrySnapshot a,GeometrySnapshot b,IReadOnlyList<MeasuredCylinder> ca,IReadOnlyList<MeasuredCylinder> cb) =>
+        a.SolidBodyCount==b.SolidBodyCount&&a.SurfaceBodyCount==b.SurfaceBodyCount&&a.FaceCount==b.FaceCount&&a.EdgeCount==b.EdgeCount&&
+        Math.Abs(a.VolumeMm3-b.VolumeMm3)<=Math.Max(1e-5,a.VolumeMm3*1e-8)&&
+        Math.Abs(a.SurfaceAreaMm2-b.SurfaceAreaMm2)<=Math.Max(1e-5,a.SurfaceAreaMm2*1e-8)&&ca.Count==cb.Count&&
+        ca.All(c=>cb.Any(d=>Math.Abs(c.RadiusMm-d.RadiusMm)<1e-5&&c.Interior==d.Interior&&
+            ModelVerification.Norm(ModelVerification.Sub(c.AxisStartMm,d.AxisStartMm))<1e-4&&
+            ModelVerification.Norm(ModelVerification.Sub(c.AxisEndMm,d.AxisEndMm))<1e-4));
     private static bool EditabilityTrialChanges(double original,double trial) =>
         double.IsFinite(original)&&double.IsFinite(trial)&&Math.Abs(trial-original)>1e-10*Math.Max(1d,Math.Max(Math.Abs(original),Math.Abs(trial)));
     private static bool EditabilityReadbackMatches(double expected,double? actual) =>

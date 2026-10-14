@@ -22,9 +22,11 @@ jobs:
         run: python scripts/check-repository.py
       - name: Validate versioned capability contract
         run: python scripts/check-plugin-contract.py
+      - name: Validate final review receipt gates
+        run: python tests/final_review_regression.py
       - name: Portable managed regressions
         run: |
-          foreach ($name in @('PhysicalThreadRegression', 'DesignFeatureRegression', 'DesignExpressionRegression', 'DesignIntentRegression', 'OfflineBoundaryRegression', 'AssemblyMobilityRegression', 'SemanticTopologyRegression', 'FillSupportRegression', 'BoundaryAdapterRegression')) {
+          foreach ($name in @('PhysicalThreadRegression', 'DesignFeatureRegression', 'DesignExpressionRegression', 'DesignIntentRegression', 'OfflineBoundaryRegression', 'AssemblyMobilityRegression', 'SemanticTopologyRegression', 'FillSupportRegression', 'BoundaryAdapterRegression', 'OptimizationRegression')) {
             dotnet build "tests/$name/$name.csproj" -c Release -m:1 -nodeReuse:false
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             $output = Join-Path $env:RUNNER_TEMP "auto-solidworks-$name"

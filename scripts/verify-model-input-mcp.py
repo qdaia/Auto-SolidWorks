@@ -111,8 +111,17 @@ try:
         if binding['id'] in verification.get('source_dimension_ids',[]):
             dimension_edits.append(dict(op='replace',path=f'/verification/native_dimensions/{index}/value',value=radius))
     dimensional=new.call('cad_store_model_input',dict(kind='draft',baseInputId=draft_id,edits=dimension_edits))
-    dimensional_context=new.call('cad_store_model_input',dict(kind='drawing_context',baseInputId=context_id,edits=[dict(op='replace',path=f'/dimensions/{dimension_index}/value',value=radius)]))
+    # Changing the executed value while the immutable drawing still states the old value requires
+    # an explicit test-only deviation contract; this authorizes no real CAD mutation.
+    deviation=dict(value=radius,nominal_value=binding['value'],status='Derived',
+        derivation=f"Offline synthetic deviation fixture: {binding['value']} + .1 = {radius}",
+        deviation_reason='offline synthetic increment fixture',
+        deviation_authorization='explicit test-only fixture authorization; native execution forbidden')
+    context_edits=[dict(op='replace' if key in binding else 'add',path=f'/dimensions/{dimension_index}/{key}',value=value)
+        for key,value in deviation.items()]
+    dimensional_context=new.call('cad_store_model_input',dict(kind='drawing_context',baseInputId=context_id,edits=context_edits))
     corrected=copy.deepcopy(draft);corrected['operations'][operation_index]['feature']['radius_mm']=radius;corrected['drawing_context']['dimensions'][dimension_index]['value']=radius
+    corrected['drawing_context']['dimensions'][dimension_index].update(deviation)
     for verification in corrected['verification']['native_dimensions']:
         if binding['id'] in verification.get('source_dimension_ids',[]):verification['value']=radius
     direct=new.call('cad_create_model_plan',dict(draft=corrected,nativeOutputPath=native_path,responseDetail='full'))

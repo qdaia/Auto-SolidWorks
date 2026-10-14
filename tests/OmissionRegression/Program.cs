@@ -143,7 +143,7 @@ var capObservation=Path.Combine(capRoot,"observation.json");File.WriteAllText(ca
 cappedBuilder.AddPage(emptyObservation,capObservation,new(){NormalizedPage=new(){PageNumber=1,ImagePath=rawCap,CoordinateFrameId="capacity-pixels"}},capRoot);
 var capSaved=cappedBuilder.Save(source,originalHash,1,capRoot);var capInventory=DrawingOmissionValidation.Load(capSaved.Path,capSaved.Sha256);
 Check(capInventory.Candidates.Count==50000&&!capInventory.CompleteExtraction,"full document candidate capacity stays loadable and explicitly incomplete");
-Check(capInventory.Pages[0].Limitations.Any(l=>l.Contains("Candidate budget 0 exceeded"))&&capInventory.Regions.Count>1,"capacity exhaustion preserves raw overview and detail evidence");
+Check(capInventory.Pages[0].Limitations.Any(l=>l.Contains("候选项数量超过预算0",StringComparison.Ordinal)||l.Contains("Candidate budget 0 exceeded",StringComparison.Ordinal))&&capInventory.Regions.Count>1,"capacity exhaustion preserves raw overview and detail evidence");
 
 var compiler=new GenericPlanCompiler();
 var compiled=compiler.Compile(draft,Path.Combine(root,"fixture.SLDPRT"));Save("compiled.json",compiled);
