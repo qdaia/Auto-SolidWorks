@@ -27,9 +27,15 @@ jobs:
       - name: Portable managed regressions
         run: |
           foreach ($name in @('PhysicalThreadRegression', 'DesignFeatureRegression', 'DesignExpressionRegression', 'DesignIntentRegression', 'OfflineBoundaryRegression', 'AssemblyMobilityRegression', 'SemanticTopologyRegression', 'FillSupportRegression', 'BoundaryAdapterRegression', 'OptimizationRegression')) {
-            dotnet build "tests/$name/$name.csproj" -c Release -m:1 -nodeReuse:false
+            $project = "tests/$name/$name.csproj"
+            [xml]$projectXml = Get-Content -LiteralPath $project
+            $framework = $projectXml.GetElementsByTagName('TargetFramework')[0].InnerText
+            if ([string]::IsNullOrWhiteSpace($framework)) { throw "Missing target framework: $project" }
+            dotnet build $project -c Release -m:1 -nodeReuse:false
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             $output = Join-Path $env:RUNNER_TEMP "auto-solidworks-$name"
-            dotnet "tests/$name/bin/Release/net9.0/$name.dll" $output
+            $assembly = "tests/$name/bin/Release/$framework/$name.dll"
+            if (-not (Test-Path -LiteralPath $assembly -PathType Leaf)) { throw "Missing regression assembly: $assembly" }
+            dotnet $assembly $output
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
