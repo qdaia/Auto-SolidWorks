@@ -42,6 +42,10 @@ def summarize(receipt_path, receipt_sha256, views, reason, source_path=None, sou
     require(sha256(receipt_path).lower() == receipt_sha256.lower(), "Receipt hash mismatch")
     document = json.loads(Path(receipt_path).read_text(encoding="utf-8-sig"))
     payload = document.get("payload", document)
+    require(not payload.get("pending") and not payload.get("outcome_unknown"),
+            "Pending or unknown build cannot be finalized")
+    if isinstance(payload.get("execution"), dict):
+        payload = payload["execution"]
     require(payload.get("success") is True and payload.get("status") == "completed",
             "Build is not completed successfully")
     require(not payload.get("pending") and not payload.get("outcome_unknown"),

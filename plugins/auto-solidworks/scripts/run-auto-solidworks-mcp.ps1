@@ -12,13 +12,8 @@ try {
     $pipeSuffix = ([System.BitConverter]::ToString($pipeBytes)).Replace('-', '').Substring(0, 16).ToLowerInvariant()
 } finally { $pipeHasher.Dispose() }
 $env:CAD_SOLIDWORKS_PIPE = 'auto-solidworks-26-10-13-opt1-' + $pipeSuffix
-$ocrConfigPath = Join-Path $env:LOCALAPPDATA 'AutoSolidWorks\dependencies\ocr.json'
-if (Test-Path -LiteralPath $ocrConfigPath) {
-    $ocrConfig = Get-Content -LiteralPath $ocrConfigPath -Raw | ConvertFrom-Json
-    if (-not $env:CAD_TESSERACT_PATH) { $env:CAD_TESSERACT_PATH = $ocrConfig.executable }
-    if (-not $env:CAD_TESSDATA_DIR) { $env:CAD_TESSDATA_DIR = $ocrConfig.tessdata }
-    if (-not $env:CAD_TESSERACT_LANG) { $env:CAD_TESSERACT_LANG = 'eng+chi_sim' }
-}
+# Raster text and dimension interpretation are performed by the connected AI.
+# Do not load OCR configuration or provision a local OCR engine.
 if (-not $env:CAD_EXECUTOR_LOG_DIR) {
     $env:CAD_EXECUTOR_LOG_DIR = Join-Path $env:LOCALAPPDATA 'AutoSolidWorks\logs'
 }

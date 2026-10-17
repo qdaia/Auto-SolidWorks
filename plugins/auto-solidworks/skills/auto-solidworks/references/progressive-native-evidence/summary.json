@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "checks": [
+    "底座阶段 source-bound compile passes",
+    "底座阶段 has execution identity",
+    "底座阶段 execution reached known terminal state",
+    "底座阶段 native execution passes",
+    "底座阶段 saved native readback passes",
+    "partial source scope remains explicit after native save",
+    "verified base checkpoint retained",
+    "完整孔板 source-bound compile passes",
+    "完整孔板 has execution identity",
+    "完整孔板 execution reached known terminal state",
+    "完整孔板 native execution passes",
+    "完整孔板 saved native readback passes",
+    "complete source scope only after final stage",
+    "final stage resumes previously saved native prefix",
+    "source dimensions and hole geometry pass after final reopen"
+  ],
+  "requests": [
+    "72b85684a65b4df29759cf4f4bc9144c",
+    "6d9bcd950fde4a088e14d98b801acc13"
+  ],
+  "timings": {
+    "底座阶段": {
+      "compile_and_native_seconds": 45.074299600033555,
+      "native_seconds": 44.64046560000861
+    },
+    "完整孔板": {
+      "compile_and_native_seconds": 14.608400099969003,
+      "native_seconds": 14.468961799982935
+    }
+  },
+  "native_execution": true,
+  "blind_recognition_test": false,
+  "native_attempts": 2
+}

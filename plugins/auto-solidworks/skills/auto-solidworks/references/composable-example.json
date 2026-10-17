@@ -1,0 +1,51 @@
+{
+  "schema": "composable-source-1",
+  "sources": [],
+  "context": null,
+  "draft": {
+    "name": "组合验证板",
+    "source_text": "80x50x10毫米板，适配器离线验证"
+  },
+  "steps": [
+    {
+      "id": "profile",
+      "reviewed": true,
+      "review_note": "Explicit text fixture dimensions",
+      "operations": [
+        {
+          "type": "ProfileSketch",
+          "id": "sk",
+          "name": "矩形草图",
+          "plane": "Front",
+          "auto_dimension_primitives": true,
+          "require_fully_defined": true,
+          "require_editable": true,
+          "primitives": [
+            {
+              "type": "CenteredRectangle",
+              "center_xmm": 0,
+              "center_ymm": 0,
+              "width_mm": 80,
+              "height_mm": 50
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "body",
+      "reviewed": true,
+      "review_note": "Explicit text fixture thickness",
+      "operations": [
+        {
+          "type": "ExtrudeBoss",
+          "id": "boss",
+          "name": "板体",
+          "sketch_id": "sk",
+          "depth_mm": 10,
+          "end_condition": "Blind"
+        }
+      ]
+    }
+  ]
+}

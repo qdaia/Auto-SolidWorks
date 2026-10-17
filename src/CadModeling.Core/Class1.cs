@@ -100,6 +100,8 @@ public sealed record ExecutionResult(
     IReadOnlyList<StableFeatureReference>? FeatureReferences = null,
     string? PlanFingerprint = null)
 {
+    public bool IsIntermediateStage { get; init; }
+    public string? StageId { get; init; }
     public string GeometryStatus { get; init; }="unverifiable";
     public string ParametricStatus { get; init; }="unverifiable";
     public string VisualStatus { get; init; }="not_observed";
@@ -1123,6 +1125,15 @@ public sealed class ModelingWorkflow(
     ModelingIrValidator validator,
     IModelingExecutor executor)
 {
+    public async Task<ExecutorServiceResponse> StartExecutionAsync(ModelingPlan plan,string requestId,CancellationToken cancellationToken=default)
+    {
+        var report=validator.Validate(plan,forExecution:true);
+        if(!report.IsValid) return new(Execution:new(false,"rejected","建模 IR 验证失败。",
+            report.Diagnostics.Select(x=>new ExecutionEvidence("validation",x.Message,false,Code:x.Code)).ToArray()),RequestId:requestId);
+        if(executor is not IBackgroundModelingExecutor background)
+            return new(Error:"当前执行器不支持异步派发。",RequestId:requestId,ErrorCode:"BACKGROUND_UNSUPPORTED");
+        return await background.StartExecutionAsync(plan,requestId,cancellationToken);
+    }
     public CompilationResult Compile(string text, string? nativeOutputPath = null) => compiler.Compile(text, nativeOutputPath);
     public ValidationReport Validate(ModelingPlan plan, bool forExecution = false) => validator.Validate(plan, forExecution);
     public Task<ExecutorHealth> HealthAsync(CancellationToken cancellationToken = default) => executor.HealthAsync(cancellationToken);
@@ -1182,7 +1193,7 @@ public static class ModelingPlanIdentity
     }
 }
 
-public sealed record ExecutorServiceRequest(string Action, ModelingPlan? Plan = null, bool DryRun = false, ModelInspectionRequest? Inspection = null,AssemblyPlan? Assembly = null,DrawingExportRequest? Drawing = null,ObservationCaptureRequest? Observation = null,string? RequestId = null,ProjectionCaptureRequest? Projection = null,SectionCaptureRequest? Section = null,int? DeadlineMilliseconds = null);
+public sealed record ExecutorServiceRequest(string Action, ModelingPlan? Plan = null, bool DryRun = false, ModelInspectionRequest? Inspection = null,AssemblyPlan? Assembly = null,DrawingExportRequest? Drawing = null,ObservationCaptureRequest? Observation = null,string? RequestId = null,ProjectionCaptureRequest? Projection = null,SectionCaptureRequest? Section = null,int? DeadlineMilliseconds = null,bool Background = false);
 public sealed record ExecutorServiceResponse(ExecutorHealth? Health = null, ExecutionResult? Execution = null, string? Error = null, ModelInspection? Inspection = null,AssemblyResult? Assembly = null,DrawingExportResult? Drawing = null,ObservationRenderArtifact? Observation = null,string? RequestId = null,bool Pending = false,bool PauseAccepted = false,ProjectionCaptureResult? Projection = null,SectionCaptureResult? Section = null,string? ErrorCode = null,bool OutcomeUnknown = false,bool DeadlineExceeded = false,bool ServerReached = false);
 
 public interface IExecutionControl
@@ -1280,6 +1291,12 @@ public sealed class NamedPipeModelingExecutor(
         return SendAsync(new("execution_status",RequestId:requestId),cancellationToken);
     }
 
+    public Task<ExecutorServiceResponse> StartExecutionAsync(ModelingPlan plan,string requestId,CancellationToken cancellationToken=default)
+    {
+        if(!Guid.TryParseExact(requestId,"N",out _)) throw new ArgumentException("request_id 必须是32位 GUID。");
+        return SendAsync(new("execute",plan,RequestId:requestId,DeadlineMilliseconds:plan.ExecutionDeadline.DeadlineMilliseconds,Background:true),cancellationToken);
+    }
+
     private async Task<ExecutorServiceResponse> SendAsync(ExecutorServiceRequest request, CancellationToken cancellationToken)
     {
         var budget=request.DeadlineMilliseconds??(request.Action is "pause" or "execution_status"?1000:request.Action=="health"?Math.Min(responseTimeoutMilliseconds,5000):responseTimeoutMilliseconds);
@@ -1326,8 +1343,14 @@ public sealed record LocalExecutorLaunchOptions
     public int StartupTimeoutMilliseconds { get; init; } = 20000;
 }
 
-public sealed class AutoStartingNamedPipeModelingExecutor : IModelingExecutor, IExecutionControl, IDisposable
+public sealed class AutoStartingNamedPipeModelingExecutor : IModelingExecutor, IExecutionControl, IBackgroundModelingExecutor, IDisposable
 {
+    public async Task<ExecutorServiceResponse> StartExecutionAsync(ModelingPlan plan,string requestId,CancellationToken cancellationToken=default)
+    {
+        var health=await HealthAsync(cancellationToken);
+        if(!health.Available)return new(Error:health.Message,RequestId:requestId,ErrorCode:"EXECUTOR_UNAVAILABLE");
+        return await _client.StartExecutionAsync(plan,requestId,cancellationToken);
+    }
     // Control requests only use the pipe. They never run a health COM call or launch SolidWorks.
     public Task<ExecutorServiceResponse> GetExecutionStatusAsync(string requestId,CancellationToken cancellationToken=default)=>_client.GetExecutionStatusAsync(requestId,cancellationToken);
     public Task<ExecutorServiceResponse> PauseExecutionAsync(string requestId,CancellationToken cancellationToken=default)=>_client.PauseExecutionAsync(requestId,cancellationToken);

@@ -1,0 +1,269 @@
+{
+  "success": true,
+  "status": "declared_projection_passed",
+  "difference_count": 0,
+  "expectation_id": "result_ad54b968449bf1e126902e005a6016c65e2d9e72da26478b30eb3e6d4cb8214e",
+  "report": {
+    "contract": "2.0.0",
+    "source_view_id": "front",
+    "source_sha256": "a8ebbd4bfb18ffa3904025595e4a917aecbe0590985f6a2b845a8fe6bc33e767",
+    "source_revision_id": null,
+    "actual_model_sha256": "EF1B8CAD11F1DC3E6ED4B29B0E77001445A4312257CF2663DB86E858969192C5",
+    "coordinate_frame_id": "source_center_xy_mm",
+    "model_reopened": true,
+    "passed": true,
+    "mirror_signature_detected": false,
+    "required_primitive_count": 8,
+    "checked_required_primitive_count": 8,
+    "differences": [],
+    "requirements": [],
+    "capture_limitations": [],
+    "supported_geometry": [
+      "visible_line",
+      "hidden_line",
+      "center_line_classification",
+      "circle",
+      "arc"
+    ],
+    "scope": "正交线/圆/弧在固定毫米坐标系下的投影；保留可见线/隐藏线/中心线类；无自由缩放、反射、任意曲线或剖面接受。"
+  },
+  "locations": [],
+  "capture": {
+    "success": true,
+    "message": "捕获了8个唯一的原生模型重新打开时可见/不可见的基础元素。",
+    "request_id": "e5cbc02156c4434d87e3713eeec6b9ac",
+    "outcome_unknown": false,
+    "snapshot": {
+      "view_id": "front",
+      "coordinate_frame_id": "source_center_xy_mm",
+      "source_sha256": "a8ebbd4bfb18ffa3904025595e4a917aecbe0590985f6a2b845a8fe6bc33e767",
+      "source_revision_id": null,
+      "native_model_path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板.sldprt",
+      "native_model_sha256": "EF1B8CAD11F1DC3E6ED4B29B0E77001445A4312257CF2663DB86E858969192C5",
+      "native_model_reopened": true,
+      "capture_complete": true,
+      "capture_limitations": [],
+      "primitives": [
+        {
+          "id": "model-circle-0001",
+          "kind": "Circle",
+          "start": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "end": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "center": {
+            "x": -25,
+            "y": 15,
+            "is_finite": true
+          },
+          "radius_mm": 3,
+          "sweep_degrees": 0,
+          "requirement_id": null,
+          "source_fact_id": null,
+          "source_fact_fingerprint": null,
+          "requirement_fingerprint": null,
+          "required": true,
+          "line_style": "visible"
+        },
+        {
+          "id": "model-circle-0002",
+          "kind": "Circle",
+          "start": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "end": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "center": {
+            "x": 25,
+            "y": -15,
+            "is_finite": true
+          },
+          "radius_mm": 2.9999999999999964,
+          "sweep_degrees": 0,
+          "requirement_id": null,
+          "source_fact_id": null,
+          "source_fact_fingerprint": null,
+          "requirement_fingerprint": null,
+          "required": true,
+          "line_style": "visible"
+        },
+        {
+          "id": "model-circle-0003",
+          "kind": "Circle",
+          "start": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "end": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "center": {
+            "x": 25,
+            "y": 15,
+            "is_finite": true
+          },
+          "radius_mm": 2.9999999999999964,
+          "sweep_degrees": 0,
+          "requirement_id": null,
+          "source_fact_id": null,
+          "source_fact_fingerprint": null,
+          "requirement_fingerprint": null,
+          "required": true,
+          "line_style": "visible"
+        },
+        {
+          "id": "model-circle-0004",
+          "kind": "Circle",
+          "start": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "end": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "center": {
+            "x": -25,
+            "y": -15,
+            "is_finite": true
+          },
+          "radius_mm": 3,
+          "sweep_degrees": 0,
+          "requirement_id": null,
+          "source_fact_id": null,
+          "source_fact_fingerprint": null,
+          "requirement_fingerprint": null,
+          "required": true,
+          "line_style": "visible"
+        },
+        {
+          "id": "model-line-0005",
+          "kind": "Line",
+          "start": {
+            "x": -40,
+            "y": -25,
+            "is_finite": true
+          },
+          "end": {
+            "x": 40,
+            "y": -25,
+            "is_finite": true
+          },
+          "center": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "radius_mm": 0,
+          "sweep_degrees": 0,
+          "requirement_id": null,
+          "source_fact_id": null,
+          "source_fact_fingerprint": null,
+          "requirement_fingerprint": null,
+          "required": true,
+          "line_style": "visible"
+        },
+        {
+          "id": "model-line-0006",
+          "kind": "Line",
+          "start": {
+            "x": -40,
+            "y": 25,
+            "is_finite": true
+          },
+          "end": {
+            "x": -40,
+            "y": -25,
+            "is_finite": true
+          },
+          "center": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "radius_mm": 0,
+          "sweep_degrees": 0,
+          "requirement_id": null,
+          "source_fact_id": null,
+          "source_fact_fingerprint": null,
+          "requirement_fingerprint": null,
+          "required": true,
+          "line_style": "visible"
+        },
+        {
+          "id": "model-line-0007",
+          "kind": "Line",
+          "start": {
+            "x": 40,
+            "y": 25,
+            "is_finite": true
+          },
+          "end": {
+            "x": -40,
+            "y": 25,
+            "is_finite": true
+          },
+          "center": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "radius_mm": 0,
+          "sweep_degrees": 0,
+          "requirement_id": null,
+          "source_fact_id": null,
+          "source_fact_fingerprint": null,
+          "requirement_fingerprint": null,
+          "required": true,
+          "line_style": "visible"
+        },
+        {
+          "id": "model-line-0008",
+          "kind": "Line",
+          "start": {
+            "x": 40,
+            "y": -25,
+            "is_finite": true
+          },
+          "end": {
+            "x": 40,
+            "y": 25,
+            "is_finite": true
+          },
+          "center": {
+            "x": 0,
+            "y": 0,
+            "is_finite": true
+          },
+          "radius_mm": 0,
+          "sweep_degrees": 0,
+          "requirement_id": null,
+          "source_fact_id": null,
+          "source_fact_fingerprint": null,
+          "requirement_fingerprint": null,
+          "required": true,
+          "line_style": "visible"
+        }
+      ]
+    },
+    "complete": true,
+    "limitations": []
+  },
+  "full_drawing_equivalence": false
+}

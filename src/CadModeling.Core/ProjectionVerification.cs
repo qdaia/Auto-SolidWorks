@@ -115,6 +115,14 @@ public sealed record ProjectionReport
 
 public static class ProjectionVerifier
 {
+    public static void ValidateSourceInput(ProjectionSnapshot source, ProjectionComparisonOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(options);
+        ValidateOptions(options);
+        Validate(source, nameof(source));
+    }
+
     public static ProjectionReport Compare(ProjectionSnapshot source, ProjectionSnapshot model, ProjectionComparisonOptions? options = null)
     {
         using var timing = CadModeling.Ir.PerformanceTrace.Begin("review.projection");
@@ -375,6 +383,7 @@ public static class ProjectionVerifier
             throw new ArgumentException("投影原语的ID必须唯一。", parameterName);
         foreach (var primitive in snapshot.Primitives)
         {
+            if (!Enum.IsDefined(primitive.Kind)) throw new ArgumentException("Unsupported projection primitive kind.", parameterName);
             if (string.IsNullOrWhiteSpace(primitive.Id)) throw new ArgumentException("投影原语ID是必需的。", parameterName);
             if (primitive.LineStyle is not ("visible" or "hidden" or "center"))
                 throw new ArgumentException($"基本体 '{primitive.Id}' 不支持线条样式 '{primitive.LineStyle}'.", parameterName);

@@ -1,0 +1,18 @@
+{
+  "reviewed": true,
+  "reviewer": "connected_assistant_vision",
+  "source_sha256": "a8ebbd4bfb18ffa3904025595e4a917aecbe0590985f6a2b845a8fe6bc33e767",
+  "model_sha256": "ef1b8cad11f1dc3e6ed4b29b0e77001445a4312257cf2663db86e858969192c5",
+  "views": [
+    "完整孔板.isometric.bmp",
+    "完整孔板.front.bmp"
+  ],
+  "observations": [
+    "80x50 outline with four corner bores consistent with source placement",
+    "four visible bores, no missing stock or extra features observed"
+  ],
+  "scope": "visual outline and hole placement; exact sizes independently checked by native projection and measurement",
+  "full_drawing_equivalence": false,
+  "parametric_status": "review_required",
+  "reason": "legacy native Hole internal sketch underdefined; base sketch passed"
+}

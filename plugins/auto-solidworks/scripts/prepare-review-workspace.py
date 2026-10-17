@@ -42,7 +42,7 @@ def prepare(inventory_path, expected_sha, output):
         groups[group].append(candidate)
     context = {
         'source_path': str(source), 'projection': 'FirstAngle', 'projection_status': 'Assumed',
-        'require_complete_bindings': True, 'require_interpretation_review': True,
+        'require_complete_bindings': True, 'require_interpretation_review': True, 'require_dimension_evidence': True,
         'views': [], 'features': [], 'dimensions': [], 'interpretation_reviews': [],
         'omission_review': {
             'inventory_path': str(inventory_path), 'inventory_sha256': expected_sha.lower(),

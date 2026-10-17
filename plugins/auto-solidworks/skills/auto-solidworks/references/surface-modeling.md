@@ -1,8 +1,8 @@
 # Surface workflows
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Local optimization version: `26.10.13-opt.1`; revision: `parametric-recipes-evidence-20261013`. Editable hole positions, native sketch quality and geometry-changing probes, bounded mechanical recipes, direction/depth contracts and declared preview/checkpoint scopes. Native evidence is validated per task, SOLIDWORKS revision and runtime hash; untested tasks remain uncertified. Source and final save/reopen gates remain required. Read the [bundled capability manifest](capability-manifest.json) and cad_get_capabilities.
-<!-- Capability manifest SHA256: b227e0bec254da978b871b777ea1a9ae03b37a4c73948deb082bcc0c0c7795d5 -->
+Local version: `26.10.17`; revision: `review-iterate-deliver-1`. Unit-checked source expressions, geometry anchors, explicit stage scope, serial background execution, verified checkpoint resume and fixed-frame source projection differences. Controlled plate validation does not certify general first-attempt accuracy or speedup. Complete source coverage and final native reopen gates remain. See [capability manifest](capability-manifest.json).
+<!-- Capability manifest SHA256: ff92dc2459f941264add1388925e1b3f1de9bc01dd189a69d2939e761b91d3fb -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 Current revision is defined in the bundled capability manifest. The trim adapter displays selectable regions and releases locks in finally; `SurfaceTrim.merge` controls sewing. Boundary now uses InsertNetBlend2 ordered selection roles, checks the selected inventory and reads back both curve families. Selected edge Contact/Tangent Fill and seam fixtures now have native saved readback. Boundary itself was not rerun in this upgrade, and Curvature Fill failed retained-control acceptance. Use [advanced modeling](advanced-modeling.md) for current scope; no broad G2 certificate is claimed.

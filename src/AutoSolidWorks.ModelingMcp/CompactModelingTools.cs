@@ -34,10 +34,12 @@ public sealed class CompactModelingTools
         CompactResponses.Status(artifacts, await ModelingTools.PauseExecution(executor,requestId,cancellationToken));
 
     [McpServerTool(Name="cad_get_contract",ReadOnly=true,Destructive=false,Idempotent=true,OpenWorld=false,UseStructuredContent=true)]
-    [Description("按需读取完整 JSON 合同。contract 支持 draft、inspection、drawing_context、assembly、drawing_layout。常用几何字段也见技能参考文件；此工具不启动 SolidWorks。")]
+    [Description("按需读取完整 JSON 合同。contract 支持 draft、inspection、drawing_context、dimension_expression、geometry_anchor、source_projection、assembly、drawing_layout。draft 数值字段另支持 {$dimension:尺寸ID,unit:单位枚举}；派生 expression 由服务器求值。此工具不启动 SolidWorks。")]
     public static JsonNode GetContract(string contract) => ModelingIrJson.Options.GetJsonSchemaAsNode(contract switch {
         "draft" => typeof(GenericModelDraft), "inspection" => typeof(ModelInspectionRequest),
-        "drawing_context" => typeof(DrawingPlanContext), "assembly" => typeof(AssemblyPlan),
+        "drawing_context" => typeof(DrawingPlanContext), "dimension_expression" => typeof(DimensionExpression),
+        "geometry_anchor" => typeof(DrawingGeometryAnchor), "assembly" => typeof(AssemblyPlan),
+        "source_projection" => typeof(SourceProjectionComparisonRequest),
         "drawing_layout" => typeof(DrawingLayoutOptions), _ => throw new ArgumentException("未知合同名称。") });
 
     [McpServerTool(Name="cad_read_result",ReadOnly=true,Destructive=false,Idempotent=true,OpenWorld=false,UseStructuredContent=true)]
@@ -53,14 +55,15 @@ public sealed class CompactModelingTools
         CompactResponses.ValidateDetail(responseDetail);
         if ((draft is null ? 0 : 1) + (text is null ? 0 : 1) + (draftId is null ? 0 : 1) != 1)
             throw new ArgumentException("draft、text、draftId 必须且只能提供一个。");
-        var modelDraft = draftId is null ? Optional<GenericModelDraft>(draft)
-            : CompactModelInputs.Decode<GenericModelDraft>(artifacts.LoadInput(draftId,"draft"));
+        var draftNode = draftId is not null ? artifacts.LoadInput(draftId,"draft")
+            : draft is { } rawDraft ? JsonNode.Parse(rawDraft.GetRawText()) : null;
         if (drawingContextId is not null)
         {
-            if (modelDraft is null || modelDraft.DrawingContext is not null)
+            if (draftNode is not JsonObject || draftNode["drawing_context"] is not null)
                 throw new ArgumentException("drawingContextId 仅用于尚未内嵌 drawing_context 的草案。");
-            modelDraft = modelDraft with { DrawingContext = CompactModelInputs.Decode<DrawingPlanContext>(artifacts.LoadInput(drawingContextId,"context")) };
+            draftNode["drawing_context"] = artifacts.LoadInput(drawingContextId,"context");
         }
+        var modelDraft = draftNode is null ? null : CompactModelInputs.Decode<GenericModelDraft>(draftNode);
         var compiled=ModelingTools.CreatePlan(compiler,workflow,nativeOutputPath,modelDraft,text,exportPaths,overwriteAllowed);
         var node=JsonSerializer.SerializeToNode(compiled,ModelingIrJson.Options)!.AsObject();
         JsonObject? readiness=null;
@@ -83,18 +86,29 @@ public sealed class CompactModelingTools
     }
 
     [McpServerTool(Name="cad_build_model",ReadOnly=false,Destructive=false,Idempotent=false,OpenWorld=false,UseStructuredContent=true)]
-    [Description("执行 planId 或旧版 irJson（二者择一），默认立即建模。planId 校验内容、编译器和来源／恢复文件身份；仍执行全部原有验收。dryRun=true 只检查计划，不连接 SolidWorks。默认摘要，responseDetail=full 返回完整证据。")]
+    [Description("执行 planId 或旧版 irJson（二者择一）。background=true 返回 request_id，随后用 cad_execution_status 查询；同一时间只允许一项原生任务，pending/outcome_unknown 不得重放。可在执行期间分析后续特征。阶段结果 stage_completed 不代表全图完成，最终仍需完整来源复查。planId 校验内容、编译器和来源／恢复身份，保留原有验收。dryRun=true 仅同步检查计划，不连接 SolidWorks。")]
     public static async Task<object> BuildModel(ModelingWorkflow workflow,ModelingIrValidator validator,CompactArtifactStore artifacts,
-        string? irJson=null,string? planId=null,bool dryRun=false,string responseDetail="summary",CancellationToken cancellationToken=default)
+        string? irJson=null,string? planId=null,bool dryRun=false,string responseDetail="summary",CancellationToken cancellationToken=default,bool background=false)
     {
         CompactResponses.ValidateDetail(responseDetail);
         if(string.IsNullOrWhiteSpace(irJson)==string.IsNullOrWhiteSpace(planId)) throw new ArgumentException("planId 与 irJson 必须且只能提供一个。");
         var ir=string.IsNullOrWhiteSpace(planId) ? irJson! : ModelingIrJson.Serialize(artifacts.LoadPlan(planId),false);
+        if(background)
+        {
+            if(dryRun) throw new ArgumentException("background 只用于原生执行；dryRun 使用同步检查。");
+            var plan=ModelingIrJson.Deserialize(ir);
+            var requestId=Guid.NewGuid().ToString("N");
+            // A failed local journal write prevents dispatch; a failed result write never retries mutation.
+            artifacts.SaveResult(new{request_id=requestId,plan_id=planId,plan_fingerprint=ModelingPlanIdentity.Fingerprint(plan),
+                native_output_path=plan.Output.NativePath,state="dispatch_intent",background=true});
+            var started=await workflow.StartExecutionAsync(plan,requestId,cancellationToken);
+            return CompactResponses.Status(artifacts,started);
+        }
         return CompactResponses.Present(artifacts,await ModelingTools.BuildModel(workflow,validator,ir,dryRun,cancellationToken),responseDetail);
     }
 
     [McpServerTool(Name="cad_read_drawing",ReadOnly=false,Destructive=false,Idempotent=false,OpenWorld=false,UseStructuredContent=true)]
-    [Description("读取工程图片／PDF，返回来源、库存、页面与结果句柄；默认 prepareReview=true 自动建立待审 drawing_context 输入句柄和全部候选工作清单。它不解释图纸、不自动完成评审，仍须实际看全部原图与非空细节，按需 cad_read_result 读取并增量填写。prepareReview=false 保留仅提取路线；不启动 SolidWorks。responseDetail=full 返回完整提取结果。")]
+    [Description("准备工程图片／PDF原图、区域和来源库存，不运行本地OCR。AI按 review_workspace.recognition_checklist 先列全尺寸，再追踪尺寸线/端点并跨视图核对。默认 prepareReview=true 建立要求 binding_evidence 与派生依赖的待审上下文；用 cad_get_contract(drawing_context) 读取字段。必须查看全部原图与非空细节。prepareReview=false 仅准备来源；不启动 SolidWorks。responseDetail=full 返回完整结果。")]
     public static async Task<object> ReadDrawing(IEngineeringDrawingIngestionService service,CompactArtifactStore artifacts,string inputPath,
         string? artifactRoot=null,int[]? pageNumbers=null,int renderDpi=300,JsonElement? viewHints=null,string responseDetail="summary",CancellationToken cancellationToken=default,
         bool prepareReview=true)
@@ -169,7 +183,7 @@ public sealed class CompactModelingTools
         var receipt=artifacts.SaveResult(complete);
         if(responseDetail=="full") return complete;
         var summary=CompactResponses.Summarize(complete);
-        foreach(var key in new[]{"operations","native_feature_kinds","input_formats","output_formats","limitations","report_issue_hardening","integrated_workflow","mini_workflow","current_native_evidence"}) summary[key]=complete[key]?.DeepClone();
+        foreach(var key in new[]{"operations","native_feature_kinds","input_formats","output_formats","limitations","report_issue_hardening","integrated_workflow","mini_workflow","current_native_evidence","source_requirements","iterative_delivery"}) summary[key]=complete[key]?.DeepClone();
         summary["artifact_id"]=receipt.ArtifactId; summary["artifact_sha256"]=receipt.Sha256; summary["artifact_path"]=receipt.Path;
         summary["advanced_tools"]=new JsonArray("cad_capture_projection","cad_capture_section","cad_verify_revolved_family","cad_verify_hole_group","cad_verify_edge_treatment");
         summary["advanced_profile_instruction"]="设置 AUTO_SOLIDWORKS_TOOL_PROFILE=full 后启动新 MCP 会话，保留全部专用验收工具。";

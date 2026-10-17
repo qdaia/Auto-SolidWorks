@@ -1,0 +1,71 @@
+using System.Text.Json;
+using CadModeling.Core;
+using CadModeling.Ir;
+
+var checks = new List<string>();
+void Check(bool condition, string name) { if (!condition) throw new Exception(name); checks.Add(name); Console.WriteLine("PASS " + name); }
+var evidence = new DrawingDimensionEvidence { FeatureId="hole", MeasurementId="bore-diameter", ViewId="front", QuantityKind=DrawingQuantityKind.Diameter,
+    TextBounds=new(.1,.1,.2,.2), TargetBounds=new(.3,.3,.4,.4), AttachmentExplanation="Leader terminates on bore circumference", Datum="bore axis" };
+var fact = new DrawingDimensionFact { Id="D1", OperationId="hole-op", ParameterPath="feature.diameter_mm", Value=10, SourceLiteral="Ø10", ViewIds=["front"], BindingEvidence=evidence };
+var context = new DrawingPlanContext { SourcePath=Path.GetFullPath("test-source.png"), RequireCompleteBindings=false, RequireDimensionEvidence=true,
+    Views=[new() { Id="front", Kind=ModelDrawingView.Front },new() { Id="left", Kind=ModelDrawingView.Left }],
+    Features=[new() { Id="hole", SourceLiteral="bore", ViewIds=["front","left"], OperationIds=["hole-op"] }], Dimensions=[fact] };
+void Pass(DrawingPlanContext c, string name) => Check(DimensionEvidenceValidation.Validate(c).Count==0,name);
+void Reject(DrawingPlanContext c, string code, string name) => Check(DimensionEvidenceValidation.Validate(c).Any(x=>x.Code==code), name);
+DrawingPlanContext With(DrawingDimensionFact f) => context with { Dimensions=[f] };
+Pass(context,"valid diameter attachment");
+Pass(With(fact with {SourceLiteral="φ10"}),"lowercase diameter symbol");
+Reject(With(fact with {SourceLiteral="R10"}),"DIMENSION_LITERAL_KIND","same numeric radius cannot bind diameter");
+Reject(With(fact with {SourceLiteral="2×R10 ±0.1"}),"DIMENSION_LITERAL_KIND","quantity and tolerance suffix cannot hide radius misbinding");
+Reject(With(fact with {SourceLiteral="Ø12"}),"DIMENSION_LITERAL_VALUE","misread literal rejected");
+Reject(With(fact with {SourceLiteral="10in"}),"DIMENSION_LITERAL_UNIT","source inch cannot silently become mm");
+Reject(With(fact with {BindingEvidence=null}),"DIMENSION_EVIDENCE_REQUIRED","new review requires evidence");
+Pass(context with {RequireDimensionEvidence=false,Dimensions=[fact with{BindingEvidence=null} ]},"legacy context remains readable");
+Reject(context with {RequireDimensionEvidence=false,Dimensions=[fact with{BindingEvidence=null,SourceLiteral="R10"} ]},"DIMENSION_LITERAL_KIND","legacy obvious radius misbinding still rejected");
+Reject(With(fact with {BindingEvidence=evidence with {FeatureId="other"}}),"DIMENSION_EVIDENCE_INVALID","missing feature rejected");
+Reject(With(fact with {OperationId="other-op"}),"DIMENSION_EVIDENCE_INVALID","foreign operation attachment rejected");
+Reject(With(fact with {BindingEvidence=evidence with {ViewId="rear"}}),"DIMENSION_EVIDENCE_INVALID","unknown view rejected");
+Reject(With(fact with {BindingEvidence=evidence with {ViewId="left"}}),"DIMENSION_EVIDENCE_INVALID","evidence view must belong to dimension");
+Reject(With(fact with {BindingEvidence=evidence with {MeasurementId=" "}}),"DIMENSION_EVIDENCE_INVALID","blank measurement identity rejected");
+Reject(With(fact with {BindingEvidence=evidence with {TextBounds=new(-1,0,.2,.2)}}),"DIMENSION_EVIDENCE_INVALID","out of page text box rejected");
+Reject(With(fact with {BindingEvidence=evidence with {TargetBounds=new(.2,.2,.1,.1)}}),"DIMENSION_EVIDENCE_INVALID","reversed target bounds rejected");
+Reject(With(fact with {BindingEvidence=evidence with {TargetBounds=new(double.NaN,0,1,1)}}),"DIMENSION_EVIDENCE_INVALID","nonfinite target bounds rejected");
+Reject(With(fact with {BindingEvidence=evidence with {Datum=""}}),"DIMENSION_EVIDENCE_INVALID","missing datum rejected");
+Reject(With(fact with {BindingEvidence=evidence with {AttachmentExplanation=""}}),"DIMENSION_EVIDENCE_INVALID","missing leader trace rejected");
+Reject(With(fact with {BindingEvidence=evidence with {QuantityKind=(DrawingQuantityKind)99}}),"DIMENSION_EVIDENCE_INVALID","invalid quantity enum rejected");
+Reject(With(fact with {BindingEvidence=evidence with {QuantityKind=DrawingQuantityKind.Radius}}),"DIMENSION_TARGET_KIND","declared radius cannot target diameter");
+Reject(With(fact with {Unit=DrawingValueUnit.Degree}),"DIMENSION_QUANTITY_UNIT","diameter cannot use angle units");
+var linear=fact with {SourceLiteral="10",ParameterPath="feature.depth_mm",BindingEvidence=evidence with {QuantityKind=DrawingQuantityKind.Linear,MeasurementId="depth",StartReference="top face",EndReference="bottom face",Datum="top face"}};
+Pass(With(linear),"linear endpoints accepted");
+Reject(With(linear with {BindingEvidence=linear.BindingEvidence! with {StartReference=null}}),"DIMENSION_ENDPOINTS_REQUIRED","missing first endpoint rejected");
+Reject(With(linear with {BindingEvidence=linear.BindingEvidence! with {EndReference="top face"}}),"DIMENSION_ENDPOINTS_REQUIRED","same endpoint rejected");
+var angle=linear with {Value=45,SourceLiteral="45°",Unit=DrawingValueUnit.Degree,ParameterPath="feature.angle_degrees",BindingEvidence=linear.BindingEvidence! with {QuantityKind=DrawingQuantityKind.Angle}};
+Pass(With(angle),"angle endpoints and degrees accepted");
+var count=fact with {Value=4,SourceLiteral="4",Unit=DrawingValueUnit.Unitless,ParameterPath="feature.count",BindingEvidence=evidence with {QuantityKind=DrawingQuantityKind.Count,MeasurementId="hole-count"}};
+Pass(With(count),"integer multiplicity accepted");
+Reject(With(count with {Value=4.5,SourceLiteral="4.5"}),"DIMENSION_QUANTITY_UNIT","fractional hole count rejected");
+var second=fact with {Id="D2",ViewIds=["left"],BindingEvidence=evidence with {ViewId="left"}};
+Pass(context with {Dimensions=[fact,second]},"matching cross view measurement accepted");
+Reject(context with {Dimensions=[fact,second with {Value=12,SourceLiteral="Ø12"}]},"DIMENSION_CROSS_VIEW_CONFLICT","cross view diameter conflict rejected");
+Pass(context with {Dimensions=[fact with {Value=25.4,SourceLiteral="Ø25.4"},second with {Value=1,SourceLiteral="Ø1in",Unit=DrawingValueUnit.Inch}]},"cross view unit conversion accepted");
+Pass(context with {Dimensions=[fact,second with {Value=12,SourceLiteral="Ø12",BindingEvidence=second.BindingEvidence! with {MeasurementId="counterbore-diameter"}}]},"different physical measurements not merged");
+var radius=fact with {Id="R1",Value=5,SourceLiteral="Ø10 / 2",Status=DrawingFactStatus.Derived,Derivation="D1 / 2",DerivedFromDimensionIds=["D1"],ParameterPath="feature.radius_mm",BindingEvidence=evidence with {QuantityKind=DrawingQuantityKind.Radius,MeasurementId="bore-radius"}};
+Pass(context with {Dimensions=[fact,radius]},"explicit radius derivation accepted");
+Reject(context with {Dimensions=[fact,radius with {DerivedFromDimensionIds=[]}]},"DIMENSION_DEPENDENCY_REQUIRED","derived value without premises rejected");
+Reject(context with {Dimensions=[fact,radius with {DerivedFromDimensionIds=["missing"]}]},"DIMENSION_DEPENDENCY_MISSING","unknown premise rejected");
+Reject(With(radius with {DerivationKind=DrawingDerivationKind.Geometry,DerivedFromDimensionIds=[],ObservationIds=["invented"]}),"DIMENSION_GEOMETRY_PREMISE","geometric derivation cannot invent source observations");
+Reject(With(fact with {DerivationKind=(DrawingDerivationKind)98}),"DIMENSION_DEPENDENCY_KIND","unknown derivation kind rejected");
+Reject(context with {Dimensions=[fact with {Status=DrawingFactStatus.Assumed},radius]},"DIMENSION_DEPENDENCY_UNRESOLVED","assumed premise rejected");
+Reject(context with {Dimensions=[fact with {Status=DrawingFactStatus.Unknown},radius]},"DIMENSION_DEPENDENCY_UNRESOLVED","unknown premise rejected");
+Reject(context with {Dimensions=[fact,radius with {DerivedFromDimensionIds=["D1","D1"]}]},"DIMENSION_DEPENDENCY_DUPLICATE","duplicate premises rejected");
+Reject(With(fact with {DerivedFromDimensionIds=["D1"]}),"DIMENSION_DEPENDENCY_STATUS","stated value cannot hide derivation");
+Reject(context with {Dimensions=[radius with {DerivedFromDimensionIds=["R1"]}]},"DIMENSION_DEPENDENCY_CYCLE","self cycle rejected");
+Reject(context with {Dimensions=[radius with {DerivedFromDimensionIds=["R2"]},radius with {Id="R2",DerivedFromDimensionIds=["R1"]}]},"DIMENSION_DEPENDENCY_CYCLE","mutual cycle rejected");
+var longChain=Enumerable.Range(0,1500).Select(i=>radius with {Id="chain-"+i,DerivedFromDimensionIds=i==0?["D1"]:["chain-"+(i-1)]}).Prepend(fact).ToArray();
+Pass(context with {Dimensions=longChain},"long acyclic graph does not recurse");
+var serialized=JsonSerializer.Serialize(context,ModelingIrJson.Options);
+var roundTrip=JsonSerializer.Deserialize<DrawingPlanContext>(serialized,ModelingIrJson.Options)!;
+Check(roundTrip.RequireDimensionEvidence && roundTrip.Dimensions[0].BindingEvidence==evidence,"public JSON roundtrip preserves evidence");
+Reject(context with {Dimensions=[fact with {Critical=false,BindingEvidence=null}],Features=[context.Features[0] with {CriticalParameters=[new() {DimensionId="D1",OperationId="hole-op",ParameterPath=fact.ParameterPath}]}]},"DIMENSION_EVIDENCE_REQUIRED","critical feature cannot bypass evidence by flipping fact critical flag");
+if(args.Length>0) { Directory.CreateDirectory(args[0]); File.WriteAllText(Path.Combine(args[0],"summary.json"),JsonSerializer.Serialize(new{passed=checks.Count,checks,native_modeling=false,visual_accuracy_measured=false},new JsonSerializerOptions{WriteIndented=true})); }
+Console.WriteLine($"{checks.Count} dimension evidence checks passed.");

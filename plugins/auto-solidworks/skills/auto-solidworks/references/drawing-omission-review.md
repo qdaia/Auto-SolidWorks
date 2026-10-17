@@ -56,7 +56,7 @@ Allowed dispositions:
 
 An explicit `candidate_ids` array can replace `candidate_id` when every listed item really shares the same disposition, targets and rationale. This saves repetition; it does not waive individual checks. Use exactly one form. No wildcard, implicit region-wide dismissal or overlapping batch is accepted.
 
-OCR conflict/correction: retain the original candidate, use `corrected_literal` for what the raw image actually shows, and add `correction_reason`. Do not change an expected number to match the built model. A corrected quantitative feature annotation must still be bound to its source dimensions.
+Historical OCR/native-text conflict correction: retain the original candidate, use `corrected_literal` for what the raw image actually shows, and add `correction_reason`. Do not change an expected number to match the built model. A corrected quantitative feature annotation must still be bound to its source dimensions.
 
 ## Check views and newly noticed features
 
@@ -70,7 +70,7 @@ Only then compile the typed draft. Complete drawing plans fail if the review is 
 
 ## Implementation references and scope
 
-The implementation reuses the plugin's local PdfPig, raster processing and Tesseract providers. It adds no neural model download or cloud service.
+The implementation reuses local PdfPig and raster processing; the connected AI reads raster text directly, with local OCR disabled. It adds no neural model download or cloud service.
 
 - [pdfplumber](https://github.com/jsvine/pdfplumber): native PDF object inventory and visual debugging informed the separate source-candidate list; this release uses existing PdfPig rather than bundling Python/pdfplumber.
 - [SAHI](https://github.com/obss/sahi): overlapping tiled processing informed raw detail coverage; these crops do not claim SAHI model inference or improved detector recall.

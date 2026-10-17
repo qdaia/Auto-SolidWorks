@@ -1,0 +1,418 @@
+{
+  "success": true,
+  "message": "读取模型特征、尺寸和几何形状而不保存更改。",
+  "input_path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段.SLDPRT",
+  "geometry": {
+    "solid_body_count": 1,
+    "face_count": 6,
+    "edge_count": 12,
+    "volume_mm3": 40000,
+    "surface_area_mm2": 10600,
+    "center_of_mass_mm": {
+      "x": 0,
+      "y": 0,
+      "z": 5
+    },
+    "bounding_box_mm": {
+      "x": 80,
+      "y": 50,
+      "z": 10
+    },
+    "surface_body_count": 0
+  },
+  "features": [
+    {
+      "name": "评论",
+      "type": "CommentsFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAACQAAAD//v8AAAAAAAgAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "收藏",
+      "type": "FavoriteFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAAAAAD//v8AAAAAAA==",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "历史记录",
+      "type": "HistoryFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAAAAAD//v8AAAAAAA==",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "选择集",
+      "type": "SelectionSetFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAAAAAD//v8AAAAAAA==",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "传感器",
+      "type": "SensorFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAAAAAD//v8AAAAAAA==",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "设计活页夹",
+      "type": "DocsFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAACQAAAD//v8AAAAAAAcAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "注解",
+      "type": "DetailCabinet",
+      "suppressed": false,
+      "persistent_reference": "UEYAABUAAAD//v8AAAAAAAEAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "注释",
+      "type": "NotesAreaFtrFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAACQAAAD//v8AAAAAABEAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "注释1___EndTag___",
+      "type": "NotesAreaFtrFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAACQAAAD//v8AAAAAABIAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "曲面实体",
+      "type": "SurfaceBodyFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAABQAAAD//v8AAAAAAAoAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "实体",
+      "type": "SolidBodyFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAABQAAAD//v8AAAAAAAkAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "光源与相机",
+      "type": "EnvFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAAAAAD//v8AAAAAAA==",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "环境光源",
+      "type": "AmbientLight",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAEAAAD//v8AAAAAAAwAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "线光源1",
+      "type": "DirectionLight",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAEAAAD//v8AAAAAAA0AAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "线光源2",
+      "type": "DirectionLight",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAEAAAD//v8AAAAAAA4AAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "线光源3",
+      "type": "DirectionLight",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAEAAAD//v8AAAAAAA8AAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "标注",
+      "type": "InkMarkupFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAAAAAD//v8AAAAAAA==",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "方程式",
+      "type": "EqnFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAABYAAAD//v8AAAAAABAAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "材质 <未指定>",
+      "type": "MaterialFolder",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAAAAAD//v8AAAAAAA==",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "前视基准面",
+      "type": "RefPlane",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAEAAAD//v8AAAAAAAIAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "上视基准面",
+      "type": "RefPlane",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAEAAAD//v8AAAAAAAMAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "右视基准面",
+      "type": "RefPlane",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAEAAAD//v8AAAAAAAQAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "原点",
+      "type": "OriginProfileFeature",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAEAAAD//v8AAAAAAAUAAAA=",
+      "dimensions": [],
+      "sketch_constraint_status": 3,
+      "sketch_quality": null,
+      "parent_feature_names": [
+        "前视基准面"
+      ],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "base",
+      "type": "ProfileFeature",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAEAAAD//v8AAAAAABoAAAA=",
+      "dimensions": [
+        {
+          "name": "宽度_0@base",
+          "system_value": 0.08,
+          "kind": "swHorLinearDimension",
+          "driving": true,
+          "equation_controlled": false,
+          "parameter_type": "swDimensionParamTypeDoubleLinear",
+          "unit": "Millimeter",
+          "value": 80
+        },
+        {
+          "name": "高度_0@base",
+          "system_value": 0.05,
+          "kind": "swVertLinearDimension",
+          "driving": true,
+          "equation_controlled": false,
+          "parameter_type": "swDimensionParamTypeDoubleLinear",
+          "unit": "Millimeter",
+          "value": 50
+        }
+      ],
+      "sketch_constraint_status": 3,
+      "sketch_quality": {
+        "complete": true,
+        "constraint_status": 3,
+        "driving_dimension_count": 2,
+        "fixed_entities": [],
+        "consumed_by": [
+          "block"
+        ],
+        "error": null,
+        "reference_only": false,
+        "status": "passed"
+      },
+      "parent_feature_names": [
+        "前视基准面",
+        "原点"
+      ],
+      "driving_edge_persistent_references": []
+    },
+    {
+      "name": "block",
+      "type": "Extrusion",
+      "suppressed": false,
+      "persistent_reference": "UEYAAAEAAAD//v8AAAAAACQAAAA=",
+      "dimensions": [
+        {
+          "name": "D1@block",
+          "system_value": 0.01,
+          "kind": "swLinearDimension",
+          "driving": true,
+          "equation_controlled": false,
+          "parameter_type": "swDimensionParamTypeDoubleLinear",
+          "unit": "Millimeter",
+          "value": 10
+        }
+      ],
+      "sketch_constraint_status": null,
+      "sketch_quality": null,
+      "parent_feature_names": [
+        "base",
+        "前视基准面",
+        "原点"
+      ],
+      "driving_edge_persistent_references": []
+    }
+  ],
+  "entities": [],
+  "body_validity": {
+    "complete": true,
+    "body_count": 1,
+    "fault_count": 0,
+    "error": null,
+    "passed": true
+  },
+  "geometry_status": "passed",
+  "parametric_status": "passed",
+  "visual_status": "not_observed",
+  "request_id": "9fca80a4756c49619884465aee2c9abc",
+  "outcome_unknown": false,
+  "model_sha256": "A20A36C2EE5D5CABD7B43CCE88754D6561E33F691B5C3B89D036556599CC6158",
+  "model_reopened": true,
+  "capture_complete": true,
+  "rebuild_succeeded": true,
+  "feature_tree_fingerprint": "252FA0997AC993BC75914D1992178B62FDEFB2478B64E4FFEF7B2A4C65BF67D0",
+  "configurations": [
+    "默认"
+  ],
+  "components": [],
+  "verification": {
+    "checks": [
+      {
+        "id": "source-solid-inventory",
+        "passed": true,
+        "status": "passed",
+        "message": "完整可见和不可见的体/面/线库存符合源要求。",
+        "measurements": {
+          "scope": "whole_model_inventory",
+          "bodies": "1 个实体，0 个曲面体",
+          "faces": "6",
+          "edges": "12",
+          "open_edges": "0",
+          "surface_kinds": "Plane: 6",
+          "area_mm2": "10600",
+          "volume_mm3": "40000",
+          "native_body_faults": "0",
+          "limits": "结构库存和可选的全局度量；不能证明位置等价性、G1/G2连续性或完整的绘图语义。"
+        }
+      },
+      {
+        "id": "bounds",
+        "passed": true,
+        "status": "passed",
+        "message": "测量了实际模型的包围盒。",
+        "measurements": {
+          "measured_mm": "80, 50, 10",
+          "expected_mm": "(80, 50, 10)"
+        }
+      }
+    ],
+    "passed": true,
+    "scope": "仅声明了源要求；未完成图纸或GD&T等效性。",
+    "whole_model_inventory_checked": true
+  },
+  "cylinders": [],
+  "cones": [],
+  "spheres": [],
+  "cosmetic_threads": [],
+  "geometry_ref_resolutions": [],
+  "measurements": [],
+  "connectivity_checks": [],
+  "editability_probes": [],
+  "saved_revision_certification": null
+}

@@ -4,7 +4,7 @@
 
 Read the actual source image or PDF. `cad_read_drawing` provides page images, text/primitive observations and dimension candidates. It does not automatically establish every dimension's target or reconstruct arbitrary 3D topology.
 
-Optional `viewHints` identify agent-interpreted view or annotation rectangles using Left/Top/Right/Bottom normalized page coordinates between 0 and 1. In JSON the fields are `left`, `top`, `right`, `bottom`, `id`, `page_number`, `view_type`, `ocr_rotation_clockwise` and `ocr_page_segmentation_mode`. Use 0/90/180/270 degrees for OCR rotation. Use segmentation 11 for sparse drawing text, 7 for a tightly cropped single annotation line, 6 for a text block, or 13 for a raw line. At most 16 regions per page. Returned OCR coordinates map back to the full normalized page; the original image is preserved.
+Optional `viewHints` locate AI-interpreted views/annotation rectangles using normalized [0,1] coordinates: left, top, right, bottom, id, page_number and view_type. Local OCR is disabled; legacy ocr_rotation_clockwise and ocr_page_segmentation_mode fields remain schema-compatible but do not trigger recognition. The original image is preserved and must be inspected directly by the AI.
 
 For unlabeled, nonconflicting three views, use first-angle: upper-left Front, lower-left Top, upper-right Left. Labels, projection symbols and user clarification override this default. A pictorial view is shape context, not a source of unmarked dimensions. A visible dimension overrides a pixel estimate. Upscaling cannot recover missing strokes or resolve a conflicting annotation.
 
@@ -48,3 +48,5 @@ The nested `drawing` result includes native/PDF paths, four first-angle A3 views
 ## Recovery
 
 The executor identifies the failing operation and distinguishes invalid parameters, unresolved references, feature creation, rebuild, measurements, save/export and connection problems. Inspect geometry and correct that operation or its dependent sketches; rerun a revised plan to a new output. `source_model_path` lets a new plan edit a saved part copy. Do not blindly retry a geometric failure or substitute a different part. `cad_executor_health` is for connection diagnosis, not a mandatory pre-build step.
+
+New drawing reviews require `require_dimension_evidence=true`. Follow the returned `review_workspace.recognition_checklist` and [dimension evidence contract](dimension-evidence.md); locate dimension endpoints before binding, and retain cross-view checks.

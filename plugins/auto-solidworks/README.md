@@ -1,8 +1,12 @@
+> 本地尺寸绑定修订：dimension-evidence-1。新读图任务要求对象、基准和端点证据，检查量义、原文、跨视图冲突及派生依赖。详见 [识图与尺寸绑定](skills/auto-solidworks/references/dimension-evidence.md)。盲测识图准确率与本轮原生建模尚未验证。
+
+> 当前识图方式：ai-vision-only-1。本地OCR已停用，AI直接识别原图文字、尺寸与视图关系；无需配置或安装OCR。原图、来源绑定和最终建模验收仍必须完成。
+
 # Auto SolidWorks 26.10.11mini
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-本地优化版本：`26.10.13-opt.1`；修订：`parametric-recipes-evidence-20261013`。增加可驱动孔位、草图质量与实际几何编辑探针、机械配方、方向与深度合同、可声明预览和检查点策略。原生证据按任务范围、SolidWorks修订号及运行库哈希验证；不认证未测任务。保留全部来源及最终保存重开门禁。详见[随包能力清单](skills/auto-solidworks/references/capability-manifest.json)与 cad_get_capabilities。
-<!-- Capability manifest SHA256: b227e0bec254da978b871b777ea1a9ae03b37a4c73948deb082bcc0c0c7795d5 -->
+本地优化版本：`26.10.17`；修订：`review-iterate-deliver-1`。提供带单位的源尺寸表达式、几何端点绑定、显式阶段范围、串行后台执行与验证检查点续建、固定毫米坐标的源投影差异定位。受控孔板验证不代表任意图纸首次成功率或整体提速；完整来源覆盖及最终保存重开门禁保留。详见[随包能力清单](skills/auto-solidworks/references/capability-manifest.json)。
+<!-- Capability manifest SHA256: ff92dc2459f941264add1388925e1b3f1de9bc01dd189a69d2939e761b91d3fb -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 本地使用的精简建模流程版。先完整识图与绑定尺寸，真实阻塞问题集中询问；编译回执聚合当前全部来源缺口与修复项。原生保存重开与几何验收继续保留。

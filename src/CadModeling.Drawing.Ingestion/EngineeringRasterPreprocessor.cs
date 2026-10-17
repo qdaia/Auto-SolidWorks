@@ -17,8 +17,8 @@ public sealed class EngineeringRasterPreprocessor : IRasterPreprocessor
         var normalized = source;
         var rotate = profile.Contains("auto-orient", StringComparison.OrdinalIgnoreCase) && source.Height > source.Width;
         if (rotate) normalized = source.RotateClockwise();
-        // OCR retains anti-aliased glyphs; binary geometry detection uses its own image.
-        normalized.SavePng(Path.Combine(context.PageArtifactDirectory,"ocr-source.png"));
+        // Preserve anti-aliased source glyphs for AI review; geometry uses its own binary image.
+        normalized.SavePng(Path.Combine(context.PageArtifactDirectory,"review-source.png"));
         var binary = normalized.ToBinaryOtsu(out var threshold);
         Denoise(binary, normalized.Width, normalized.Height);
         var darkRatio = binary.Count(value => value != 0) / (double)binary.Length;

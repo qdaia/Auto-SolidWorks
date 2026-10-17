@@ -1,8 +1,8 @@
 # Reference drawing export
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Local optimization version: `26.10.13-opt.1`; revision: `parametric-recipes-evidence-20261013`. Editable hole positions, native sketch quality and geometry-changing probes, bounded mechanical recipes, direction/depth contracts and declared preview/checkpoint scopes. Native evidence is validated per task, SOLIDWORKS revision and runtime hash; untested tasks remain uncertified. Source and final save/reopen gates remain required. Read the [bundled capability manifest](capability-manifest.json) and cad_get_capabilities.
-<!-- Capability manifest SHA256: b227e0bec254da978b871b777ea1a9ae03b37a4c73948deb082bcc0c0c7795d5 -->
+Local version: `26.10.17`; revision: `review-iterate-deliver-1`. Unit-checked source expressions, geometry anchors, explicit stage scope, serial background execution, verified checkpoint resume and fixed-frame source projection differences. Controlled plate validation does not certify general first-attempt accuracy or speedup. Complete source coverage and final native reopen gates remain. See [capability manifest](capability-manifest.json).
+<!-- Capability manifest SHA256: ff92dc2459f941264add1388925e1b3f1de9bc01dd189a69d2939e761b91d3fb -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 Use `cad_export_drawing(inputPath, nativePath, pdfPath, templatePath?, layout?)` on a saved local `.SLDPRT` or `.SLDASM`. All paths must be absolute; outputs must not exist. A dirty open source is rejected. Assemblies require saved, resolved, unmodified active components; component hashes are checked after export. The default template search prefers installed `gb_a3.drwdot`, then the configured native drawing template. An explicit template must exist and end in `.drwdot`; layout overrides its paper geometry.
@@ -17,4 +17,4 @@ Inspect the PDF pages before delivery. Imported dimensions can include construct
 
 For model-derived regression data, retain `drawing_origin=generated_from_reference_model`, source hashes and explicit reference authorization. These drawings are useful for extraction, units, coverage and geometry regression; they do not establish blind reconstruction accuracy on independently supplied drawings.
 
-To read the four-view page, use `cad_read_drawing` with `pageNumbers:[1]` and inspect its actual image. Read the parameter schedule separately when the task allows the reference model's data. Do not treat the schedule as geometry, or silently use it as independent source evidence. Native PDF extraction follows glyph baselines and preserves rotation; OCR conflicts remain conflicts in dimension candidates. Auxiliary dimension candidates do not certify attachment, even if their numeric value agrees with a reference.
+To read the four-view page, use `cad_read_drawing` with `pageNumbers:[1]` and inspect its actual image. Read the parameter schedule separately when the task allows the reference model's data. Do not treat the schedule as geometry, or silently use it as independent source evidence. Native PDF extraction follows glyph baselines and preserves rotation; Local OCR is disabled; native PDF text is source metadata and the AI must still inspect the rendered image. Auxiliary dimension candidates do not certify attachment, even if their numeric value agrees with a reference.

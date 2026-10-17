@@ -1,8 +1,8 @@
 # 建模可靠性修复
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-本地优化版本：`26.10.13-opt.1`；修订：`parametric-recipes-evidence-20261013`。增加可驱动孔位、草图质量与实际几何编辑探针、机械配方、方向与深度合同、可声明预览和检查点策略。原生证据按任务范围、SolidWorks修订号及运行库哈希验证；不认证未测任务。保留全部来源及最终保存重开门禁。详见[随包能力清单](capability-manifest.json)与 cad_get_capabilities。
-<!-- Capability manifest SHA256: b227e0bec254da978b871b777ea1a9ae03b37a4c73948deb082bcc0c0c7795d5 -->
+本地优化版本：`26.10.17`；修订：`review-iterate-deliver-1`。提供带单位的源尺寸表达式、几何端点绑定、显式阶段范围、串行后台执行与验证检查点续建、固定毫米坐标的源投影差异定位。受控孔板验证不代表任意图纸首次成功率或整体提速；完整来源覆盖及最终保存重开门禁保留。详见[随包能力清单](capability-manifest.json)。
+<!-- Capability manifest SHA256: ff92dc2459f941264add1388925e1b3f1de9bc01dd189a69d2939e761b91d3fb -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 本轮只修复建模执行和验收路径。默认长度仍为 mm，新增字段沿用 snake_case。原生证据来自 SolidWorks 2025（33.0.0）。源码回归入口为 `tests/EngineeringHardeningRegression`，原生测试输出保存在项目的独立 artifacts 目录。

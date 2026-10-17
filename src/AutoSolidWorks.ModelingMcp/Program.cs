@@ -32,13 +32,14 @@ builder.Services.AddSingleton<IPdfRasterizationProvider, PdftoppmRasterizationPr
 builder.Services.AddSingleton<IRasterInputProvider, WpfRasterInputProvider>();
 builder.Services.AddSingleton<IRasterPreprocessor, EngineeringRasterPreprocessor>();
 builder.Services.AddSingleton<ILayoutObservationProvider, PageLayoutObservationProvider>();
-builder.Services.AddSingleton<ITextObservationProvider, LocalTextObservationProvider>();
+builder.Services.AddSingleton<ITextObservationProvider, AgentVisionTextObservationProvider>();
 builder.Services.AddSingleton<IPrimitiveObservationProvider, DeterministicPrimitiveObservationProvider>();
 builder.Services.AddSingleton<IObservationFusionService, ObservationFusionService>();
 builder.Services.AddSingleton<IEngineeringDrawingIngestionService, EngineeringDrawingIngestionService>();
 var profile = Environment.GetEnvironmentVariable("AUTO_SOLIDWORKS_TOOL_PROFILE") ?? "compact";
 if (profile is not ("compact" or "full")) throw new ArgumentException("AUTO_SOLIDWORKS_TOOL_PROFILE 必须是 compact 或 full。");
 var mcp = builder.Services.AddMcpServer().WithStdioServerTransport().WithTools<CompactModelingTools>(ModelingIrJson.Options).WithTools<GordonSurfaceTools>(ModelingIrJson.Options);
+mcp.WithTools<SourceProjectionComparisonTools>(ModelingIrJson.Options);
 if (profile == "full") mcp.WithTools<AdvancedModelingTools>(ModelingIrJson.Options);
 mcp.WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, cancellationToken) =>
     {
@@ -192,6 +193,7 @@ public sealed class ModelingTools
         integrated_workflow = PluginCapabilityManifest.Current.GetProperty("integrated_workflow"),
         mini_workflow = PluginCapabilityManifest.Current.TryGetProperty("mini_workflow",out var miniWorkflow) ? miniWorkflow : default,
         native_evidence_policy = PluginCapabilityManifest.Current.GetProperty("native_evidence_policy"),
+        iterative_delivery = PluginCapabilityManifest.Current.GetProperty("iterative_delivery"),
         local_integration = PluginCapabilityManifest.Current.GetProperty("local_integration"),
         token_economy = PluginCapabilityManifest.Current.GetProperty("token_economy"),
         text_input = PluginCapabilityManifest.Current.GetProperty("text_input"),
@@ -205,7 +207,17 @@ public sealed class ModelingTools
         surface_modeling = PluginCapabilityManifest.Current.GetProperty("surface_modeling"),
         sketch_primitive_kinds=Enum.GetNames<GenericPrimitiveKind>(),
         assembly_mate_kinds=Enum.GetNames<AssemblyMateKind>(),
-        source_requirements = new { primary_interpreter="agent_vision",ocr="auxiliary_candidates",drawing_feature_coverage=true,critical_dimension_binding=true,compiled_binding_integrity=true },
+        source_requirements = new { primary_interpreter="agent_vision",ocr="disabled",recognition_workflow=AgentVisionTextObservationProvider.Revision,
+            raster_text_recognition="connected_ai_visual_review",local_ai_model_bundled=false,
+            drawing_feature_coverage=true,critical_dimension_binding=true,compiled_binding_integrity=true,
+            dimension_binding_revision=DimensionEvidenceValidation.Revision, new_reviews_require_dimension_evidence=true,
+            endpoint_and_quantity_validation=true, derived_dependency_validation=true, declared_measurement_consistency=true,
+            dimension_expression_revision=DimensionExpressions.Revision, dimension_reference_input=true,
+            computed_derivations=true, declared_dimension_equations=true, source_geometry_anchors=true,
+            progressive_native_execution=true, progressive_revision="progressive-source-1",
+            intermediate_scope_is_not_final=true, verified_checkpoint_resume=true,
+            source_projection_comparison="declared_lines_circles_arcs_fixed_mm_frame",
+            automatic_visual_accuracy_certified=false },
         drawing_omission = new { independent_source_inventory=true,raw_overlapping_tiles=true,residual_ink_candidates=true,
             complete_plan_requires_review=true,compile_and_build_recheck=true,declared_cross_view_checks=true,
             full_drawing_equivalence=false,automatic_semantic_recall_certification=false,review_tool="cad_review_drawing_coverage" },
@@ -228,7 +240,7 @@ public sealed class ModelingTools
         [Description("图片或 PDF 的绝对路径。")] string inputPath,
         [Description("提取页面图像的目录，默认为 LocalAppData/AutoSolidWorks/drawings。")] string? artifactRoot = null,
         int[]? pageNumbers = null, int renderDpi = 300,
-        [Description("可选的已解释视图／注释区域，使用页面归一化 [0,1] 坐标。侧向尺寸文字应设置 OCR 旋转角；区域标签描述几何，不能由 OCR 文本直接推断。")] DrawingViewRegionHint[]? viewHints = null,
+        [Description("可选的AI已解释视图／注释区域，使用页面归一化 [0,1] 坐标。AI直接看原图确定区域标签；旧OCR旋转和分段字段仅保留结构兼容，不触发OCR。")] DrawingViewRegionHint[]? viewHints = null,
         CancellationToken cancellationToken = default) => service.IngestAsync(new()
         {
             InputPath = Path.GetFullPath(inputPath),
@@ -270,7 +282,10 @@ public sealed class ModelingTools
             success = compilation.Success,
             source_interpretation_review_status = draft?.DrawingContext is null ? "not_applicable" : !compilation.Success ? "incomplete" :
                 draft.DrawingContext.RequireInterpretationReview ? "declared_source_interpretations_checked" : "legacy_not_required",
-            drawing_review_status = draft?.DrawingContext is null ? "not_applicable" : !compilation.Success ? "incomplete" :
+            is_intermediate_stage = draft?.DrawingContext?.StageScope is not null,
+            stage_id = draft?.DrawingContext?.StageScope?.StageId,
+            source_coverage_complete = compilation.Success && draft?.DrawingContext?.OmissionReview is not null && draft.DrawingContext.StageScope is null,
+            drawing_review_status = draft?.DrawingContext is null ? "not_applicable" : !compilation.Success ? "incomplete" : draft.DrawingContext.StageScope is not null ? "declared_stage_review_complete" :
                 draft.DrawingContext.OmissionReview is null ? "partial_unreviewed" : "declared_review_complete",
             full_drawing_equivalence = false,
             diagnostics = compilation.Diagnostics,
@@ -293,7 +308,8 @@ public sealed class ModelingTools
             validation.IsValid ? "dry_run_passed" : "invalid_model",
             validation.IsValid ? $"已检查{plan.Operations.Count}项建模操作；未创建 SolidWorks 文档。" : "请修正无效的模型参数。",
             validation.Diagnostics.Select(d => new ExecutionEvidence("model_parameters", d.Message,
-                d.Severity != DiagnosticSeverity.Error, Code: d.Code, SuggestedAction: d.SuggestedAction)).ToArray()));
+                d.Severity != DiagnosticSeverity.Error, Code: d.Code, SuggestedAction: d.SuggestedAction)).ToArray())
+                {IsIntermediateStage=plan.DrawingContext?.StageScope is not null,StageId=plan.DrawingContext?.StageScope?.StageId});
     }
 
     [McpServerTool(Name = "cad_executor_health", ReadOnly = false, Destructive = false,

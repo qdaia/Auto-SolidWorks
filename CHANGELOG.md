@@ -1,3 +1,14 @@
+# 26.10.17 — 2026-10-17
+
+- 建模后复核并按来源修改迭代；首轮成功不自动作为最终交付。
+- Review and iterate from source evidence; first native success is not automatic final delivery.
+- 整合AI读图、端点证据、尺寸表达式、后台串行执行、阶段检查点和固定坐标投影比较。
+- Includes AI drawing review, endpoint evidence, source expressions, serial background execution, staged checkpoints and fixed-frame projection comparison.
+- 后台执行回执可直接用于必要收尾摘要；pending/outcome_unknown继续阻断收尾。
+- Final-review summaries accept background execution envelopes while rejecting pending/unknown outcomes.
+- 中英文公告、真实中间状态图片、Windows插件包、源码与SHA-256同步发布。
+- Chinese/English notes, actual intermediate views, Windows package, source and SHA-256 are released together.
+
 # 26.10.13-opt.1（2026 年 10 月 14 日同步）
 
 - 同步已安装的参数化配方、草图质量、几何编辑试算和任务范围原生证据。

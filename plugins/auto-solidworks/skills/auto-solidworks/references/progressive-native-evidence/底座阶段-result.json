@@ -1,0 +1,433 @@
+{
+  "health": null,
+  "execution": {
+    "success": true,
+    "status": "stage_completed",
+    "message": "SolidWorks 创建、重建、测量并保存了该模型。",
+    "evidence": [
+      {
+        "stage": "connect",
+        "message": "连接到 SolidWorks COM。",
+        "passed": true,
+        "data": {
+          "revision": "33.0.0"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "document",
+        "message": "创建了一个新的部件文档。",
+        "passed": true,
+        "data": {
+          "template": "C:\\Users\\csj17\\Documents\\SOLIDWORKS\\Templates\\MMGS_Clean_2025.prtdot"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "sketch",
+        "message": "已创建轮廓草图base。",
+        "passed": true,
+        "data": {
+          "id": "base"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "feature",
+        "message": "创建凸台放样 'block'.",
+        "passed": true,
+        "data": {
+          "depth_mm": "10",
+          "end_condition": "Blind"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "checkpoint_saved",
+        "message": "保存并重新打开了可重用前缀模型。",
+        "passed": true,
+        "data": {
+          "operation_id": "block",
+          "manifest": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段-checkpoints\\a9495df178624f79a43f2df2b87ac2ec\\checkpoint.json"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "rebuild",
+        "message": "重建完成，未报告错误 SolidWorks。",
+        "passed": true,
+        "data": null,
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "stable_references",
+        "message": "将映射的 IR 操作 ID 跟踪到 SolidWorks 特征标识和持久引用上。",
+        "passed": true,
+        "data": {
+          "count": "2",
+          "persistent_count": "2"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "feature_tree",
+        "message": "所有由IR接受合同命名的特征存在于SolidWorks特征树中。",
+        "passed": true,
+        "data": {
+          "expected_count": "2",
+          "missing": "<none>"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "geometry_snapshot",
+        "message": "测量 SolidWorks 几何和质量属性。",
+        "passed": true,
+        "data": {
+          "solid_body_count": "1",
+          "face_count": "6",
+          "edge_count": "12",
+          "volume_mm3": "40000",
+          "surface_area_mm2": "10600",
+          "bounding_box_mm": "80 x 50 x 10"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "geometry_quality",
+        "message": "体的数量、体积和拓扑检查通过。",
+        "passed": true,
+        "data": null,
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "native_body_validity",
+        "message": "对全部可见及隐藏实体/曲面体执行 Check3，未发现原生故障。",
+        "passed": true,
+        "data": {
+          "body_count": "1",
+          "fault_count": "0"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "source_requirement",
+        "message": "测量了实际模型的包围盒。",
+        "passed": true,
+        "data": {
+          "measured_mm": "80, 50, 10",
+          "expected_mm": "(80, 50, 10)",
+          "check_id": "bounds",
+          "affected_operation_ids": "base,block",
+          "verification_status": "passed"
+        },
+        "code": null,
+        "category": "GeometryQuality",
+        "retryable": false,
+        "suggested_action": "检测测量特征的几何形状是否符合源要求；不要削弱期望。",
+        "operation_id": null
+      },
+      {
+        "stage": "preview",
+        "message": "已导出isometric审阅预览。",
+        "passed": true,
+        "data": {
+          "acceptance_scope": "image_file_written_only",
+          "visual_coverage": "unverified_requires_source_image_review",
+          "view": "isometric",
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段.isometric.bmp",
+          "bytes": "3686454"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "preview",
+        "message": "已导出front审阅预览。",
+        "passed": true,
+        "data": {
+          "acceptance_scope": "image_file_written_only",
+          "visual_coverage": "unverified_requires_source_image_review",
+          "view": "front",
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段.front.bmp",
+          "bytes": "3686454"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "preview",
+        "message": "已导出top审阅预览。",
+        "passed": true,
+        "data": {
+          "acceptance_scope": "image_file_written_only",
+          "visual_coverage": "unverified_requires_source_image_review",
+          "view": "top",
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段.top.bmp",
+          "bytes": "3686454"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "preview",
+        "message": "已导出right审阅预览。",
+        "passed": true,
+        "data": {
+          "acceptance_scope": "image_file_written_only",
+          "visual_coverage": "unverified_requires_source_image_review",
+          "view": "right",
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段.right.bmp",
+          "bytes": "3686454"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "preview",
+        "message": "已导出left审阅预览。",
+        "passed": true,
+        "data": {
+          "acceptance_scope": "image_file_written_only",
+          "visual_coverage": "unverified_requires_source_image_review",
+          "view": "left",
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段.left.bmp",
+          "bytes": "3686454"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "presentation",
+        "message": "保存了一个隐藏了构造几何的等轴测视图；没有抑制特征。",
+        "passed": true,
+        "data": null,
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "parameters",
+        "message": "保存了建模参数和假设。",
+        "passed": true,
+        "data": {
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段_parameters.json",
+          "bytes": "21490"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "geometry_quality",
+        "message": "体的数量、体积和拓扑检查通过。",
+        "passed": true,
+        "data": null,
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "saved_model_readback",
+        "message": "最终文件已重新打开、重建并通过特征、原生实体有效性及基础几何验收。",
+        "passed": true,
+        "data": {
+          "sha256": "A20A36C2EE5D5CABD7B43CCE88754D6561E33F691B5C3B89D036556599CC6158"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "review_report",
+        "message": "写完后飞行报告，在保存模型验证之后。",
+        "passed": true,
+        "data": {
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段_review_report.json",
+          "bytes": "17585"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "save",
+        "message": "保存了原生的 SolidWorks 部件，并且仅关闭了本次运行创建的文档。",
+        "passed": true,
+        "data": {
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段.sldprt",
+          "bytes": "46675",
+          "sha256": "A20A36C2EE5D5CABD7B43CCE88754D6561E33F691B5C3B89D036556599CC6158",
+          "warnings": "0"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      }
+    ],
+    "native_path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段.sldprt",
+    "geometry": {
+      "solid_body_count": 1,
+      "face_count": 6,
+      "edge_count": 12,
+      "volume_mm3": 40000,
+      "surface_area_mm2": 10600,
+      "center_of_mass_mm": {
+        "x": 0,
+        "y": 0,
+        "z": 5
+      },
+      "bounding_box_mm": {
+        "x": 80,
+        "y": 50,
+        "z": 10
+      },
+      "surface_body_count": 0
+    },
+    "feature_references": [
+      {
+        "operation_id": "base",
+        "operation_name": "base",
+        "operation_type": "ProfileSketchOperation",
+        "solid_works_name": "base",
+        "solid_works_feature_id": 26,
+        "persistent_reference_base64": "UEYAAAEAAAD//v8AAAAAABoAAAA=",
+        "depends_on": []
+      },
+      {
+        "operation_id": "block",
+        "operation_name": "block",
+        "operation_type": "ExtrudeBossOperation",
+        "solid_works_name": "block",
+        "solid_works_feature_id": 36,
+        "persistent_reference_base64": "UEYAAAEAAAD//v8AAAAAACQAAAA=",
+        "depends_on": [
+          "base"
+        ]
+      }
+    ],
+    "plan_fingerprint": "E7D4A07A24098B046EBE5065A47B1D1D066A08A89D07B3D0278C9DC7B67417CA",
+    "is_intermediate_stage": true,
+    "stage_id": "base",
+    "geometry_status": "passed",
+    "parametric_status": "passed",
+    "visual_status": "files_written_pending_review",
+    "performance_trace_path": null,
+    "verification": {
+      "checks": [
+        {
+          "id": "bounds",
+          "passed": true,
+          "status": "passed",
+          "message": "测量了实际模型的包围盒。",
+          "measurements": {
+            "measured_mm": "80, 50, 10",
+            "expected_mm": "(80, 50, 10)"
+          }
+        }
+      ],
+      "passed": true,
+      "scope": "仅声明了源要求；未完成图纸或GD&T等效性。",
+      "whole_model_inventory_checked": false
+    },
+    "recovery": {
+      "manifest_path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段-checkpoints\\a9495df178624f79a43f2df2b87ac2ec\\checkpoint.json",
+      "checkpoint_path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段-checkpoints\\a9495df178624f79a43f2df2b87ac2ec\\checkpoint_2_a9495df178624f79a43f2df2b87ac2ec.SLDPRT",
+      "completed_operation_ids": [
+        "base",
+        "block"
+      ],
+      "remaining_operation_ids": [],
+      "failed_operation_id": null,
+      "can_resume": false,
+      "message": "保持完整的校正操作列表和不变的源要求；设置恢复.resume_manifest_path. 证实的前缀将被重用，其余操作按顺序重放。"
+    },
+    "request_id": null,
+    "outcome_unknown": false
+  },
+  "error": null,
+  "inspection": null,
+  "assembly": null,
+  "drawing": null,
+  "observation": null,
+  "request_id": "72b85684a65b4df29759cf4f4bc9144c",
+  "pending": false,
+  "pause_accepted": false,
+  "projection": null,
+  "section": null,
+  "error_code": null,
+  "outcome_unknown": false,
+  "deadline_exceeded": false,
+  "server_reached": true
+}

@@ -34,7 +34,7 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
         this.rasterInput = rasterInput ?? new WpfRasterInputProvider();
         this.preprocessor = preprocessor ?? new EngineeringRasterPreprocessor();
         this.layout = layout ?? new PageLayoutObservationProvider();
-        this.text = text ?? new LocalTextObservationProvider();
+        this.text = text ?? new AgentVisionTextObservationProvider();
         this.primitives = primitives ?? new DeterministicPrimitiveObservationProvider();
         this.fusion = fusion ?? new ObservationFusionService();
     }
@@ -141,14 +141,14 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
                     DocumentId = $"drawing-observation-page-{pageNumber:D4}",
                     FieldPath = "observations"
                 }).ToArray();
-                var unresolved = pageDiagnostics.Where(item => item.Code.StartsWith("ING-OCR-", StringComparison.Ordinal)).Select((item, index) => new UnresolvedItem
+                var unresolved = pageDiagnostics.Where(item => item.Code == "ING-AI-VISION-REQUIRED" || item.Code.StartsWith("ING-OCR-", StringComparison.Ordinal)).Select((item, index) => new UnresolvedItem
                 {
-                    Id = $"page-{pageNumber:D4}-ocr-gap-{index:D2}",
-                    Category = "unreadable_text",
+                    Id = $"page-{pageNumber:D4}-visual-review-{index:D2}",
+                    Category = "pending_ai_visual_interpretation",
                     Blocking = false,
                     Reason = item.Message,
-                    MinimumQuestion = "无法读取光学字符识别文本；检查源图像或配置本地光学字符识别。",
-                    SuggestedEvidence = "原图、原生PDF文本或本地Tesseract语言数据。"
+                    MinimumQuestion = "AI直接核对原图文字、尺寸端点和跨视图关系；仅仍存在关键歧义时向用户集中澄清。",
+                    SuggestedEvidence = "原始页面、原始局部区域、AI来源观察与明确的尺寸/特征绑定。"
                 }).ToArray();
                 var observation = new DrawingObservationDocument
                 {
@@ -440,7 +440,8 @@ public sealed class EngineeringDrawingIngestionService : IEngineeringDrawingInge
     }
     private static string ConfigurationHash(DrawingIngestionRequest request) => IngestionUtilities.Sha256Text(JsonSerializer.Serialize(new
     {
-        request.PageNumbers, request.RenderDpi, request.PreprocessProfile, request.ProviderProfile, request.DeterministicSeed, request.Limits, request.ViewHints
+        request.PageNumbers, request.RenderDpi, request.PreprocessProfile, request.ProviderProfile, request.DeterministicSeed, request.Limits, request.ViewHints,
+        textRecognitionMode = AgentVisionTextObservationProvider.Revision
     }, DrawingContractJson.Options));
     private static string CreateVersionedOutputDirectory(string root, string sourceName, string sha)
     {

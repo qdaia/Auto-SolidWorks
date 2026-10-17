@@ -1,0 +1,492 @@
+{
+  "health": null,
+  "execution": {
+    "success": true,
+    "status": "completed",
+    "message": "SolidWorks 创建、重建、测量并保存了该模型。",
+    "evidence": [
+      {
+        "stage": "checkpoint_resume_decision",
+        "message": "检查点源/前缀/环境标识在原生重用前重新评估。",
+        "passed": true,
+        "data": {
+          "reused_operations": "base,block",
+          "reverification_evidence": "",
+          "reasons": "full-plan-changed-reverify-plan-bound-evidence"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "connect",
+        "message": "连接到 SolidWorks COM。",
+        "passed": true,
+        "data": {
+          "revision": "33.0.0"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "document",
+        "message": "打开了一个独立的编辑副本模型。",
+        "passed": true,
+        "data": {
+          "source": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段-checkpoints\\a9495df178624f79a43f2df2b87ac2ec\\checkpoint_2_a9495df178624f79a43f2df2b87ac2ec.SLDPRT",
+          "output": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板.sldprt"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "checkpoint_resume",
+        "message": "使用了保存的前缀，并恢复了其实特征引用。",
+        "passed": true,
+        "data": {
+          "completed_operations": "2",
+          "manifest": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\底座阶段-checkpoints\\a9495df178624f79a43f2df2b87ac2ec\\checkpoint.json"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "feature",
+        "message": "已创建 Hole：holes。",
+        "passed": true,
+        "data": {
+          "id": "holes"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "checkpoint_saved",
+        "message": "保存并重新打开了可重用前缀模型。",
+        "passed": true,
+        "data": {
+          "operation_id": "holes",
+          "manifest": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板-checkpoints\\1de61614696046f9a6e1ec0e6b8c2e31\\checkpoint.json"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "rebuild",
+        "message": "重建完成，未报告错误 SolidWorks。",
+        "passed": true,
+        "data": null,
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "stable_references",
+        "message": "将映射的 IR 操作 ID 跟踪到 SolidWorks 特征标识和持久引用上。",
+        "passed": true,
+        "data": {
+          "count": "3",
+          "persistent_count": "3"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "feature_tree",
+        "message": "所有由IR接受合同命名的特征存在于SolidWorks特征树中。",
+        "passed": true,
+        "data": {
+          "expected_count": "3",
+          "missing": "<none>"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "geometry_snapshot",
+        "message": "测量 SolidWorks 几何和质量属性。",
+        "passed": true,
+        "data": {
+          "solid_body_count": "1",
+          "face_count": "10",
+          "edge_count": "20",
+          "volume_mm3": "38869.027",
+          "surface_area_mm2": "11127.788",
+          "bounding_box_mm": "80 x 50 x 10"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "geometry_quality",
+        "message": "体的数量、体积和拓扑检查通过。",
+        "passed": true,
+        "data": null,
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "native_body_validity",
+        "message": "对全部可见及隐藏实体/曲面体执行 Check3，未发现原生故障。",
+        "passed": true,
+        "data": {
+          "body_count": "1",
+          "fault_count": "0"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "source_requirement",
+        "message": "实际的圆柱壁匹配直径、轴线、轴向起始/结束和数量。",
+        "passed": true,
+        "data": {
+          "expected_count": "4",
+          "measured_count": "4",
+          "coverage": "CompleteWall",
+          "scope": "complete_cylinder_wall",
+          "measured_axes_and_spans_mm": "轴向 (-25, 15, 0)；t 0..10；直径 6; 轴向 (25, -15, 0)；t 0..10；直径 6; 轴向 (25, 15, 0)；t 0..10；直径 6; 轴向 (-25, -15, 0)；t 0..10；直径 6",
+          "check_id": "hole-check",
+          "affected_operation_ids": "holes",
+          "verification_status": "passed"
+        },
+        "code": null,
+        "category": "GeometryQuality",
+        "retryable": false,
+        "suggested_action": "检测测量特征的几何形状是否符合源要求；不要削弱期望。",
+        "operation_id": "holes"
+      },
+      {
+        "stage": "source_requirement",
+        "message": "测量了实际模型的包围盒。",
+        "passed": true,
+        "data": {
+          "measured_mm": "80, 50, 10",
+          "expected_mm": "(80, 50, 10)",
+          "check_id": "bounds",
+          "affected_operation_ids": "base,block",
+          "verification_status": "passed"
+        },
+        "code": null,
+        "category": "GeometryQuality",
+        "retryable": false,
+        "suggested_action": "检测测量特征的几何形状是否符合源要求；不要削弱期望。",
+        "operation_id": null
+      },
+      {
+        "stage": "preview",
+        "message": "已导出isometric审阅预览。",
+        "passed": true,
+        "data": {
+          "acceptance_scope": "image_file_written_only",
+          "visual_coverage": "unverified_requires_source_image_review",
+          "view": "isometric",
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板.isometric.bmp",
+          "bytes": "3686454"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "preview",
+        "message": "已导出front审阅预览。",
+        "passed": true,
+        "data": {
+          "acceptance_scope": "image_file_written_only",
+          "visual_coverage": "unverified_requires_source_image_review",
+          "view": "front",
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板.front.bmp",
+          "bytes": "3686454"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "preview",
+        "message": "已导出top审阅预览。",
+        "passed": true,
+        "data": {
+          "acceptance_scope": "image_file_written_only",
+          "visual_coverage": "unverified_requires_source_image_review",
+          "view": "top",
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板.top.bmp",
+          "bytes": "3686454"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "preview",
+        "message": "已导出right审阅预览。",
+        "passed": true,
+        "data": {
+          "acceptance_scope": "image_file_written_only",
+          "visual_coverage": "unverified_requires_source_image_review",
+          "view": "right",
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板.right.bmp",
+          "bytes": "3686454"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "preview",
+        "message": "已导出left审阅预览。",
+        "passed": true,
+        "data": {
+          "acceptance_scope": "image_file_written_only",
+          "visual_coverage": "unverified_requires_source_image_review",
+          "view": "left",
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板.left.bmp",
+          "bytes": "3686454"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "presentation",
+        "message": "保存了一个隐藏了构造几何的等轴测视图；没有抑制特征。",
+        "passed": true,
+        "data": null,
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "parameters",
+        "message": "保存了建模参数和假设。",
+        "passed": true,
+        "data": {
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板_parameters.json",
+          "bytes": "31133"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "geometry_quality",
+        "message": "体的数量、体积和拓扑检查通过。",
+        "passed": true,
+        "data": null,
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "saved_model_readback",
+        "message": "最终文件已重新打开、重建并通过特征、原生实体有效性及基础几何验收。",
+        "passed": true,
+        "data": {
+          "sha256": "EF1B8CAD11F1DC3E6ED4B29B0E77001445A4312257CF2663DB86E858969192C5"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "review_report",
+        "message": "写完后飞行报告，在保存模型验证之后。",
+        "passed": true,
+        "data": {
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板_review_report.json",
+          "bytes": "22621"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      },
+      {
+        "stage": "save",
+        "message": "保存了原生的 SolidWorks 部件，并且仅关闭了本次运行创建的文档。",
+        "passed": true,
+        "data": {
+          "path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板.sldprt",
+          "bytes": "62469",
+          "sha256": "EF1B8CAD11F1DC3E6ED4B29B0E77001445A4312257CF2663DB86E858969192C5",
+          "warnings": "0"
+        },
+        "code": null,
+        "category": null,
+        "retryable": false,
+        "suggested_action": null,
+        "operation_id": null
+      }
+    ],
+    "native_path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板.sldprt",
+    "geometry": {
+      "solid_body_count": 1,
+      "face_count": 10,
+      "edge_count": 20,
+      "volume_mm3": 38869.02664470769,
+      "surface_area_mm2": 11127.787565803086,
+      "center_of_mass_mm": {
+        "x": -8.51249114225663e-17,
+        "y": 0,
+        "z": 5
+      },
+      "bounding_box_mm": {
+        "x": 80,
+        "y": 50,
+        "z": 10
+      },
+      "surface_body_count": 0
+    },
+    "feature_references": [
+      {
+        "operation_id": "base",
+        "operation_name": "base",
+        "operation_type": "ProfileSketchOperation",
+        "solid_works_name": "base",
+        "solid_works_feature_id": 26,
+        "persistent_reference_base64": "UEYAAAEAAAD//v8AAAAAABoAAAA=",
+        "depends_on": []
+      },
+      {
+        "operation_id": "block",
+        "operation_name": "block",
+        "operation_type": "ExtrudeBossOperation",
+        "solid_works_name": "block",
+        "solid_works_feature_id": 36,
+        "persistent_reference_base64": "UEYAAAEAAAD//v8AAAAAACQAAAA=",
+        "depends_on": [
+          "base"
+        ]
+      },
+      {
+        "operation_id": "holes",
+        "operation_name": "holes",
+        "operation_type": "NativeFeatureOperation",
+        "solid_works_name": "holes",
+        "solid_works_feature_id": 45,
+        "persistent_reference_base64": "UEYAAAEAAAD//v8AAAAAAC0AAAA=",
+        "depends_on": []
+      }
+    ],
+    "plan_fingerprint": "D1D31C75ADB73C17CD47377BCD4BDC09B6FC8AF9064F338DF69D584D5EB7B9D3",
+    "is_intermediate_stage": false,
+    "stage_id": null,
+    "geometry_status": "passed",
+    "parametric_status": "review_required",
+    "visual_status": "files_written_pending_review",
+    "performance_trace_path": null,
+    "verification": {
+      "checks": [
+        {
+          "id": "hole-check",
+          "passed": true,
+          "status": "passed",
+          "message": "实际的圆柱壁匹配直径、轴线、轴向起始/结束和数量。",
+          "measurements": {
+            "expected_count": "4",
+            "measured_count": "4",
+            "coverage": "CompleteWall",
+            "scope": "complete_cylinder_wall",
+            "measured_axes_and_spans_mm": "轴向 (-25, 15, 0)；t 0..10；直径 6; 轴向 (25, -15, 0)；t 0..10；直径 6; 轴向 (25, 15, 0)；t 0..10；直径 6; 轴向 (-25, -15, 0)；t 0..10；直径 6"
+          }
+        },
+        {
+          "id": "bounds",
+          "passed": true,
+          "status": "passed",
+          "message": "测量了实际模型的包围盒。",
+          "measurements": {
+            "measured_mm": "80, 50, 10",
+            "expected_mm": "(80, 50, 10)"
+          }
+        }
+      ],
+      "passed": true,
+      "scope": "仅声明了源要求；未完成图纸或GD&T等效性。",
+      "whole_model_inventory_checked": false
+    },
+    "recovery": {
+      "manifest_path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板-checkpoints\\1de61614696046f9a6e1ec0e6b8c2e31\\checkpoint.json",
+      "checkpoint_path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\完整孔板-checkpoints\\1de61614696046f9a6e1ec0e6b8c2e31\\checkpoint_3_1de61614696046f9a6e1ec0e6b8c2e31.SLDPRT",
+      "completed_operation_ids": [
+        "base",
+        "block",
+        "holes"
+      ],
+      "remaining_operation_ids": [],
+      "failed_operation_id": null,
+      "can_resume": false,
+      "message": "保持完整的校正操作列表和不变的源要求；设置恢复.resume_manifest_path. 证实的前缀将被重用，其余操作按顺序重放。"
+    },
+    "request_id": null,
+    "outcome_unknown": false
+  },
+  "error": null,
+  "inspection": null,
+  "assembly": null,
+  "drawing": null,
+  "observation": null,
+  "request_id": "6d9bcd950fde4a088e14d98b801acc13",
+  "pending": false,
+  "pause_accepted": false,
+  "projection": null,
+  "section": null,
+  "error_code": null,
+  "outcome_unknown": false,
+  "deadline_exceeded": false,
+  "server_reached": true
+}

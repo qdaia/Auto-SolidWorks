@@ -1,0 +1,147 @@
+{
+  "source_path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\regressions-1792164873075173500\\OmissionRegression\\four-hole-source.png",
+  "native_path": "C:\\Users\\csj17\\Desktop\\CODEX TEST\\solidworks-progressive-20261016\\native-stages-1792248487950223400\\\u5b8c\u6574\u5b54\u677f.sldprt",
+  "source": {
+    "view_id": "front",
+    "coordinate_frame_id": "source_center_xy_mm",
+    "source_sha256": "a8ebbd4bfb18ffa3904025595e4a917aecbe0590985f6a2b845a8fe6bc33e767",
+    "primitives": [
+      {
+        "id": "outline-0",
+        "kind": "Line",
+        "start": {
+          "x": -40,
+          "y": -25
+        },
+        "end": {
+          "x": 40,
+          "y": -25
+        }
+      },
+      {
+        "id": "outline-1",
+        "kind": "Line",
+        "start": {
+          "x": 40,
+          "y": -25
+        },
+        "end": {
+          "x": 40,
+          "y": 25
+        }
+      },
+      {
+        "id": "outline-2",
+        "kind": "Line",
+        "start": {
+          "x": 40,
+          "y": 25
+        },
+        "end": {
+          "x": -40,
+          "y": 25
+        }
+      },
+      {
+        "id": "outline-3",
+        "kind": "Line",
+        "start": {
+          "x": -40,
+          "y": 25
+        },
+        "end": {
+          "x": -40,
+          "y": -25
+        }
+      },
+      {
+        "id": "hole-0",
+        "kind": "Circle",
+        "center": {
+          "x": -25,
+          "y": -15
+        },
+        "radius_mm": 3
+      },
+      {
+        "id": "hole-1",
+        "kind": "Circle",
+        "center": {
+          "x": -25,
+          "y": 15
+        },
+        "radius_mm": 3
+      },
+      {
+        "id": "hole-2",
+        "kind": "Circle",
+        "center": {
+          "x": 25,
+          "y": -15
+        },
+        "radius_mm": 3
+      },
+      {
+        "id": "hole-3",
+        "kind": "Circle",
+        "center": {
+          "x": 25,
+          "y": 15
+        },
+        "radius_mm": 3
+      }
+    ]
+  },
+  "orientation": "Front",
+  "calibration_evidence": "Reviewed source labels: rectangle 80x50, 4 x diameter6; printed centers (+/-25,+/-15), origin rectangle center. No model-derived geometry or fitted alignment.",
+  "source_regions": {
+    "outline-0": {
+      "left": 0.11,
+      "top": 0.143,
+      "right": 0.779,
+      "bottom": 0.746
+    },
+    "outline-1": {
+      "left": 0.11,
+      "top": 0.143,
+      "right": 0.779,
+      "bottom": 0.746
+    },
+    "outline-2": {
+      "left": 0.11,
+      "top": 0.143,
+      "right": 0.779,
+      "bottom": 0.746
+    },
+    "outline-3": {
+      "left": 0.11,
+      "top": 0.143,
+      "right": 0.779,
+      "bottom": 0.746
+    },
+    "hole-0": {
+      "left": 0.2091111111111111,
+      "top": 0.586,
+      "right": 0.26311111111111113,
+      "bottom": 0.662
+    },
+    "hole-1": {
+      "left": 0.2091111111111111,
+      "top": 0.226,
+      "right": 0.26311111111111113,
+      "bottom": 0.302
+    },
+    "hole-2": {
+      "left": 0.6257777777777778,
+      "top": 0.586,
+      "right": 0.6797777777777778,
+      "bottom": 0.662
+    },
+    "hole-3": {
+      "left": 0.6257777777777778,
+      "top": 0.226,
+      "right": 0.6797777777777778,
+      "bottom": 0.302
+    }
+  }
+}

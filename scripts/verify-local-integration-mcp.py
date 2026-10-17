@@ -283,7 +283,11 @@ try:
         check(not rejected['success'],'public bounded history rejects '+label)
     check(not list(output.glob('*.SLDPRT')), 'no native model created')
     check(not (output/'unexpected-executor-logs').exists(), 'executor never started')
-    check(len(listing['tools'])==21, 'all original tools plus contract and result readers retained')
+    check(len(listing['tools'])==22 and any(t['name']=='cad_compare_source_projection' for t in listing['tools']),
+          'all previous full-profile tools and source projection comparison retained')
+    check(capabilities['iterative_delivery']['first_result_is_candidate'] is True
+          and capabilities['iterative_delivery']['native_success_is_not_visual_acceptance'] is True,
+          'review and iteration workflow scope is public')
     (output/'summary.json').write_text(json.dumps(dict(status='pass', passed=len(checks), checks=checks,
         evidence_layer='source_runtime_mcp_schema_compile_and_dry_run_only', native_acceptance='not_run',
         source_files=len(identity['source_hashes']), runtime_files=len(identity['runtime_hashes']),

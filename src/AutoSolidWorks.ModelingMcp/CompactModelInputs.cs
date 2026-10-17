@@ -12,7 +12,9 @@ public static class CompactModelInputs
     private static readonly JsonSerializerOptions Strict = new(ModelingIrJson.Options)
         { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow };
 
-    public static T Decode<T>(JsonNode node) where T : class => node.Deserialize<T>(Strict)
+    public static T Decode<T>(JsonNode node) where T : class =>
+        (typeof(T)==typeof(GenericModelDraft) || typeof(T)==typeof(DrawingPlanContext)
+            ? DimensionInputResolver.Normalize(node, typeof(T)==typeof(DrawingPlanContext)) : node).Deserialize<T>(Strict)
         ?? throw new JsonException("输入不能为空。");
 
     public static object Store(CompactArtifactStore store, string kind, JsonElement? input, string? baseInputId, JsonElement? edits)

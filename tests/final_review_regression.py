@@ -58,6 +58,25 @@ class FinalReviewTests(unittest.TestCase):
         self.assertEqual("pending_actual_image_review", result["visual_status"])
         self.assertFalse(result["full_drawing_equivalence"])
 
+    def test_background_execution_envelope_supported(self):
+        execution = copy.deepcopy(self.payload)
+        self.payload = {"execution": execution, "pending": False, "outcome_unknown": False}
+        result = self.evaluate()
+        self.assertTrue(result["saved_reopened_rebuilt"])
+        self.assertEqual("review_required", result["parametric_status"])
+
+    def test_pending_background_envelope_rejected(self):
+        execution = copy.deepcopy(self.payload)
+        self.payload = {"execution": execution, "pending": True, "outcome_unknown": False}
+        with self.assertRaisesRegex(ValueError, "Pending or unknown"):
+            self.evaluate()
+
+    def test_unknown_background_envelope_rejected(self):
+        execution = copy.deepcopy(self.payload)
+        self.payload = {"execution": execution, "pending": False, "outcome_unknown": True}
+        with self.assertRaisesRegex(ValueError, "Pending or unknown"):
+            self.evaluate()
+
     def test_receipt_hash_mismatch(self):
         self.evaluate()
         with self.assertRaisesRegex(ValueError, "Receipt hash"):

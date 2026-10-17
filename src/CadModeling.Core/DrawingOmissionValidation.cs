@@ -12,7 +12,9 @@ public sealed record DrawingOmissionIssue(string Code, string Message, string? C
 public sealed record DrawingOmissionResult
 {
     public bool Passed => Issues.Count == 0;
-    public string Status => Passed ? "declared_review_complete" : "review_incomplete";
+    public bool IntermediateScope { get; init; }
+    public int DeferredCandidates { get; init; }
+    public string Status => Passed ? IntermediateScope ? "declared_stage_review_complete" : "declared_review_complete" : "review_incomplete";
     public bool FullDrawingEquivalence => false;
     public string Scope => "检查物料库存记录并审查声明的视觉检查；并不证明探测器召回或表明每个作物都确实被某个代理检查过。";
     public int TotalCandidates { get; init; }
@@ -95,6 +97,8 @@ public static partial class DrawingOmissionValidation
         var expanded=review.Candidates.SelectMany(c=>c.CandidateIds.Count==0?new[]{c}:c.CandidateIds.Select(id=>c with{CandidateId=id,CandidateIds=[]})).ToArray();
         review=review with{Candidates=expanded};
         var issues = new List<DrawingOmissionIssue>();
+        foreach(var diagnostic in DrawingStageValidation.Validate(context))
+            issues.Add(new(diagnostic.Code,diagnostic.Message));
         void Issue(string code, string text, DrawingOmissionCandidate? c = null) =>
             issues.Add(new(code, text, c?.Id, null, c?.PageNumber, c?.Bounds));
         if (!inventory.CompleteExtraction) Issue("DRAWING_OMISSION_EXTRACTION", "提取不完整或被封顶。在解决摄入限制之前，不能声称覆盖范围。");
@@ -129,8 +133,19 @@ public static partial class DrawingOmissionValidation
                 Issue("DRAWING_OMISSION_CONFLICT", "冲突检测需要记录的源图像读取和解释。", candidate);
             if (decision.FeatureIds.Any(id => !features.ContainsKey(id)) || decision.DimensionIds.Any(id => !dimensions.ContainsKey(id)))
                 Issue("DRAWING_OMISSION_TARGET", "候选项是指计划中缺少的一个特征或尺寸。", candidate);
+            if(decision.Disposition!=DrawingCandidateDisposition.Deferred && decision.DeferredFeatureId is not null)
+                Issue("DRAWING_STAGE_DEFERRED","只有 Deferred 项允许 deferred_feature_id。",candidate);
             switch (decision.Disposition)
             {
+                case DrawingCandidateDisposition.Deferred:
+                    if(context.StageScope is null || decision.DeferredFeatureId is null ||
+                        !context.StageScope.PendingFeatureIds.Contains(decision.DeferredFeatureId) ||
+                        decision.FeatureIds.Count>0 || decision.DimensionIds.Count>0 || decision.DuplicateOf is not null ||
+                        decision.NonModelCategory is not null || candidate.Conflict ||
+                        context.Dimensions.Any(f=>f.ObservationIds.Any(candidate.ObservationIds.Contains)) ||
+                        context.GeometryAnchors.Any(a=>a.ObservationIds.Any(candidate.ObservationIds.Contains) || a.CandidateIds.Contains(candidate.Id)))
+                        Issue("DRAWING_STAGE_DEFERRED","依赖中的来源、冲突候选或未列入待办的对象不能延后；阶段结果不能充当最终交付。",candidate);
+                    break;
                 case DrawingCandidateDisposition.Feature:
                     if (decision.FeatureIds.Count == 0) Issue("DRAWING_OMISSION_TARGET", "特征布置需要目标特征ID。", candidate);
                     foreach (var featureId in decision.FeatureIds.Where(features.ContainsKey))
@@ -199,7 +214,7 @@ public static partial class DrawingOmissionValidation
                 finding.PageNumber < 1 || finding.PageNumber > inventory.TotalPages || finding.FeatureIds.Count == 0 || finding.FeatureIds.Any(id => !features.ContainsKey(id)))
                 issues.Add(new("DRAWING_OMISSION_FINDING", "从模型中未找到或未解决的附加来源发现：" + finding.Id,
                     PageNumber: finding.PageNumber, Bounds: finding.Bounds));
-        return new() { TotalCandidates = inventory.Candidates.Count, AccountedCandidates = accounted, RequiredRegions = inventory.Regions.Count,
+        return new() { IntermediateScope=context.StageScope is not null,DeferredCandidates=review.Candidates.Count(c=>c.Disposition==DrawingCandidateDisposition.Deferred),TotalCandidates = inventory.Candidates.Count, AccountedCandidates = accounted, RequiredRegions = inventory.Regions.Count,
             ReviewedRegions = reviewed, Issues = issues };
     }
 

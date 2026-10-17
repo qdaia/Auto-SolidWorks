@@ -6,9 +6,17 @@ Auto SolidWorks is a local CAD plugin for Codex / MCP. It creates, inspects and 
 
 [简体中文](README.md) | **English**
 
-**Version `26.10.13-opt.1` · Synchronized October 14, 2026 · Windows x64 · 16 default MCP tools (21 in the full profile)**
+**Version `26.10.17` · October 17, 2026 · Windows x64 · Codex / MCP**
 
-[Download Windows plugin](docs/download.en.md) · [Release notes](docs/release-26.10.13-opt.1.en.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.13-opt.1) · [Build from source](docs/development.en.md)
+[Download Windows plugin](docs/download.en.md) · [Release notes](docs/release-26.10.17.en.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.17) · [Build from source](docs/development.en.md)
+
+## 26.10.17: Review, correct and iterate before delivery
+
+Review the model after creation. Correct evidence-backed discrepancies and model again instead of treating the first result as final. Codex works with the plugin, preserving source bindings, failed receipts, checkpoints and final save/reopen gates; remaining parametric or source uncertainties are disclosed.
+
+![Actual modeling iteration: rejected candidates and delivered geometry](docs/images/modeling-iteration-26.10.17.en.png)
+
+Also includes direct AI drawing review and endpoint binding, source expressions, serial background execution, staged continuation and fixed-frame projection comparison. See the [English release notes](docs/release-26.10.17.en.md) and [release validation scope](docs/release-validation-26.10.17.md).
 
 ## Synchronized October 14, 2026 (version `26.10.13-opt.1`)
 
@@ -65,7 +73,7 @@ Engineering drawing PDF: `docs/examples/hollow-shaft/drawing.pdf`
 ## Quick start
 
 1. Prepare Windows x64, an activated local SolidWorks installation, [.NET 9 Windows Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/9.0), and Codex with plugin support.
-2. Download and extract the [26.10.13-opt.1 Windows package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.13-opt.1/auto-solidworks-26.10.13-opt.1-windows-x64.zip). Run this command in the extracted directory:
+2. Download and extract the [26.10.17 Windows package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.17/auto-solidworks-26.10.17-windows-x64.zip). Run this command in the extracted directory:
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
@@ -82,8 +90,8 @@ The installer prefers the CLI bundled with the Codex desktop app and prepares In
 CAD execution, native files and geometry checks run locally. Users install and license SolidWorks; Gordon also requires local FreeCAD. Image / PDF interpretation uses your selected model and service. OCR and PDF rasterization dependencies can be configured as needed.
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Local optimization version: `26.10.13-opt.1`; revision: `parametric-recipes-evidence-20261013`. Editable hole positions, native sketch quality and geometry-changing probes, bounded mechanical recipes, direction/depth contracts and declared preview/checkpoint scopes. Native evidence is validated per task, SOLIDWORKS revision and runtime hash; untested tasks remain uncertified. Source and final save/reopen gates remain required. Read the [bundled capability manifest](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json) and cad_get_capabilities.
-<!-- Capability manifest SHA256: b227e0bec254da978b871b777ea1a9ae03b37a4c73948deb082bcc0c0c7795d5 -->
+Local version: `26.10.17`; revision: `review-iterate-deliver-1`. Unit-checked source expressions, geometry anchors, explicit stage scope, serial background execution, verified checkpoint resume and fixed-frame source projection differences. Controlled plate validation does not certify general first-attempt accuracy or speedup. Complete source coverage and final native reopen gates remain. See [capability manifest](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json).
+<!-- Capability manifest SHA256: ff92dc2459f941264add1388925e1b3f1de9bc01dd189a69d2939e761b91d3fb -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 [Feature parameters](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md) · [Gordon guide](plugins/auto-solidworks/skills/auto-solidworks/references/gordon-surface.md) · [Surface controls](plugins/auto-solidworks/skills/auto-solidworks/references/surface-modeling.md) · [Geometry verification](plugins/auto-solidworks/skills/auto-solidworks/references/local-geometry-verification.md)

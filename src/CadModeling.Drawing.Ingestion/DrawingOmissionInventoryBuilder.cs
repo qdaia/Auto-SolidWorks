@@ -24,7 +24,7 @@ public sealed class DrawingOmissionInventoryBuilder
     {
         token.ThrowIfCancellationRequested();
         var pageNumber = processed.NormalizedPage.PageNumber;
-        var rawPath = Path.Combine(pageDirectory, "ocr-source.png");
+        var rawPath = Path.Combine(pageDirectory, "review-source.png");
         if (!File.Exists(rawPath)) rawPath = processed.NormalizedPage.ImagePath;
         var raw = RasterBuffer.Load(rawPath);
         var frame = processed.NormalizedPage.CoordinateFrameId;
@@ -128,6 +128,8 @@ public sealed class DrawingOmissionInventoryBuilder
         if (localRegions[0].InkPixels == 0) limitations.Add("空白栅格页面：检查源概述并说明其作用。");
         if (observation.Diagnostics.Any(d => d.Code.StartsWith("ING-OCR-", StringComparison.Ordinal)))
             limitations.Add("OCR 不可用或不可靠。候选项召回未知；需要审查原始图像。");
+        if (observation.Diagnostics.Any(d => d.Code == "ING-AI-VISION-REQUIRED"))
+            limitations.Add("本地OCR已停用；文字和尺寸由AI直接从原图识别。自动候选不保证语义召回，原图、全部非空区域和跨视图复查仍必须完成。");
         var retainedIds = local.Select(c=>c.Id).ToHashSet(StringComparer.Ordinal);
         for (var i = 0; i < local.Count; i++)
         {

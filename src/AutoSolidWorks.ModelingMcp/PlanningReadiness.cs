@@ -25,6 +25,18 @@ public static class PlanningReadiness
         {
             var criticalBindings = context.Features.Where(f => f.Critical).SelectMany(f => f.CriticalParameters)
                 .Select(b => b.DimensionId).ToHashSet(StringComparer.Ordinal);
+            foreach (var fact in context.Dimensions)
+            {
+                var reasons = errors.Where(e => e.Value!["path"]?.GetValue<string>() == "drawing_context.dimensions." + fact.Id)
+                    .Select(e => e.Value!["code"]?.GetValue<string>())
+                    .Where(code => code is "DIMENSION_LITERAL_VALUE" or "DIMENSION_LITERAL_KIND" or "DIMENSION_LITERAL_UNIT" or "DIMENSION_CROSS_VIEW_CONFLICT")
+                    .OfType<string>().ToArray();
+                if (reasons.Length == 0) continue;
+                var gap = GetGap(gaps, "dimension-source:" + fact.Id, "dimension_source_conflict");
+                Append(gap, "dimension_ids", [fact.Id]); Append(gap, "view_ids", fact.ViewIds);
+                Append(gap, "source_literals", [fact.SourceLiteral]); Append(gap, "reasons", reasons);
+                Append(gap, "parameter_targets", [fact.OperationId + "." + fact.ParameterPath]);
+            }
             foreach (var fact in context.Dimensions.Where(d => (d.Critical || criticalBindings.Contains(d.Id))
                 && d.Status is DrawingFactStatus.Unknown or DrawingFactStatus.Assumed))
             {

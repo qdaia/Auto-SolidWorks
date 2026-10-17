@@ -1,7 +1,7 @@
 {
-  "version": "26.10.13-opt.1",
-  "revision": "parametric-recipes-evidence-20261013",
-  "development_validation": "current_local_integration_offline_validation",
+  "version": "26.10.17",
+  "revision": "review-iterate-deliver-1",
+  "development_validation": "release_build_and_offline_public_mcp_validation",
   "current_native_acceptance": "dynamic_scoped_evidence",
   "native_evidence_policy": "Current native evidence is task-scoped and validated against runtime hashes, SOLIDWORKS revision and retained saved-file inspections. Historical evidence does not certify the current version or untested tasks.",
   "semantic_topology": {
@@ -548,5 +548,64 @@
     "native_evidence_index": "current-native-evidence.json",
     "native_acceptance": "read_dynamic_evidence",
     "end_to_end_speedup": "requires_bounded_benchmark"
+  },
+  "dimension_binding": {
+    "revision": "dimension-evidence-1",
+    "new_reviews_require_dimension_evidence": true,
+    "checks": [
+      "source_attachment",
+      "linear_angular_endpoints",
+      "quantity_kind_and_unit",
+      "simple_literal_value",
+      "radius_diameter_symbol",
+      "declared_cross_view_measurement_consistency",
+      "derived_dimension_dependency_graph"
+    ],
+    "reference": "skills/auto-solidworks/references/dimension-evidence.md",
+    "ocr": "disabled",
+    "visual_accuracy_measured": false,
+    "native_validation_for_change": "not_run"
+  },
+  "progressive_source": {
+    "revision": "progressive-source-1",
+    "expression": "typed_unit_checked_source_DAG_and_equation_closure",
+    "binding": "localized_geometry_anchors_and_cross_view_physical_entity_identity",
+    "execution": "serial_background_receipts_and_verified_prefix_resume",
+    "stage": "explicit_deferred_features_global_overview_review_and_final_complete_coverage",
+    "projection": "independent_source_lines_circles_arcs_in_fixed_mm_frame_with_source_regions",
+    "reference": "skills/auto-solidworks/references/progressive-source.md",
+    "native_scope": "controlled_four_hole_plate_two_stage_save_reopen; see local task receipts",
+    "blind_recognition_success_rate": null,
+    "end_to_end_speedup": null,
+    "full_drawing_equivalence": false
+  },
+  "iterative_delivery": {
+    "revision": "review-iterate-deliver-1",
+    "scope": "codex_agent_workflow_with_native_plugin_execution",
+    "first_result_is_candidate": true,
+    "native_success_is_not_visual_acceptance": true,
+    "source_review_before_correction": true,
+    "correction": "revise_draft_compile_and_execute_again_using_verified_checkpoints_when_compatible",
+    "final_gates": [
+      "save_reopen_rebuild",
+      "body_validity",
+      "declared_source_checks",
+      "actual_necessary_view_review"
+    ],
+    "retain": [
+      "failed_receipts",
+      "intermediate_candidates",
+      "correction_reasons",
+      "checkpoints",
+      "phase_timing"
+    ],
+    "ambiguity": "clarify_unresolved_critical_dimensions_or_topology",
+    "unknown_execution": "query_request_id_without_replay",
+    "claim_limits": [
+      "no_guaranteed_convergence",
+      "no_general_whole_drawing_BREP_GDT_equivalence",
+      "parametric_review_required_must_be_disclosed"
+    ],
+    "reference": "skills/auto-solidworks/references/iterative-delivery.md"
   }
 }

@@ -1,6 +1,6 @@
 # Source requirements, measured checks and local recovery
 
-Keep this data internal. The agent is the primary visual interpreter; OCR is auxiliary. The runtime now checks a separate ingestion-generated candidate inventory and declared overview/detail review before checking the feature inventory and executed plan. It still cannot certify detector recall or whether every feature was understood. Read [drawing omission review](drawing-omission-review.md); its source artifacts and review records are mandatory for complete drawing plans.
+Keep this data internal. The connected AI performs visual interpretation and dimension reading; local OCR is disabled. The runtime now checks a separate ingestion-generated candidate inventory and declared overview/detail review before checking the feature inventory and executed plan. It still cannot certify detector recall or whether every feature was understood. Read [drawing omission review](drawing-omission-review.md); its source artifacts and review records are mandatory for complete drawing plans.
 
 ## Establish requirements before authoring operations
 

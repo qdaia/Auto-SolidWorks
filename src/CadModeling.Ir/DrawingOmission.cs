@@ -8,7 +8,7 @@ public sealed record DrawingReviewBox(double Left, double Top, double Right, dou
 [JsonConverter(typeof(JsonStringEnumConverter<DrawingCandidateKind>))]
 public enum DrawingCandidateKind { Annotation, Geometry, ResidualInk }
 [JsonConverter(typeof(JsonStringEnumConverter<DrawingCandidateDisposition>))]
-public enum DrawingCandidateDisposition { Unresolved, Feature, NonModel, Duplicate }
+public enum DrawingCandidateDisposition { Unresolved, Feature, NonModel, Duplicate, Deferred }
 [JsonConverter(typeof(JsonStringEnumConverter<DrawingReviewState>))]
 public enum DrawingReviewState { Unresolved, Reviewed, Conflict }
 
@@ -74,6 +74,7 @@ public sealed record DrawingOmissionInventory
 
 public sealed record DrawingCandidateReview
 {
+    public string? DeferredFeatureId { get; init; }
     public string CandidateId { get; init; } = "";
     /// <summary>Optional explicit ID batch sharing the same explanation; use exactly one of CandidateId or CandidateIds.</summary>
     public IReadOnlyList<string> CandidateIds { get; init; } = [];

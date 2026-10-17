@@ -149,12 +149,21 @@ internal sealed partial class ExecutorPipeServer(string pipeName, IModelingExecu
         using var reader=new StreamReader(pipe,Encoding.UTF8,leaveOpen:true);
         using var writer=new StreamWriter(pipe,new UTF8Encoding(false),leaveOpen:true){AutoFlush=true};
         ExecutorServiceResponse response;
+        Task<ExecutorServiceResponse>? backgroundExecution=null;
         ExecutorServiceRequest? request=null;
         try
         {
             var line=await reader.ReadLineAsync(serverToken);
             request=line is null?null:JsonSerializer.Deserialize<ExecutorServiceRequest>(line,ModelingIrJson.Options);
-            response=await DispatchAsync(request,serverToken);
+            var dispatched=DispatchAsync(request,serverToken);
+            // DispatchAsync acquires the native lease and writes an active receipt before its
+            // first asynchronous native wait. Keep this handler alive until that receipt is terminal.
+            if(request is {Background:true,Action:"execute"} && !dispatched.IsCompleted)
+            {
+                backgroundExecution=dispatched;
+                response=new(RequestId:request.RequestId,Pending:true);
+            }
+            else response=await dispatched;
         }
         catch(OperationCanceledException) when(serverToken.IsCancellationRequested)
         { return; }
@@ -162,6 +171,11 @@ internal sealed partial class ExecutorPipeServer(string pipeName, IModelingExecu
         { response=new(Error:$"执行请求失败：{ex.Message}",RequestId:request?.RequestId,ErrorCode:"EXECUTOR_UNCAUGHT",OutcomeUnknown:request is not null&&request.Action is not ("pause" or "execution_status")); }
         try { await writer.WriteLineAsync(JsonSerializer.Serialize(response,ModelingIrJson.Options)); }
         catch(IOException) { /* Client may disconnect after issuing a pause. Persisted execution status remains queryable. */ }
+        finally
+        {
+            // Tracked by RunAsync, including orderly shutdown and disconnected clients.
+            if(backgroundExecution is not null) await backgroundExecution;
+        }
     }
 
     private async Task<ExecutorServiceResponse> DispatchCoreAsync(ExecutorServiceRequest? request,CancellationToken serverToken)
@@ -253,7 +267,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
             // delegate itself: a synchronous SolidWorks call must be allowed to reach a known boundary.
             var traceRequestId=PerformanceTrace.CurrentRequestId;
             var traceAttempt=PerformanceTrace.CurrentAttempt;
-            return await _sta.InvokeAsync(() => ExecuteOnSta(plan,cancellationToken,traceRequestId,traceAttempt), CancellationToken.None);
+            var result=await _sta.InvokeAsync(() => ExecuteOnSta(plan,cancellationToken,traceRequestId,traceAttempt), CancellationToken.None);
+            return result with {IsIntermediateStage=plan.DrawingContext?.StageScope is not null,StageId=plan.DrawingContext?.StageScope?.StageId,
+                Status=result.Success && plan.DrawingContext?.StageScope is not null ? "stage_completed" : result.Status};
         }
         finally { _serialGate.Release(); }
     }
@@ -431,6 +447,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                     }
                     catch(Exception checkpointError)
                     {
+                        if(plan.DrawingContext?.StageScope is not null && completed==plan.Operations.Count)
+                            throw new CadExecutionException("STAGE_CHECKPOINT_REQUIRED",ExecutionFailureCategory.GeometryQuality,false,
+                                "阶段末检查点保存重开失败："+checkpointError.Message,"保留失败回执；核对原生状态后恢复，不自动重放。");
                         // Optional checkpoint failure must not fabricate a recoverable state or destroy a previous checkpoint.
                         evidence.Add(new("checkpoint_unavailable",checkpointError.Message,true,Code:"CHECKPOINT_UNAVAILABLE",SuggestedAction:"使用最后有效的检查点如果存在；否则重建。"));
                     }
@@ -654,6 +673,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 ("count",advancedDefinitions.Count.ToString(CultureInfo.InvariantCulture))));
             var review = new
             {
+                is_intermediate_stage=plan.DrawingContext?.StageScope is not null,
+                stage_scope=plan.DrawingContext?.StageScope,
+                source_coverage_complete=plan.DrawingContext?.StageScope is null,
                 evaluation = new { status = "pass", message = "重建、特征、几何质量、导出和预览检查通过。" },
                 checks = new
                 {

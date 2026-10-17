@@ -6,8 +6,8 @@ Use the runtime [source requirements and recovery contract](source-requirements-
 
 ## Read and retain the source
 
-- Interpret actual page images and useful crops yourself. OCR is a candidate list, not authoritative dimensions.
-- Retain the complete drawing response in a local artifact or working variable. Print only relevant page/region paths, counts, warnings and current dimensions; do not flood the conversation with a full OCR payload.
+- Interpret actual page images and useful crops yourself. Local OCR is disabled; read and locate every dimension directly from the source image.
+- Retain the complete drawing response in a local artifact or working variable. Print only relevant page/region paths, counts, warnings and current dimensions; do not flood the conversation with a full source inventory.
 - Start with the available page render. For dense PDFs, use a bounded render around 300 dpi and crop the relevant area before increasing resolution. Do not repeatedly render an entire large page at extreme resolution after a memory failure.
 - Keep an internal feature table: source view/literal, stated value, derived coordinate, assumption and target operation. A default first-angle convention is Assumed, not Stated. Labels and symbols override it.
 - Ask only for a missing or conflicting critical value that prevents a defensible model. Record noncritical nominal choices separately.
