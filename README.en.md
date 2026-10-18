@@ -18,13 +18,6 @@ Review the model after creation. Correct evidence-backed discrepancies and model
 
 Also includes direct AI drawing review and endpoint binding, source expressions, serial background execution, staged continuation and fixed-frame projection comparison. See the [English release notes](docs/release-26.10.17.en.md) and [release validation scope](docs/release-validation-26.10.17.md).
 
-## Synchronized October 14, 2026 (version `26.10.13-opt.1`)
-
-- Adds driving hole positions, sketch quality readback, actual geometry edit probes, and bounded flange, plate and hole-family recipes.
-- Validates native capability evidence against task scope, runtime hashes and the SolidWorks revision. Source bindings, body validity and final save/reopen gates remain required.
-- Retains essential final review: one bounded success summary and actual review of an isometric/necessary-view contact sheet.
-
-See the [release notes](docs/release-26.10.13-opt.1.en.md) for validation scope and limits.
 
 ## From input to deliverable
 
@@ -40,15 +33,6 @@ Provide an engineering image, PDF or explicit dimensions. The plugin turns the i
 | Drawings | First-angle views, native dimension import, view layout and pagination; SLDDRW / PDF |
 | Execution management | Status, pause, deadlines, cross-process leases, checkpoints and recovery identity checks |
 
-## Updated on October 11, 2026 (version `26.10.11`)
-
-Auto SolidWorks **26.10.11** focuses on repeated input and local edits in drawing-based modeling workflows. The new version stores complete drawing contexts and modeling drafts locally, **substantially reducing token consumption and improving modeling speed**.
-
-For **token input burden**, the text size of the default tool catalog is approximately **97.16%** smaller than in the original version. In a test workflow that includes the initial complete upload, multiple reviews and corrected compilation, request text is approximately **78.75%** smaller. For one local edit and recompilation of the hollow shaft, request text is approximately **99.928%** smaller. Overall token consumption is reduced by approximately **25%**.
-
-For **modeling time**, the from-scratch arched-support comparison includes drawing interpretation, plan preparation, native modeling, retries and export checks. Total time decreased from **9 minutes 19 seconds to 3 minutes 15 seconds**, a reduction of approximately **65.1%** in this observation. Both versions passed the declared dimension, geometry and save/reopen checks. This result comes from a single test in the same conversation and includes the effects of warm-up and debugging experience.
-
-See the [English release notes](docs/release-26.10.11.en.md) and [validation report](docs/benchmark-26.10.11.en.md) for the complete data and scope.
 
 ## Examples
 
