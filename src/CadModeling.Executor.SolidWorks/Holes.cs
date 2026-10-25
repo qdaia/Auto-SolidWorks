@@ -13,6 +13,7 @@ internal sealed partial class SolidWorksComExecutor
         object MakeProfile(string id,double diameter,SketchFrame location,IReadOnlyList<ProfilePoint> centers)
         {
             var sketch=new ProfileSketchOperation { Id=id,Name=id,Frame=location,
+                AutoDimensionPrimitives=true,RequireEditable=true,RequireFullyDefined=true,
                 Primitives=centers.Select(p=>(ProfilePrimitive)new CircleProfile { CenterXmm=p.Xmm,CenterYmm=p.Ymm,DiameterMm=diameter }).ToArray() };
             return objects[id]=ExecuteSketch(model,sketch,math,objects);
         }

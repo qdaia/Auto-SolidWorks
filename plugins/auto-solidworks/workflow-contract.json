@@ -1,109 +1,69 @@
 {
-  "workflow_revision": "26.10.17",
-  "base_version": "26.10.11mini",
-  "runtime_revision": "review-iterate-deliver-1",
-  "scope": "source_expressions_geometry_anchors_progressive_native_modeling",
-  "source_interpretation_automatic": false,
-  "native_validation": "dynamic_scoped_identity_bound",
-  "end_to_end_speedup": "requires_bounded_benchmark",
-  "reference": "skills/auto-solidworks/references/batch-clarification-workflow.md",
-  "composable_workflow": {
-    "revision": "composable-source-1",
-    "scope": "local_step_adapter_with_shared_MCP_expression_and_stage_validation",
-    "helper": "scripts/composable-workflow.py",
-    "library": "scripts/composable_model.py",
-    "reference": "skills/auto-solidworks/references/composable-workflow.md",
-    "source_interpretation_automatic": false,
-    "all_mcp_calls_enforced": false,
-    "correction": "stable_ids_expected_values_atomic_revision_and_declared_dependency_invalidation",
-    "source_binding_parametric_final_acceptance": "existing_runtime_gates_preserved",
-    "native_validation": "controlled_two_stage_plate_save_reopen; local task receipts",
-    "performance": "no_end_to_end_speedup_claim"
-  },
-  "final_review": {
-    "revision": "essential-final-review-1",
-    "scope": "agent_orchestration_only_runtime_binary_unchanged",
-    "success_receipt_read": "one_bounded_summary_with_saved_file_identity",
-    "visual_review": "one_contact_sheet_isometric_and_necessary_source_views",
-    "ordinary_part_target_seconds": [
-      30,
-      60
+  "workflow_revision": "1025",
+  "runtime_revision": "source-four-stage-2",
+  "scope": "local_four_stage_modeling",
+  "steps": [
+    "recognition",
+    "dimension_binding",
+    "compile",
+    "model"
+  ],
+  "four_stage_workflow": {
+    "revision": "source-four-stage-2",
+    "steps": [
+      "recognition",
+      "dimension_binding",
+      "compile",
+      "model"
     ],
-    "target_is_hard_deadline": false,
-    "additional_inspection": "new_requirement_missing_evidence_identity_change_or_visual_discrepancy",
-    "declared_checks_must_pass": true,
-    "save_reopen_rebuild_body_validity_preserved": true,
-    "runtime_preview_generation": "unchanged",
-    "helper": "scripts/summarize-final-review.py"
+    "default": true,
+    "removed_default_requirements": [
+      "interpretation_hypotheses",
+      "candidate_dispositions",
+      "annotation_sweeps",
+      "shape_decomposition",
+      "material_probes",
+      "independent_verification_table",
+      "preview_images",
+      "separate_projection_comparison",
+      "separate_delivery_review",
+      "checkpoint_workflow",
+      "phase_report"
+    ],
+    "retained": [
+      "actual_parameter_binding",
+      "quantity_and_unit",
+      "source_endpoint_evidence",
+      "compound_component_roles",
+      "compile_integrity",
+      "native_rebuild_save_and_body_validity"
+    ],
+    "legacy_policy": "Explicit source-four-stage-1 and source-workflow-2/3/4/5 keep original rules; new inputs use source-four-stage-2.",
+    "native_validation": "not_run",
+    "general_accuracy_or_speedup_claim": false
   },
   "drawing_recognition": {
-    "revision": "ai-vision-only-1",
     "primary_interpreter": "connected_ai_vision",
-    "local_ocr": "disabled",
-    "ocr_configuration_loaded": false,
-    "local_visual_model_bundled": false,
-    "source_preparation": "originals_regions_geometry_inventory_and_hashes",
-    "dimension_binding": "AI_source_observation_then_existing_compiler_validation",
-    "source_and_final_acceptance": "preserved",
-    "native_validation_for_change": "not_run"
+    "local_ocr": "disabled"
   },
   "dimension_binding": {
-    "revision": "dimension-evidence-1",
-    "new_reviews_require_dimension_evidence": true,
-    "checks": [
-      "source_attachment",
-      "linear_angular_endpoints",
-      "quantity_kind_and_unit",
-      "simple_literal_value",
-      "radius_diameter_symbol",
-      "declared_cross_view_measurement_consistency",
-      "derived_dimension_dependency_graph"
-    ],
-    "reference": "skills/auto-solidworks/references/dimension-evidence.md",
-    "ocr": "disabled",
-    "visual_accuracy_measured": false,
-    "native_validation_for_change": "not_run"
+    "source_literal_preserved": true,
+    "actual_parameter_binding": true,
+    "source_endpoint_evidence": true,
+    "compound_component_roles": true,
+    "signed_source_direction": "source-model-direction-1"
   },
-  "progressive_source": {
-    "revision": "progressive-source-1",
-    "expression": "typed_unit_checked_source_DAG_and_equation_closure",
-    "binding": "localized_geometry_anchors_and_cross_view_physical_entity_identity",
-    "execution": "serial_background_receipts_and_verified_prefix_resume",
-    "stage": "explicit_deferred_features_global_overview_review_and_final_complete_coverage",
-    "projection": "independent_source_lines_circles_arcs_in_fixed_mm_frame_with_source_regions",
-    "reference": "skills/auto-solidworks/references/progressive-source.md",
-    "native_scope": "controlled_four_hole_plate_two_stage_save_reopen; see local task receipts",
-    "blind_recognition_success_rate": null,
-    "end_to_end_speedup": null,
-    "full_drawing_equivalence": false
+  "compile": {
+    "source_and_parameter_integrity": true,
+    "legacy_policy": "Explicit source-four-stage-1 and source-workflow-2/3/4/5 keep original rules; new inputs use source-four-stage-2."
   },
-  "iterative_delivery": {
-    "revision": "review-iterate-deliver-1",
-    "scope": "codex_agent_workflow_with_native_plugin_execution",
-    "first_result_is_candidate": true,
-    "native_success_is_not_visual_acceptance": true,
-    "source_review_before_correction": true,
-    "correction": "revise_draft_compile_and_execute_again_using_verified_checkpoints_when_compatible",
-    "final_gates": [
-      "save_reopen_rebuild",
-      "body_validity",
-      "declared_source_checks",
-      "actual_necessary_view_review"
-    ],
-    "retain": [
-      "failed_receipts",
-      "intermediate_candidates",
-      "correction_reasons",
-      "checkpoints",
-      "phase_timing"
-    ],
-    "ambiguity": "clarify_unresolved_critical_dimensions_or_topology",
-    "unknown_execution": "query_request_id_without_replay",
-    "claim_limits": [
-      "no_guaranteed_convergence",
-      "no_general_whole_drawing_BREP_GDT_equivalence",
-      "parametric_review_required_must_be_disclosed"
-    ],
-    "reference": "skills/auto-solidworks/references/iterative-delivery.md"
-  }
+  "model": {
+    "tool": "cad_build_model",
+    "save_native_file": true,
+    "internal_save_readback_preserved": true,
+    "mandatory_previews": false,
+    "separate_delivery_review": false
+  },
+  "reference": "skills/auto-solidworks/SKILL.md",
+  "full_drawing_equivalence": false
 }

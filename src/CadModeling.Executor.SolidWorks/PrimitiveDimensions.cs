@@ -50,6 +50,8 @@ internal sealed partial class SolidWorksComExecutor
                     });
                     Add((ISketchSegment)Find(true),"宽度_"+i,rectangle.WidthMm,horizontal:true);
                     Add((ISketchSegment)Find(false),"高度_"+i,rectangle.HeightMm,vertical:true);
+                    if(operation.Constraints.Count==0 && operation.Dimensions.Count==0 && sketch.GetConstrainedStatus()!=(int)swConstrainedStatus_e.swFullyConstrained)
+                        DimensionRectangleCenter(model,sketch,primitives[i],i);
                     break;
                 default:throw new InvalidOperationException("自动尺寸不支持该原语。");
             }

@@ -1,22 +1,14 @@
 # Auto SolidWorks
 
-**把工程图与尺寸描述转成可编辑的 SolidWorks 参数化模型。**
+**版本 1025 · 2026-10-25 · Windows x64 · Codex / MCP**
 
-Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWorks 中创建、检查和修改零件与装配体，输出原生模型、STEP / STL 和工程图；曲线网格可交给本地 Gordon 工具生成 NURBS 曲面。
+把工程图与尺寸描述转成本机 SolidWorks 参数化模型。默认按 **识图 → 尺寸绑定 → 编译 → 建模** 四步执行，保存原生文件。
 
 **简体中文** | [English](README.en.md)
 
-**版本 `26.10.17` · 2026 年 10 月 17 日 · Windows x64 · Codex / MCP**
+[下载 Windows 插件](docs/download.zh-CN.md) · [本次更新](docs/release-1025.zh-CN.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1025) · [验证范围](docs/release-validation-1025.md)
 
-[下载 Windows 插件](docs/download.zh-CN.md) · [本次更新说明](docs/release-26.10.17.zh-CN.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.17) · [从源码构建](docs/development.md)
-
-## 26.10.17：复核、修改迭代后交付
-
-建模后先复核，发现有依据的问题继续修正并重新建模，不把首次结果直接作为最终交付。流程由Codex协同插件完成，保留来源绑定、失败回执、检查点和最终保存重开验收；参数化或来源不确定项如实报告。
-
-![实际建模迭代：未通过复核的中间状态与交付几何版](docs/images/modeling-iteration-26.10.17.zh-CN.png)
-
-同时整合AI直接看图与端点绑定、源尺寸表达式、后台串行执行、阶段续建及固定坐标投影比较。详见[中文更新公告](docs/release-26.10.17.zh-CN.md)与[发布验证范围](docs/release-validation-26.10.17.md)。
+1025同步本机vision.9，包含源图几何候选、批量尺寸绑定、角度表达式、页面校准及耳板镜像方向检查。源图语义仍由AI复核。发布验证与原生CAD验收分别记录；本次未重新运行原生建模。
 
 ## 从输入到交付
 
@@ -31,7 +23,6 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 | 装配体 | 组件、配合、干涉检查、限定空间树机构自由度检查；SLDASM |
 | 工程图 | 第一角投影视图、原生尺寸导入、视图布局与分页；SLDDRW / PDF |
 | 执行管理 | 状态查询、暂停、截止时间、跨进程租约、检查点与恢复身份核对 |
-
 
 ## 测试案例
 
@@ -56,7 +47,7 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 ## 快速开始
 
 1. 准备 Windows x64、已激活的本机 SolidWorks、[.NET 9 Windows Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)，以及支持插件的 Codex。
-2. 下载并解压 [26.10.17 Windows 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.17/auto-solidworks-26.10.17-windows-x64.zip)，在解压目录运行：
+2. 下载并解压 [1025 Windows 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-windows-x64.zip)，在解压目录运行：
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
@@ -73,8 +64,8 @@ Auto SolidWorks 是面向 Codex / MCP 的本地 CAD 插件：在你的 SolidWork
 CAD 执行、原生文件和几何检查在本机完成。SolidWorks 由使用者安装并授权；Gordon 另需本地 FreeCAD。图片 / PDF 的理解使用你选择的模型与服务，OCR 和 PDF 栅格化依赖可按需配置。
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-本地优化版本：`26.10.17`；修订：`review-iterate-deliver-1`。提供带单位的源尺寸表达式、几何端点绑定、显式阶段范围、串行后台执行与验证检查点续建、固定毫米坐标的源投影差异定位。受控孔板验证不代表任意图纸首次成功率或整体提速；完整来源覆盖及最终保存重开门禁保留。详见[随包能力清单](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json)。
-<!-- Capability manifest SHA256: ff92dc2459f941264add1388925e1b3f1de9bc01dd189a69d2939e761b91d3fb -->
+本地版本：`1025`；修订：`source-four-stage-2`。默认仅识图、尺寸绑定、编译、建模四步；保留真实参数/单位/源图端点检查和建模保存，移除强制复核台账、分区探针、预览与独立交付审核。历史草案仍按原修订校验。不认证完整图纸/BREP/GD&T等价。详见[能力清单](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json)。
+<!-- Capability manifest SHA256: 203b2763562d8e401f8fccc85fec2c8f76c172b10604f28edb64105bb18c7cb1 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 [功能参数](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md) · [Gordon 使用](plugins/auto-solidworks/skills/auto-solidworks/references/gordon-surface.md) · [曲面控制](plugins/auto-solidworks/skills/auto-solidworks/references/surface-modeling.md) · [几何验证](plugins/auto-solidworks/skills/auto-solidworks/references/local-geometry-verification.md)

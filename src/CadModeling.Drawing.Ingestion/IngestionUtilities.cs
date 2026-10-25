@@ -163,6 +163,41 @@ internal sealed class RasterBuffer
         return binary;
     }
 
+    // A source-evidence channel, not OCR. Local contrast recovers pale drafting lines that
+    // a global two-class histogram assigns to paper. No dilation, bridging or invented pixels.
+    public byte[] ToSourceInk()
+    {
+        var gray = new byte[Width * Height]; var histogram = new long[256];
+        for (var i = 0; i < gray.Length; i++)
+        {
+            var o = i * 4; var alpha = Bgra[o + 3] / 255.0;
+            gray[i] = (byte)Math.Clamp((int)Math.Round(alpha * (Bgra[o+2]*.299 + Bgra[o+1]*.587 + Bgra[o]*.114) + (1-alpha)*255), 0, 255);
+            histogram[gray[i]]++;
+        }
+        var otsu = Otsu(histogram, gray.Length);
+        var stride = Width + 1; var sum = new long[stride * (Height+1)]; var square = new long[sum.Length];
+        for (var y=0;y<Height;y++)
+        {
+            long row=0, rowSquare=0;
+            for(var x=0;x<Width;x++)
+            { var g=gray[y*Width+x];row+=g;rowSquare+=g*g;var n=(y+1)*stride+x+1;sum[n]=sum[n-stride]+row;square[n]=square[n-stride]+rowSquare; }
+        }
+        long Area(long[] a,int x0,int y0,int x1,int y1)=>a[y1*stride+x1]-a[y0*stride+x1]-a[y1*stride+x0]+a[y0*stride+x0];
+        var ink = new byte[gray.Length];
+        for(var y=0;y<Height;y++)
+        for(var x=0;x<Width;x++)
+        {
+            var x0=Math.Max(0,x-15);var y0=Math.Max(0,y-15);var x1=Math.Min(Width,x+16);var y1=Math.Min(Height,y+16);
+            var count=(x1-x0)*(y1-y0);var mean=Area(sum,x0,y0,x1,y1)/(double)count;
+            var deviation=Math.Sqrt(Math.Max(0,Area(square,x0,y0,x1,y1)/(double)count-mean*mean));
+            var g=gray[y*Width+x];
+            var global=g<=otsu && g<245 && (otsu<128 || mean-g>=12);
+            var local=mean-g>=12 && g<=mean*(.88+.12*deviation/128);
+            if(global || local)ink[y*Width+x]=1;
+        }
+        return ink;
+    }
+
     public RasterBuffer RotateClockwise()
     {
         var output = new byte[Bgra.Length];

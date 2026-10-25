@@ -33,6 +33,10 @@ public sealed record DrawingOmissionCandidate
 
 public sealed record DrawingReviewRegion
 {
+    public string? InkMaskPath { get; init; }
+    public string? InkMaskSha256 { get; init; }
+    public string? InkMaskEncoding { get; init; }
+    public string? InkMaskAlgorithm { get; init; }
     public required string Id { get; init; }
     public int PageNumber { get; init; }
     public required DrawingReviewBox Bounds { get; init; }

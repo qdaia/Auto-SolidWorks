@@ -40,6 +40,11 @@ var profile = Environment.GetEnvironmentVariable("AUTO_SOLIDWORKS_TOOL_PROFILE")
 if (profile is not ("compact" or "full")) throw new ArgumentException("AUTO_SOLIDWORKS_TOOL_PROFILE 必须是 compact 或 full。");
 var mcp = builder.Services.AddMcpServer().WithStdioServerTransport().WithTools<CompactModelingTools>(ModelingIrJson.Options).WithTools<GordonSurfaceTools>(ModelingIrJson.Options);
 mcp.WithTools<SourceProjectionComparisonTools>(ModelingIrJson.Options);
+mcp.WithTools<DeliveryReviewTools>(ModelingIrJson.Options);
+mcp.WithTools<SourceBindingTools>(ModelingIrJson.Options);
+mcp.WithTools<SourceGeometryTools>(ModelingIrJson.Options);
+mcp.WithTools<SourceGeometryBindingTools>(ModelingIrJson.Options);
+mcp.WithTools<SourceCircleTools>(ModelingIrJson.Options);
 if (profile == "full") mcp.WithTools<AdvancedModelingTools>(ModelingIrJson.Options);
 mcp.WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, cancellationToken) =>
     {
@@ -176,6 +181,15 @@ public sealed class ModelingTools
     {
         server_version = typeof(ModelingTools).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion,
         mode = "modeling_only",
+        source_workflow = new {revision=SourceWorkflow.DefaultRevision,legacy_revision=SourceWorkflow.Revision,
+            steps=new[]{"recognition","dimension_binding","compile","model"},
+            automatic_declared_dimension_references=true,shape_decomposition_required=false,
+            interpretation_hypotheses_required=false,omission_dispositions_required=false,annotation_sweeps_required=false,
+            independent_verification_required=false,separate_delivery_review_required=false,preview_generation_required=false,
+            source_binding_evidence_required=true,actual_parameter_consumers_required=true,
+            automatic_image_semantics=false,aggregate_preflight=true,source_placement_intent_required=true,
+            automatic_compatible_checkpoint_selection=false,driven_profiles=Enum.GetNames<DrivenProfileKind>(),
+            first_attempt_success_rate="not_established",end_to_end_speedup="not_established"},
         complex_surface_modeling = GordonSurfaceTools.Capability(),
         default_unit = "mm",
         default_language = GeneratedChineseText.Language,
@@ -210,7 +224,14 @@ public sealed class ModelingTools
         source_requirements = new { primary_interpreter="agent_vision",ocr="disabled",recognition_workflow=AgentVisionTextObservationProvider.Revision,
             raster_text_recognition="connected_ai_visual_review",local_ai_model_bundled=false,
             drawing_feature_coverage=true,critical_dimension_binding=true,compiled_binding_integrity=true,
-            dimension_binding_revision=DimensionEvidenceValidation.Revision, new_reviews_require_dimension_evidence=true,
+            dimension_binding_revision=DimensionEvidenceValidation.Revision,
+            annotation_ledger_revision="source-annotation-ledger-1", hole_callout_parser_revision=HoleCalloutParser.Revision, annotation_sweeps=0, retained_manufacturing_metadata_certified=false,
+            callout_coverage_states=Enum.GetNames<DrawingCalloutCoverage>(), critical_unsupported_callouts_require_explicit_review=true,
+            dimension_trace_revision=DrawingDimensionTraceValidation.Revision, source_ink_supported_attachment_paths=true,
+            page_stretch_calibration="explicit_reviewed_independent_normal_circles_two_views", angle_literal_sweep_consistency=true,
+            angle_frame_expressions="Sin_Cos_Degree_to_Unitless", unconsumed_construction_dimension_rejection=true,
+            source_material_revision=SourceMaterialCoverage.Revision, source_material_scope="optional_explicit_checks_not_required_in_four_stage_default",
+            compound_callout_nominal_validation=true, physical_circle_radius_diameter_consistency=true, circular_target_region_validation=true, new_reviews_require_dimension_evidence=true,
             endpoint_and_quantity_validation=true, derived_dependency_validation=true, declared_measurement_consistency=true,
             dimension_expression_revision=DimensionExpressions.Revision, dimension_reference_input=true,
             computed_derivations=true, declared_dimension_equations=true, source_geometry_anchors=true,
@@ -219,16 +240,16 @@ public sealed class ModelingTools
             source_projection_comparison="declared_lines_circles_arcs_fixed_mm_frame",
             automatic_visual_accuracy_certified=false },
         drawing_omission = new { independent_source_inventory=true,raw_overlapping_tiles=true,residual_ink_candidates=true,
-            complete_plan_requires_review=true,compile_and_build_recheck=true,declared_cross_view_checks=true,
+            complete_plan_requires_review=false,compile_and_build_recheck=false,declared_cross_view_checks=true,
             full_drawing_equivalence=false,automatic_semantic_recall_certification=false,review_tool="cad_review_drawing_coverage" },
         measured_verification = new[] { "cylinder_diameter_axis_position_axial_extent_count", "interior_vs_exterior_cylinder", "native_dimensions", "model_bounding_box", "saved_native_readback", "trimmed_plane_cylinder_cone_samples", "trimmed_sphere_radius_center_outward_normal", "outward_normal_and_cone_half_angle", "boundary_clearance_samples", "unique_sampled_face_area" },
         local_geometry = PluginCapabilityManifest.Current.GetProperty("local_geometry"),
         entity_selection = new { feature_body_scope="优先生成面，其次受影响面；禁止用范围外的体替代。", failure_diagnostics="候选／匹配数量、选择范围及最多五个最近候选点。", sphere_radius_filter=true },
         modeling_upgrade = PluginCapabilityManifest.Current.GetProperty("modeling_upgrade"),
         complex_modeling = PluginCapabilityManifest.Current.GetProperty("complex_modeling"),
-        local_recovery = new { enabled_by_default=true,mode="verified_prefix_and_suffix_replay",checkpoint_file_hash=true,source_requirements_preserved=true },
+        local_recovery = new { enabled_by_default=false,mode="verified_prefix_and_suffix_replay",checkpoint_file_hash=true,source_requirements_preserved=true },
         natural_language_examples = ModelingCapabilityCatalog.Current.NaturalLanguageExamples.Skip(1).ToArray(),
-        workflow = "提供图纸时先读取图纸，再创建类型化模型计划，随后建模并保存。",
+        workflow = "识图 → 尺寸绑定 → 编译 → 建模。默认无需独立审核、扫描核销、材料探针、投影对比或交付报告。",
         limitations = ModelingCapabilityCatalog.Current.Limitations
     };
 
@@ -266,6 +287,10 @@ public sealed class ModelingTools
         if ((draft is null) == string.IsNullOrWhiteSpace(text))
             throw new ArgumentException("draft 与 text 必须且只能提供一个。");
         var output = AbsolutePath(nativeOutputPath);
+        // The full tool profile must not silently bypass the policy used by the compact input boundary.
+        if(draft?.DrawingContext is { WorkflowRevision: null } context)
+            draft=draft with {DrawingContext=context with {WorkflowRevision=SourceWorkflow.DefaultRevision,
+                RequireCompleteBindings=true,RequireDimensionEvidence=true,RequireGeometryAnchors=true}};
         var exports = exportPaths?.Select(AbsolutePath).ToArray();
         var compilation = draft is not null
             ? compiler.Compile(draft, output, exports, overwriteAllowed)
@@ -281,11 +306,14 @@ public sealed class ModelingTools
         return new {
             success = compilation.Success,
             source_interpretation_review_status = draft?.DrawingContext is null ? "not_applicable" : !compilation.Success ? "incomplete" :
+                SourceWorkflow.IsFourStage(draft.DrawingContext.WorkflowRevision) ? "not_required_four_stage" :
                 draft.DrawingContext.RequireInterpretationReview ? "declared_source_interpretations_checked" : "legacy_not_required",
             is_intermediate_stage = draft?.DrawingContext?.StageScope is not null,
             stage_id = draft?.DrawingContext?.StageScope?.StageId,
-            source_coverage_complete = compilation.Success && draft?.DrawingContext?.OmissionReview is not null && draft.DrawingContext.StageScope is null,
+            source_coverage_complete = compilation.Success && !SourceWorkflow.IsFourStage(draft?.DrawingContext?.WorkflowRevision) && draft?.DrawingContext?.OmissionReview is not null && draft.DrawingContext.StageScope is null,
+            dimension_bindings_complete = compilation.Success && draft?.DrawingContext is not null,
             drawing_review_status = draft?.DrawingContext is null ? "not_applicable" : !compilation.Success ? "incomplete" : draft.DrawingContext.StageScope is not null ? "declared_stage_review_complete" :
+                SourceWorkflow.IsFourStage(draft.DrawingContext.WorkflowRevision) ? "not_required_four_stage" :
                 draft.DrawingContext.OmissionReview is null ? "partial_unreviewed" : "declared_review_complete",
             full_drawing_equivalence = false,
             diagnostics = compilation.Diagnostics,

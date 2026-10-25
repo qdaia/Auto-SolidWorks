@@ -1,0 +1,158 @@
+{
+  "success": true,
+  "version": "1025",
+  "native_execution_for_release": false,
+  "managed_suites": 21,
+  "managed_checks": 1431,
+  "final_review_checks": 17,
+  "public_mcp_checks": 130,
+  "repository_checks": true,
+  "contract_documents": 10,
+  "suites": [
+    {
+      "name": "PhysicalThreadRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 51,
+      "seconds": 3.02
+    },
+    {
+      "name": "DesignFeatureRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 56,
+      "seconds": 1.774
+    },
+    {
+      "name": "DesignExpressionRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 137,
+      "seconds": 1.813
+    },
+    {
+      "name": "DesignIntentRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 116,
+      "seconds": 1.877
+    },
+    {
+      "name": "OfflineBoundaryRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 59,
+      "seconds": 1.837
+    },
+    {
+      "name": "AssemblyMobilityRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 146,
+      "seconds": 1.674
+    },
+    {
+      "name": "SemanticTopologyRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 170,
+      "seconds": 1.916
+    },
+    {
+      "name": "FillSupportRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 48,
+      "seconds": 1.497
+    },
+    {
+      "name": "BoundaryAdapterRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 103,
+      "seconds": 1.81
+    },
+    {
+      "name": "OptimizationRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 15,
+      "seconds": 1.776
+    },
+    {
+      "name": "DimensionEvidenceRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 60,
+      "seconds": 1.631
+    },
+    {
+      "name": "DimensionExpressionRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 73,
+      "seconds": 3.546
+    },
+    {
+      "name": "SourceWorkflowRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 54,
+      "seconds": 3.091
+    },
+    {
+      "name": "SourceReviewRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 60,
+      "seconds": 2.652
+    },
+    {
+      "name": "BindingAssistRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 47,
+      "seconds": 3.257
+    },
+    {
+      "name": "BindingSheetRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 42,
+      "seconds": 3.358
+    },
+    {
+      "name": "GeometryBindingRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 55,
+      "seconds": 3.798
+    },
+    {
+      "name": "ModelInputRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 41,
+      "seconds": 2.619
+    },
+    {
+      "name": "TokenEconomyRegression",
+      "passed": true,
+      "exit_code": 0,
+      "printed_checks": 57,
+      "seconds": 3.257
+    },
+    {
+      "name": "ProgressiveExecutionRegression",
+      "passed": true,
+      "printed_checks": 24,
+      "verification_note": "Initial build lacked explicit local Interop directory; build and managed tests passed after resolving it with find-solidworks.ps1. Failed build log retained."
+    },
+    {
+      "name": "DirectionRegression",
+      "passed": true,
+      "printed_checks": 17,
+      "scope": "known-source compile and signed-direction checks; no native execution"
+    }
+  ]
+}

@@ -67,7 +67,19 @@ public static partial class DrawingOmissionValidation
             if (!inventory.Regions.Any(r => r.PageNumber == page.PageNumber && r.Purpose == "overview"))
                 throw new InvalidDataException("读取的页面缺少整页复查区域。");
         }
-        foreach (var region in inventory.Regions) CheckArtifact(root, region.ImagePath, region.ImageSha256);
+        foreach (var region in inventory.Regions)
+        {
+            CheckArtifact(root, region.ImagePath, region.ImageSha256);
+            if (region.InkMaskPath is not null || region.InkMaskSha256 is not null || region.InkMaskEncoding is not null)
+            {
+                if (region.InkMaskEncoding != "bitset-row-major-lsb0-v1" ||
+                    (long)region.PixelWidth * region.PixelHeight > 268435456)
+                    throw new InvalidDataException("源笔画掩码格式或大小无效。");
+                CheckArtifact(root, region.InkMaskPath, region.InkMaskSha256);
+                if (new FileInfo(region.InkMaskPath!).Length != ((long)region.PixelWidth * region.PixelHeight + 7) / 8)
+                    throw new InvalidDataException("源笔画掩码与图像尺寸不一致。");
+            }
+        }
         return inventory;
     }
 
@@ -251,6 +263,7 @@ public static partial class DrawingOmissionValidation
 
     public static IEnumerable<ModelingDiagnostic> Diagnostics(DrawingPlanContext context)
     {
+        if(SourceWorkflow.IsFourStage(context.WorkflowRevision))yield break;
         if (context.OmissionReview is null && !context.RequireCompleteBindings)
         {
             yield return new("DRAWING_OMISSION_PARTIAL", DiagnosticSeverity.Warning,

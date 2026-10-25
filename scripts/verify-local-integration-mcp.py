@@ -283,11 +283,13 @@ try:
         check(not rejected['success'],'public bounded history rejects '+label)
     check(not list(output.glob('*.SLDPRT')), 'no native model created')
     check(not (output/'unexpected-executor-logs').exists(), 'executor never started')
-    check(len(listing['tools'])==22 and any(t['name']=='cad_compare_source_projection' for t in listing['tools']),
-          'all previous full-profile tools and source projection comparison retained')
-    check(capabilities['iterative_delivery']['first_result_is_candidate'] is True
+    names=[t['name'] for t in listing['tools']]
+    check(len(names)==len(set(names)) and {'cad_create_model_plan','cad_build_model','cad_store_model_input','cad_compare_source_projection','cad_review_model_delivery'}.issubset(names),
+          'active tool catalog retains modeling, source projection and delivery review without duplicates')
+    check(capabilities['source_workflow']['steps']==['recognition','dimension_binding','compile','model']
+          and capabilities['iterative_delivery']['default_required'] is False
           and capabilities['iterative_delivery']['native_success_is_not_visual_acceptance'] is True,
-          'review and iteration workflow scope is public')
+          'four-stage default is public and separate delivery review is not mandatory')
     (output/'summary.json').write_text(json.dumps(dict(status='pass', passed=len(checks), checks=checks,
         evidence_layer='source_runtime_mcp_schema_compile_and_dry_run_only', native_acceptance='not_run',
         source_files=len(identity['source_hashes']), runtime_files=len(identity['runtime_hashes']),

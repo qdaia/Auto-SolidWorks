@@ -1,8 +1,8 @@
 # 建模可靠性修复
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-本地优化版本：`26.10.17`；修订：`review-iterate-deliver-1`。提供带单位的源尺寸表达式、几何端点绑定、显式阶段范围、串行后台执行与验证检查点续建、固定毫米坐标的源投影差异定位。受控孔板验证不代表任意图纸首次成功率或整体提速；完整来源覆盖及最终保存重开门禁保留。详见[随包能力清单](capability-manifest.json)。
-<!-- Capability manifest SHA256: ff92dc2459f941264add1388925e1b3f1de9bc01dd189a69d2939e761b91d3fb -->
+本地版本：`1025`；修订：`source-four-stage-2`。默认仅识图、尺寸绑定、编译、建模四步；保留真实参数/单位/源图端点检查和建模保存，移除强制复核台账、分区探针、预览与独立交付审核。历史草案仍按原修订校验。不认证完整图纸/BREP/GD&T等价。详见[能力清单](capability-manifest.json)。
+<!-- Capability manifest SHA256: 203b2763562d8e401f8fccc85fec2c8f76c172b10604f28edb64105bb18c7cb1 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 本轮只修复建模执行和验收路径。默认长度仍为 mm，新增字段沿用 snake_case。原生证据来自 SolidWorks 2025（33.0.0）。源码回归入口为 `tests/EngineeringHardeningRegression`，原生测试输出保存在项目的独立 artifacts 目录。

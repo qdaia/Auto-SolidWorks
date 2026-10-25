@@ -16,7 +16,7 @@ public sealed record ModelVerificationResult(IReadOnlyList<VerificationCheckResu
 
 public static partial class ModelVerification
 {
-    public static bool HasChecks(ModelVerificationSpec spec) => spec.RequireWholeModelInventory||spec.CylinderGroups.Count+spec.NativeDimensions.Count+spec.Bounds.Count+spec.SurfaceSamples.Count+spec.BoundaryClearances.Count+spec.WholeModelChecks.Count+spec.EdgeShapes.Count+spec.SurfaceContinuity.Count>0;
+    public static bool HasChecks(ModelVerificationSpec spec) => spec.RequireWholeModelInventory||spec.CylinderGroups.Count+spec.NativeDimensions.Count+spec.Bounds.Count+spec.SurfaceSamples.Count+spec.BoundaryClearances.Count+spec.WholeModelChecks.Count+spec.EdgeShapes.Count+spec.SurfaceContinuity.Count+spec.MaterialRegions.Count>0;
     public static IEnumerable<ModelingDiagnostic> Validate(ModelVerificationSpec spec, DrawingPlanContext? context)
     {
         var errors=new List<ModelingDiagnostic>();
@@ -32,7 +32,8 @@ public static partial class ModelVerification
         ValidateShapeChecks(spec,Error);
         ValidateLocalChecks(spec,Error);
         ValidateWholeModelChecks(spec,Error);
-        if(all.Select(c=>c.Id).Distinct(StringComparer.Ordinal).Count()!=all.Length) Error("验证检查ID必须唯一。");
+        errors.AddRange(SourceMaterialCoverage.Validate(spec,context));
+        if(all.Select(c=>c.Id).Concat(spec.MaterialRegions.Select(c=>c.Id)).Distinct(StringComparer.Ordinal).Count()!=all.Length+spec.MaterialRegions.Count) Error("验证检查ID必须唯一。");
         foreach(var c in all)
         {
             if(string.IsNullOrWhiteSpace(c.Id)||string.IsNullOrWhiteSpace(c.SourceLiteral)) Error("每个检查都需要一个ID和来源要求字面表达。");
@@ -75,7 +76,7 @@ public static partial class ModelVerification
             if(check.Item4 is NativeDimensionCheck dimension && binding.ParameterPath=="value") value*=UnitFactor(dimension.Unit);
             var allowed=binding.ParameterPath=="value"&&check.Item4 is NativeDimensionCheck ||
                 check.Item4 is BoundsCheck && binding.ParameterPath.StartsWith("size_mm.",StringComparison.Ordinal) ||
-                check.Item4 is CylinderGroupCheck cylinderCheck && (binding.ParameterPath is "diameter_mm" or "expected_count" || binding.ParameterPath=="length_mm"&&cylinderCheck.Coverage==CylinderCoverage.CompleteWall || binding.ParameterPath.StartsWith("axis_starts_mm.",StringComparison.Ordinal)) ||
+                check.Item4 is CylinderGroupCheck cylinderCheck && (binding.ParameterPath is "diameter_mm" or "radius_mm" or "expected_count" || binding.ParameterPath=="length_mm"&&cylinderCheck.Coverage==CylinderCoverage.CompleteWall || binding.ParameterPath.StartsWith("axis_starts_mm.",StringComparison.Ordinal)) ||
                 check.Item4 is SurfaceSampleCheck && (binding.ParameterPath is "diameter_mm" or "radius_mm" or "cone_half_angle_degrees" or "cone_included_angle_degrees" || binding.ParameterPath.StartsWith("points_mm.",StringComparison.Ordinal) || binding.ParameterPath.StartsWith("center_mm.",StringComparison.Ordinal)) ||
                 check.Item4 is BoundaryClearanceCheck && (binding.ParameterPath=="minimum_distance_mm" || binding.ParameterPath.StartsWith("points_mm.",StringComparison.Ordinal)) ||
                 check.Item4 is WholeModelCheck && binding.ParameterPath is "solid_body_count" or "surface_body_count" or "face_count" or "edge_count" or "open_edge_count" ||
@@ -90,9 +91,15 @@ public static partial class ModelVerification
         IReadOnlyDictionary<string,double> nativeSystemValues, GeometrySnapshot? geometry,
         IReadOnlyDictionary<string,IReadOnlyList<LocalPointMeasurement>>? localMeasurements=null, WholeModelMeasurement? wholeModel=null,
         IReadOnlyDictionary<string,ShapeMeasurement>? shapeMeasurements=null,
-        IReadOnlyCollection<string>? availableNativeDimensionNames=null)
+        IReadOnlyCollection<string>? availableNativeDimensionNames=null,
+        IReadOnlyList<VerificationCheckResult>? materialResults=null)
     {
         var results=new List<VerificationCheckResult>();
+        foreach(var check in spec.MaterialRegions)
+        {
+            var measured=materialResults?.Where(r=>r.Id==check.Id).ToArray();
+            results.Add(measured is {Length:1}?measured[0]:new(check.Id,false,"unverifiable","保存后实体的源材料区间检查缺少实际测量结果。"));
+        }
         results.AddRange(EvaluateShapeChecks(spec,shapeMeasurements));
         results.AddRange(EvaluateLocalChecks(spec,localMeasurements));
         results.AddRange(EvaluateWholeModelChecks(spec,wholeModel));

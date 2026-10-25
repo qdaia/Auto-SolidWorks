@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.RegularExpressions;
 using CadModeling.Ir;
 
@@ -7,20 +6,25 @@ namespace CadModeling.Core;
 /// <summary>Checks declared attachments and dependencies; does not infer source geometry.</summary>
 public static partial class DimensionEvidenceValidation
 {
-    public const string Revision = "dimension-evidence-1";
+    public const string Revision = "dimension-evidence-4";
     public static IReadOnlyList<ModelingDiagnostic> Validate(DrawingPlanContext context)
     {
         var errors = new List<ModelingDiagnostic>();
+        errors.AddRange(SourceWorkflow.Validate(context));
         errors.AddRange(DimensionExpressions.Validate(context));
         errors.AddRange(DrawingGeometryAnchorValidation.Validate(context));
+        errors.AddRange(DrawingMeasurementIdentityValidation.Validate(context));
+        errors.AddRange(DrawingDimensionTraceValidation.Validate(context));
         errors.AddRange(DrawingStageValidation.Validate(context));
+        errors.AddRange(DimensionCalloutValidation.Assess(context).SelectMany(a => a.Diagnostics));
+        errors.AddRange(SourceAnnotationValidation.Validate(context));
         void Error(string code, DrawingDimensionFact f, string message) =>
             errors.Add(new(code, DiagnosticSeverity.Error, message, "drawing_context.dimensions." + f.Id));
         // Duplicate IDs are diagnosed by the parent validator; never throw while collecting other issues.
         var facts = context.Dimensions.GroupBy(f => f.Id).ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
         var critical = context.Features.Where(f => f.Critical).SelectMany(f => f.CriticalParameters).Select(b => b.DimensionId).ToHashSet(StringComparer.Ordinal);
         var geometryObservations = new HashSet<string>(StringComparer.Ordinal);
-        if (context.Dimensions.Any(f => f.DerivationKind == DrawingDerivationKind.Geometry) && context.OmissionReview is { } omission)
+        if (context.Dimensions.Any(f => f.DerivationKind == DrawingDerivationKind.Geometry) && SourceWorkflow.Evidence(context) is { } omission)
         {
             try
             {
@@ -70,21 +74,6 @@ public static partial class DimensionEvidenceValidation
                 (sourceSymbol == "R" && (targetLeaf.Contains("diameter", StringComparison.Ordinal) || f.BindingEvidence is { QuantityKind: DrawingQuantityKind.Diameter }) ||
                  sourceSymbol is "Ø" or "⌀" or "Φ" or "∅" && (targetLeaf.Contains("radius", StringComparison.Ordinal) || f.BindingEvidence is { QuantityKind: DrawingQuantityKind.Radius })))
                 Error("DIMENSION_LITERAL_KIND", f, "原标注的半径/直径符号与绑定量相反；数量、公差后缀不能改变其含义。");
-            var literal = SimpleLiteral().Match(f.SourceLiteral.Trim());
-            if (f.Status == DrawingFactStatus.Stated && literal.Success &&
-                double.TryParse(literal.Groups["value"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var sourceValue))
-            {
-                if (!Equal(sourceValue, f.Value)) Error("DIMENSION_LITERAL_VALUE", f, "原标注数值与声明值不符；换算值应作为派生尺寸记录。");
-                var symbol = literal.Groups["symbol"].Value.ToUpperInvariant();
-                var leaf = f.ParameterPath.Split('.').LastOrDefault() ?? "";
-                if (symbol == "R" && (leaf.Contains("diameter", StringComparison.Ordinal) || f.BindingEvidence is { QuantityKind: not DrawingQuantityKind.Radius }) ||
-                    symbol is "Ø" or "⌀" or "Φ" or "∅" && (leaf.Contains("radius", StringComparison.Ordinal) || f.BindingEvidence is { QuantityKind: not DrawingQuantityKind.Diameter }))
-                    Error("DIMENSION_LITERAL_KIND", f, "R 与直径符号对应不同物理量，不能只因数值相同直接绑定。");
-                var unit = literal.Groups["unit"].Value.ToLowerInvariant();
-                if ((unit == "mm" && f.Unit != DrawingValueUnit.Millimeter) || (unit == "in" && f.Unit != DrawingValueUnit.Inch) ||
-                    (unit == "m" && f.Unit != DrawingValueUnit.Meter) || (unit is "°" or "º" && f.Unit != DrawingValueUnit.Degree))
-                    Error("DIMENSION_LITERAL_UNIT", f, "原标注单位与尺寸事实单位不符。");
-            }
             if (f.DerivedFromDimensionIds.Count > 0 && f.Status != DrawingFactStatus.Derived)
                 Error("DIMENSION_DEPENDENCY_STATUS", f, "只有派生尺寸可以声明推导前提。");
             if (!Enum.IsDefined(f.DerivationKind)) Error("DIMENSION_DEPENDENCY_KIND", f, "未知推导类型。");
@@ -128,8 +117,6 @@ public static partial class DimensionEvidenceValidation
     private static int Family(DrawingValueUnit unit) => unit == DrawingValueUnit.Degree ? 1 : unit == DrawingValueUnit.Unitless ? 2 : 0;
     private static double Canonical(DrawingDimensionFact f) => SourceInterpretationValidation.SourceLiteralValue(f) * (f.Unit == DrawingValueUnit.Inch ? 25.4 : f.Unit == DrawingValueUnit.Meter ? 1000 : 1);
     private static bool Equal(double a, double b) => double.IsFinite(a) && double.IsFinite(b) && Math.Abs(a-b) <= 1e-7 * Math.Max(1, Math.Max(Math.Abs(a), Math.Abs(b)));
-    [GeneratedRegex(@"^\s*(?<symbol>[RØ⌀φΦ∅])?\s*(?<value>[+-]?\d+(?:\.\d+)?)\s*(?<unit>mm|in|m|°|º)?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex SimpleLiteral();
     [GeneratedRegex(@"^\s*(?:\d+\s*[-xX×]\s*)?(?<symbol>[RØ⌀φΦ∅])\s*\d", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex SourceSymbol();
 }

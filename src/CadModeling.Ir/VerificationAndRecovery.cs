@@ -4,6 +4,7 @@ namespace CadModeling.Ir;
 /// <summary>Requirements authored from the source, separately from operation geometry.</summary>
 public sealed record ModelVerificationSpec
 {
+    public IReadOnlyList<SourceMaterialRegionCheck> MaterialRegions { get; init; } = [];
     public IReadOnlyList<EdgeShapeCheck> EdgeShapes { get; init; } = [];
     public IReadOnlyList<SurfaceContinuityCheck> SurfaceContinuity { get; init; } = [];
     public IReadOnlyList<CylinderGroupCheck> CylinderGroups { get; init; } = [];
@@ -87,6 +88,8 @@ public enum CylinderCoverage { CompleteWall, TrimmedAxisAndDiameter }
 
 public sealed record CylinderGroupCheck
 {
+    /// <summary>Measured radius binding; diameter remains the single stored expectation.</summary>
+    public double RadiusMm => DiameterMm / 2;
     /// <summary>Trimmed mode checks analytic axes/diameters/count only, never full wall coverage.</summary>
     public CylinderCoverage Coverage { get; init; } = CylinderCoverage.CompleteWall;
     public required string Id { get; init; }
@@ -121,6 +124,8 @@ public sealed record NativeDimensionCheck
 public enum CheckpointMode { Automatic, Explicit, EveryNFeatures }
 public sealed record ModelingRecoveryOptions
 {
+    /// <summary>Search only the declared task directory for a compatible, complete native snapshot.</summary>
+    public bool AutoSelectCheckpoint { get; init; }
     public CheckpointMode CheckpointMode { get; init; }=CheckpointMode.Automatic;
     public int FeatureInterval { get; init; }=5;
     public bool Enabled { get; init; } = true;

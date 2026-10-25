@@ -46,9 +46,23 @@ static class AnchorChecks
         Pass(cross,"same physical endpoints across views accepted");
         Reject(cross with{GeometryAnchors=[start,end,topStart,topEnd with{PhysicalEntityId="inner-right"}]},"ANCHOR_CROSS_VIEW","equal numbers bound to different endpoint pairs rejected");
         Reject(cross with{GeometryAnchors=[start,end,topStart with{Kind=DrawingAnchorKind.Point},topEnd]},"ANCHOR_PHYSICAL_ID","same physical entity cannot change kind across views");
-        var circular=fact with{BindingEvidence=evidence with{QuantityKind=DrawingQuantityKind.Diameter,TargetAnchorId="circle"}};
+        var circular=fact with{BindingEvidence=evidence with{QuantityKind=DrawingQuantityKind.Diameter,TargetAnchorId="circle",StartAnchorId=null,EndAnchorId=null}};
         Pass(context with{Dimensions=[circular],GeometryAnchors=[start,end,Anchor("circle","bore","front") with{Kind=DrawingAnchorKind.Circle}]},"diameter target circle accepted");
         Reject(context with{Dimensions=[circular],GeometryAnchors=[start,end,Anchor("circle","bore","front")]},"ANCHOR_CIRCULAR","diameter target plane rejected");
+        var circle=Anchor("circle","bore","front") with{Kind=DrawingAnchorKind.Circle};
+        var circleTop=circle with{Id="circle-top",ViewId="top"};
+        var radius=circular with{Id="radius",Value=10,ViewIds=["top"],BindingEvidence=circular.BindingEvidence! with{MeasurementId="different-id",ViewId="top",TargetAnchorId="circle-top",QuantityKind=DrawingQuantityKind.Radius}};
+        var circles=context with{Dimensions=[circular,radius],GeometryAnchors=[circle,circleTop]};
+        Pass(circles,"physical circle reconciles diameter and radius across different measurement IDs");
+        Reject(circles with{Dimensions=[circular,radius with{Value=20}]},"ANCHOR_CIRCULAR_CONFLICT","same physical circle cannot hide doubled radius under another measurement ID");
+        Reject(circles with{Dimensions=[circular,radius with{Value=12,BindingEvidence=radius.BindingEvidence! with{QuantityKind=DrawingQuantityKind.Diameter}}]},"ANCHOR_CIRCULAR_CONFLICT","same circle conflicting diameters with different IDs rejected");
+        Pass(circles with{Dimensions=[circular,radius with{Value=10/25.4,Unit=DrawingValueUnit.Inch}]},"physical radius diameter comparison normalizes units");
+        Pass(circles with{GeometryAnchors=[circle,circleTop with{PhysicalEntityId="different-bore"}],Dimensions=[circular,radius with{Value=12}]},"distinct circles can have different radii");
+        Reject(circles with{Dimensions=[circular with{BindingEvidence=circular.BindingEvidence! with{TargetBounds=new(.6,.6,.8,.8)}},radius]},"ANCHOR_TARGET_REGION","dimension target cannot point to distant circle anchor");
+        Reject(circles with{Dimensions=[circular with{Value=0}]},"ANCHOR_CIRCULAR_VALUE","zero diameter rejected at source anchor gate");
+        Reject(circles with{Dimensions=[circular with{Value=double.NaN}]},"ANCHOR_CIRCULAR_VALUE","nonfinite diameter rejected at source anchor gate");
+        Pass(circles with{Dimensions=[circular with{Value=19.9,NominalValue=20,Status=DrawingFactStatus.Derived,Derivation="authorized offset",DeviationReason="fixture clearance",DeviationAuthorization="explicit fixture authorization"},radius]},"authorized execution deviation preserves nominal circle consistency");
+        Reject(circles with{Dimensions=[circular with{Value=19.9,NominalValue=20},radius]},"ANCHOR_CIRCULAR_CONFLICT","unauthorized nominal override cannot suppress circle mismatch");
         Reject(context with{OmissionReview=null},"ANCHOR_SOURCE","source inventory required");
         Pass(context with{RequireGeometryAnchors=false,GeometryAnchors=[],Dimensions=[fact with{BindingEvidence=evidence with{StartAnchorId=null,EndAnchorId=null}}]},"legacy evidence remains compatible");
     }

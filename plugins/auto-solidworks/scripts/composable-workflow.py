@@ -13,7 +13,7 @@ from composable_model import ModelSession, read_json, write_new, file_identity, 
 
 
 class McpClient:
-    def __init__(self, plugin, output):
+    def __init__(self, plugin, output, artifact_directory=None):
         self.output = Path(output)
         self.output.mkdir(parents=True, exist_ok=False)
         self.counter = 0
@@ -21,7 +21,7 @@ class McpClient:
         self.timings = []
         self.stderr = (self.output/'stderr.log').open('x', encoding='utf-8')
         env = os.environ.copy()
-        env['AUTO_SOLIDWORKS_ARTIFACT_DIRECTORY'] = str(self.output/'artifacts')
+        env['AUTO_SOLIDWORKS_ARTIFACT_DIRECTORY'] = str(Path(artifact_directory).resolve() if artifact_directory else self.output/'artifacts')
         self.process = subprocess.Popen(
             ['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
              str(Path(plugin)/'scripts/run-auto-solidworks-mcp.ps1')],

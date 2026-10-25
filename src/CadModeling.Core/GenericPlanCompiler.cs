@@ -66,6 +66,8 @@ public sealed record GenericModelDraft
 
 public sealed record GenericOperationDraft
 {
+    public DrivenProfileSpec? DrivenProfile { get; init; }
+    public ExtrusionPlacementIntent? PlacementIntent { get; init; }
     public string? CenterPositionDimensionName { get; init; }
     public string? CenterPositionDimensionAxis { get; init; }
     public bool RequireEditable { get; init; }
@@ -145,6 +147,16 @@ public sealed partial class GenericPlanCompiler
             draft=expanded.Draft!;
         }
         var diagnostics = new List<ModelingDiagnostic>();
+        if (draft.DrawingContext is { } annotationContext)
+            diagnostics.AddRange(SourceAnnotationValidation.ValidateOperations(annotationContext, draft.Operations));
+        if(draft.DrawingContext is { } materialContext && SourceWorkflow.RequiresSourceReview(materialContext.WorkflowRevision))
+        {
+            var generated=SourceMaterialCoverage.Generate(materialContext);
+            diagnostics.AddRange(generated.Diagnostics);
+            // Keep conflicting caller values visible: the source validator rejects them rather than overwriting them.
+            draft=draft with{Verification=draft.Verification with{MaterialRegions=draft.Verification.MaterialRegions.Concat(
+                generated.Checks.Where(c=>!draft.Verification.MaterialRegions.Any(existing=>existing.Id==c.Id))).ToArray()}};
+        }
         diagnostics.AddRange(ModelingPreflight.Validate(draft));
         diagnostics.AddRange(DrawingPlanValidation.Validate(draft));
         if (string.IsNullOrWhiteSpace(draft.Name))
@@ -165,9 +177,6 @@ public sealed partial class GenericPlanCompiler
             if (operation is not null) operations.Add(operation);
         }
 
-        if (diagnostics.Any(item => item.Severity == DiagnosticSeverity.Error))
-            return new(null, diagnostics);
-
         var plan = new ModelingPlan
         {
             PlanId = $"plan_{Guid.NewGuid():N}",
@@ -178,13 +187,14 @@ public sealed partial class GenericPlanCompiler
             BoxEdgeHistory = draft.BoxEdgeHistory,
             DrawingContext = draft.DrawingContext,
             Verification = draft.Verification,
-            Recovery = draft.Recovery,
+            Recovery = SourceWorkflow.IsFourStage(draft.DrawingContext?.WorkflowRevision) && draft.Recovery.Directory is null && draft.Recovery.ResumeManifestPath is null
+                ? draft.Recovery with {Enabled=false,AutoSelectCheckpoint=false} : draft.Recovery,
             ExecutionDeadline = draft.ExecutionDeadline,
             Assumptions = draft.Assumptions,
             Operations = operations,
             Output = new()
             {
-                PreviewViews=draft.PreviewViews??["isometric","front","top","right","left"],
+                PreviewViews=draft.PreviewViews??(SourceWorkflow.IsFourStage(draft.DrawingContext?.WorkflowRevision)?[]:["isometric","front","top","right","left"]),
                 PreviewScopeReason=draft.PreviewScopeReason,
                 NativePath = nativeOutputPath,
                 ExportPaths = exportPaths ?? [],
@@ -210,17 +220,46 @@ public sealed partial class GenericPlanCompiler
             }
         };
 
+        // Source review and typed-IR diagnostics are independent. Collect both even when a draft
+        // operation failed conversion; no partial projection is exposed as an executable plan.
+        if(plan.DrawingContext is { } sourceContext && Path.IsPathFullyQualified(sourceContext.SourcePath) && File.Exists(sourceContext.SourcePath))
+        {
+            try { plan = plan with { DrawingSourceSha256 = DrawingPlanValidation.FileHash(sourceContext.SourcePath) }; }
+            catch(Exception error) when(error is IOException or UnauthorizedAccessException)
+            { diagnostics.Add(Error("DRAWING_BINDING", error.Message, "drawing_context.source_path")); }
+        }
+        if(plan.Recovery.AutoSelectCheckpoint && plan.Recovery.ResumeManifestPath is null)
+        {
+            try
+            {
+                var selection = ModelingRecovery.SelectCompatibleCheckpoint(plan);
+                foreach(var candidate in selection.Candidates)
+                    diagnostics.Add(new("RECOVERY_CANDIDATE",DiagnosticSeverity.Info,candidate.Path+": "+candidate.Reason,"recovery"));
+                if(selection.ManifestPath is { } selected)
+                {
+                    plan = plan with {Recovery=plan.Recovery with {ResumeManifestPath=selected}};
+                    diagnostics.Add(new("RECOVERY_AUTO_SELECTED",DiagnosticSeverity.Info,"复用最长的兼容快照："+selected,"recovery.resume_manifest_path"));
+                }
+                else diagnostics.Add(new("RECOVERY_CLEAN_BUILD",DiagnosticSeverity.Info,"当前任务目录没有兼容检查点，将从头建立；未截断或改写旧快照。","recovery"));
+            }
+            catch(Exception error) when(error is IOException or UnauthorizedAccessException or ArgumentException)
+            { diagnostics.Add(Error("RECOVERY_INVALID",error.Message,"recovery")); }
+        }
+        var validator = new ModelingIrValidator();
+        diagnostics.AddRange(validator.ValidateDraftProjection(plan).Diagnostics);
+        if (diagnostics.Any(item => item.Severity == DiagnosticSeverity.Error))
+            return new(null, diagnostics.Distinct().ToArray());
+
         if(plan.DrawingContext is { } context)
         {
-            plan = plan with { DrawingSourceSha256 = DrawingPlanValidation.FileHash(context.SourcePath) };
             plan = plan with { DrawingBindingDigest = DrawingPlanValidation.Digest(plan) };
         }
-        var validation = new ModelingIrValidator().Validate(plan, forExecution: false);
+        var validation = validator.Validate(plan, forExecution: false);
         diagnostics.AddRange(validation.Diagnostics);
         if (diagnostics.All(item => item.Severity != DiagnosticSeverity.Error))
             diagnostics.Add(new("GPC000", DiagnosticSeverity.Info,
                 "类型化草案已编译为可执行建模计划。"));
-        return new(plan, diagnostics);
+        return new(plan, diagnostics.Distinct().ToArray());
     }
 
     private static ModelingOperation? CompileOperation(
@@ -248,6 +287,11 @@ public sealed partial class GenericPlanCompiler
         string path,
         List<ModelingDiagnostic> diagnostics)
     {
+        if(source.DrivenProfile is not null)
+        {
+            try { source=DrivenProfiles.Expand(source); }
+            catch(ArgumentException error) { diagnostics.Add(Error("DRIVEN_PROFILE_INVALID",error.Message,path+".driven_profile"));return null; }
+        }
         if (source.Plane is null && source.Frame is null && source.PlaneId is null)
             diagnostics.Add(Error("GPC020", "轮廓草图需要平面。", $"{path}.plane"));
         if (source.Primitives.Count == 0)

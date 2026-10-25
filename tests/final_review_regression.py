@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import unittest
 import tempfile
-_fixture_root = tempfile.TemporaryDirectory(prefix="auto-solidworks-final-review-")
+_fixture_root = Path(tempfile.mkdtemp(prefix="auto-solidworks-final-review-"))
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("final_review", ROOT / "plugins/auto-solidworks/scripts/summarize-final-review.py")
@@ -16,7 +16,7 @@ spec.loader.exec_module(module)
 
 class FinalReviewTests(unittest.TestCase):
     def setUp(self):
-        folder = Path(_fixture_root.name) / self.id().split(".")[-1]
+        folder = _fixture_root / self.id().split(".")[-1]
         folder.mkdir(parents=True, exist_ok=False)
         self.folder = folder
         native = folder / "model.SLDPRT"

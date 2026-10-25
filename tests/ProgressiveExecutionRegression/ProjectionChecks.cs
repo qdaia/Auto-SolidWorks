@@ -27,6 +27,15 @@ static class ProjectionChecks
         await Reject(request with{Source=source with{NativeModelPath=nativePath}},"model-derived expected snapshot rejected before native capture");
         await Reject(request with{SourceRegions=new Dictionary<string,DrawingReviewBox>()},"unlocalized source geometry rejected before native capture");
         await Reject(request with{Source=source with{SourceSha256=new string('a',64)}},"changed source digest rejected before native capture");
+        await Reject(request with{RegionMm=new(1,1,0,0)},"invalid local region rejected before native capture");
+        await Reject(request with{RegionMm=new(50,50,60,60)},"empty local source scope rejected before native capture");
+        fake.Actual=source with{NativeModelPath=nativePath,NativeModelSha256=DrawingPlanValidation.FileHash(nativePath),NativeModelReopened=true,
+            Primitives=[source.Primitives[0],new(){Id="outside",Kind=ProjectionPrimitiveKind.Circle,Center=new(100,100),RadiusMm=3}]};
+        result=await Compare(request with{RegionMm=new(-4,-4,4,4)});
+        check(result.GetProperty("success").GetBoolean(),"explicit local scope excludes only nonintersecting external primitives");
+        fake.Actual=fake.Actual with{Primitives=[source.Primitives[0],new(){Id="local-extra",Kind=ProjectionPrimitiveKind.Line,Start=new(-5,0),End=new(5,0)}]};
+        result=await Compare(request with{RegionMm=new(-4,-4,4,4)});
+        check(!result.GetProperty("success").GetBoolean(),"local extra edge crossing region is retained and rejected");
     }
     sealed class ProjectionExecutor:IModelingExecutor
     {

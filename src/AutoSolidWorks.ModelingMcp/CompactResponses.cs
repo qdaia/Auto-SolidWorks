@@ -63,7 +63,7 @@ public static class CompactResponses
             else if (pair.Value is JsonArray list) summary[pair.Key + "_count"] = list.Count;
         foreach (var key in new[] { "geometry", "body_validity" })
             if (node[key] is { } value) summary[key] = value.DeepClone();
-        foreach (var key in new[] { "drawing", "recovery", "source_manifest", "execution", "inspection", "assembly" })
+        foreach (var key in new[] { "drawing", "recovery", "source_manifest", "execution", "inspection", "assembly", "acceptance" })
             if (node[key] is JsonObject nested) summary[key] = Summarize(nested);
         if (node["verification"] is JsonObject verification)
         {

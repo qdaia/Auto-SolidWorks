@@ -34,9 +34,19 @@ static class StageChecks
         var reviews=c.Features.Select(f=>new SourceInterpretationReview{FeatureId=f.Id,SelectedHypothesisId="fixture",DimensionDatumDerivation="Known source fixture datum",
             Hypotheses=[new(){Id="fixture",Description="Known fixture topology",Observations=[new(){ViewId="front",Bounds=geometry.Bounds,Observation="Source fixture depicts plate and four bores"}]},
                 new(){Id="wrong",Description="No plate or no holes",Observations=[new(){ViewId="front",Bounds=geometry.Bounds,Observation="Contradicted by explicit source fixture geometry",Contradicts=true}]}]}).ToArray();
-        full=full with{DrawingContext=c with{RequireDimensionEvidence=true,RequireGeometryAnchors=true,RequireInterpretationReview=true,
+        var decomposition=new DrawingShapeDecomposition{State=DrawingReviewState.Reviewed,Features=c.Features.Select(f=>new DrawingFeatureDecomposition{
+            FeatureId=f.Id,Kind=f.Id=="plate"?DrawingShapeKind.Prismatic:DrawingShapeKind.General,State=DrawingReviewState.Reviewed,
+            TopologyReview="Synthetic source fixture explicitly defines base material and a separate through-hole void group",
+            Contours=f.ViewIds.Select(v=>new DrawingShapeContour{Id=v,ViewId=v,Bounds=geometry.Bounds,Role=f.Id=="plate"?DrawingContourRole.OuterBoundary:DrawingContourRole.Opening,
+                Evidence="Synthetic source fixture boundary, not independent image recognition",RegionIds=["region"]}).ToArray(),
+            Regions=[new DrawingMaterialRegion{Id="region",MaterialState=f.Id=="plate"?DrawingMaterialState.Material:DrawingMaterialState.Void,
+                Description="Known fixture stock or through-hole group",SourceContourIds=f.ViewIds,OperationIds=f.OperationIds,VerificationCheckIds=f.VerificationCheckIds,
+                Realization="Known fixture profile extrusion or hole operation"}]}).ToArray()};
+        full=full with{DrawingContext=c with{WorkflowRevision=SourceWorkflow.Revision,RequireShapeDecomposition=true,ShapeDecomposition=decomposition,RequireDimensionEvidence=true,RequireGeometryAnchors=true,RequireInterpretationReview=true,
             Dimensions=facts,GeometryAnchors=anchors,InterpretationReviews=reviews},
-            Operations=full.Operations.Select(o=>o.Type==GenericOperationKind.ProfileSketch?o with{AutoDimensionPrimitives=true,RequireEditable=true,RequireFullyDefined=true}:o).ToArray(),
+            Operations=full.Operations.Select(o=>o.Type==GenericOperationKind.ProfileSketch?o with{AutoDimensionPrimitives=true,RequireEditable=true,RequireFullyDefined=true}:
+                o.Id=="block"?o with{PlacementIntent=new(){AxisDirection=new(0,0,1),DatumPointMm=new(0,0,0),MinimumMm=0,MaximumMm=10,
+                    SourceExplanation="Synthetic source fixture declares plate from z0 to z10",ObservationIds=c.Dimensions.Single(d=>d.Id=="depth").ObservationIds}}:o).ToArray(),
             Recovery=new(){SourceRevisionId=inventory.SourceSha256,CheckpointMode=CheckpointMode.Explicit,AfterOperationIds=["block","holes"],Directory=Path.Combine(output,"native-checkpoints")},
             PreviewViews=["isometric","front","top","right","left"],PreviewScopeReason="Source drawing fixture preserves all required views"};
         c=full.DrawingContext!;
@@ -45,6 +55,7 @@ static class StageChecks
                 DependencyClosureReview="Base profile and extrusion depend only on confirmed plate dimensions"},
             Dimensions=c.Dimensions.Where(f=>f.OperationId!="holes").ToArray(),Features=c.Features.Where(f=>f.Id!="holes").ToArray(),
             GeometryAnchors=c.GeometryAnchors.Where(a=>a.FeatureId!="holes").ToArray(),InterpretationReviews=c.InterpretationReviews.Where(r=>r.FeatureId!="holes").ToArray(),
+            ShapeDecomposition=c.ShapeDecomposition! with{Features=c.ShapeDecomposition.Features.Where(f=>f.FeatureId!="holes").ToArray()},
             OmissionReview=c.OmissionReview! with{
                 Candidates=c.OmissionReview.Candidates.Select(r=>r.FeatureIds.SequenceEqual(new[]{"holes"}) ? r with{
                     Disposition=DrawingCandidateDisposition.Deferred,DeferredFeatureId="holes",FeatureIds=[],DimensionIds=[],Rationale="Hole group is explicitly pending; no base dimension depends on it"}
@@ -63,6 +74,7 @@ static class StageChecks
         void Reject(DrawingPlanContext ctx,string code,string name)=>check(DrawingPlanValidation.Validate(draft with{DrawingContext=ctx}).Any(d=>d.Code==code),name);
         Reject(stage with{StageScope=null},"DRAWING_STAGE_SCOPE","removing stage marker cannot make deferred source final");
         Reject(stage with{RequireGeometryAnchors=false},"DRAWING_STAGE_SCOPE","stage cannot disable endpoint identity gate");
+        Reject(stage with{ShapeDecomposition=null},"SOURCE_SHAPE_REQUIRED","stage cannot omit material/void decomposition for its active feature");
         Reject(stage with{StageScope=stage.StageScope! with{TopologyAndDatumReview=""}},"DRAWING_STAGE_SCOPE","global topology must be reviewed before local execution");
         Reject(stage with{StageScope=stage.StageScope! with{PendingFeatureIds=["plate"]}},"DRAWING_STAGE_SCOPE","active feature cannot also be deferred");
         Reject(stage with{OmissionReview=stage.OmissionReview! with{Regions=[]}},"DRAWING_OMISSION_REGION","unread overview/details still block stage execution");

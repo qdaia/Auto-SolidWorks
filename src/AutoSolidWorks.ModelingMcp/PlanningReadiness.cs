@@ -29,7 +29,8 @@ public static class PlanningReadiness
             {
                 var reasons = errors.Where(e => e.Value!["path"]?.GetValue<string>() == "drawing_context.dimensions." + fact.Id)
                     .Select(e => e.Value!["code"]?.GetValue<string>())
-                    .Where(code => code is "DIMENSION_LITERAL_VALUE" or "DIMENSION_LITERAL_KIND" or "DIMENSION_LITERAL_UNIT" or "DIMENSION_CROSS_VIEW_CONFLICT")
+                    .Where(code => code is "DIMENSION_LITERAL_VALUE" or "DIMENSION_LITERAL_KIND" or "DIMENSION_LITERAL_UNIT" or "DIMENSION_CROSS_VIEW_CONFLICT" ||
+                        code?.StartsWith("DIMENSION_CALLOUT_", StringComparison.Ordinal) == true)
                     .OfType<string>().ToArray();
                 if (reasons.Length == 0) continue;
                 var gap = GetGap(gaps, "dimension-source:" + fact.Id, "dimension_source_conflict");
@@ -70,7 +71,14 @@ public static class PlanningReadiness
                 if (ambiguous) Append(gap, "reasons", ["unexcluded_source_alternative"]);
             }
         }
+        var coverage = draft?.DrawingContext is { } sourceContext ? DimensionCalloutValidation.Assess(sourceContext) : [];
         return new JsonObject {
+            ["annotation_components"] = JsonSerializer.SerializeToNode(draft?.DrawingContext?.AnnotationLedger?.Annotations.Select(a => new { a.Id, parsed = HoleCalloutParser.Parse(a.SourceLiteral, a.LengthUnit) }).ToArray() ?? [], ModelingIrJson.Options),
+            ["annotation_components_section"] = "/readiness/annotation_components",
+            ["callout_coverage"] = JsonSerializer.SerializeToNode(coverage, ModelingIrJson.Options),
+            ["callout_coverage_count"] = coverage.Count,
+            ["callout_source_review_required_count"] = coverage.Count(a => a.SourceReviewRequired),
+            ["callout_coverage_section"] = "/readiness/callout_coverage",
             ["status"] = compilation["success"]?.GetValue<bool>() == true ? "ready" : "blocked",
             ["source_gap_count"] = gaps.Count, ["error_count"] = errors.Length,
             ["error_group_count"] = groupedErrors.Count,
@@ -86,6 +94,13 @@ public static class PlanningReadiness
     public static JsonObject Summarize(JsonObject readiness)
     {
         var result = CompactResponses.Summarize(readiness);
+        var annotations = readiness["annotation_components"] as JsonArray ?? [];
+        result["annotation_components_count"] = annotations.Count;
+        result["annotation_components_truncated"] = annotations.Count > 12;
+        result["annotation_components"] = new JsonArray(annotations.Take(12).Select(v => v?.DeepClone()).ToArray());
+        var coverage = readiness["callout_coverage"] as JsonArray ?? [];
+        result["callout_coverage_truncated"] = coverage.Count > 12;
+        result["callout_coverage"] = new JsonArray(coverage.Take(12).Select(v => v?.DeepClone()).ToArray());
         foreach (var key in new[] { "source_gaps", "error_groups" })
         {
             var entries = (JsonArray)readiness[key]!;

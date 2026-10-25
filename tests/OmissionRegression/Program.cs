@@ -347,7 +347,9 @@ static class Fixture
     {
         var factSpecs=new[]{("width","base","primitives.0.width_mm",80d,"width"),("height","base","primitives.0.height_mm",50d,"height"),("depth","block","depth_mm",10d,"depth"),("diameter","holes","feature.diameter_mm",6d,"holes"),("count","holes","feature.hole_center_count",4d,"holes")};
         var facts=factSpecs.Select(s=>new DrawingDimensionFact{Id=s.Item1,OperationId=s.Item2,ParameterPath=s.Item3,Value=s.Item4,Unit=s.Item1=="count"?DrawingValueUnit.Unitless:DrawingValueUnit.Millimeter,
-            SourceLiteral=Labels.Single(l=>l.Id==s.Item5).Text,ViewIds=["front"],ObservationIds=["label-"+s.Item5]}).ToArray();
+            SourceLiteral=Labels.Single(l=>l.Id==s.Item5).Text,ViewIds=["front"],ObservationIds=["label-"+s.Item5],
+            BindingEvidence=s.Item1=="count"?new(){FeatureId="holes",MeasurementId="hole-count",ViewId="front",QuantityKind=DrawingQuantityKind.Count,
+                TextBounds=new(.78,.1,.95,.2),TargetBounds=new(.1,.1,.8,.8),Datum="known four-hole fixture",AttachmentExplanation="count prefix denotes the four explicit source holes"}:null}).ToArray();
         var features=new[]{new DrawingFeatureRequirement{Id="plate",SourceLiteral="80 x 50, thickness 10 mm",ViewIds=["front"],OperationIds=["base","block"],
                 CriticalParameters=facts.Take(3).Select(f=>new CriticalParameterBinding{OperationId=f.OperationId,ParameterPath=f.ParameterPath,DimensionId=f.Id}).ToArray(),VerificationCheckIds=["bounds"]},
             new DrawingFeatureRequirement{Id="holes",SourceLiteral="4×⌀6; coordinates explicitly listed on the source",ViewIds=["front"],OperationIds=["holes"],

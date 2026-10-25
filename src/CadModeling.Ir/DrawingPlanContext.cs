@@ -18,6 +18,7 @@ public enum DrawingDerivationKind { Arithmetic, Geometry }
 /// <summary>AI-reviewed source attachment, not automatic recognition or a correctness certificate.</summary>
 public sealed record DrawingDimensionEvidence
 {
+    public DrawingDimensionTrace? Trace { get; init; }
     public required string FeatureId { get; init; }
     /// <summary>Stable identity of the physical measurement; equal numbers alone do not establish identity.</summary>
     public required string MeasurementId { get; init; }
@@ -45,6 +46,11 @@ public sealed record DrawingPlanView
 }
 public sealed record DrawingDimensionFact
 {
+    /// <summary>Explicit cross-view corroboration of one primary driving source dimension.</summary>
+    public string? CorroboratesDimensionId { get; init; }
+    public string? SourceAnnotationId { get; init; }
+    public string? SourceComponentKey { get; init; }
+    public DrawingCalloutReview? CalloutReview { get; init; }
     public DimensionExpression? Expression { get; init; }
     public DrawingDimensionEvidence? BindingEvidence { get; init; }
     /// <summary>Explicit premise graph. Values are never inferred from drawing pixel scale.</summary>
@@ -68,12 +74,31 @@ public sealed record DrawingDimensionFact
     public IReadOnlyList<string> ObservationIds { get; init; } = [];
     public string? Derivation { get; init; }
 }
+/// <summary>Immutable source pixels/geometry used by binding; no omission review or sweep records.</summary>
+public sealed record DrawingSourceEvidence
+{
+    public required string InventoryPath { get; init; }
+    public required string InventorySha256 { get; init; }
+}
+
 public sealed record DrawingPlanContext
 {
+    public DrawingModelOrientation? ModelOrientation { get; init; }
+    /// <summary>Explicit, independently reviewed normal-view circles calibrate page stretch, never millimetres.</summary>
+    public IReadOnlyList<DrawingPageMetric> PageMetrics { get; init; } = [];
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DrawingSourceEvidence? SourceEvidence { get; init; }
+    public DrawingAnnotationLedger? AnnotationLedger { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool RequireShapeDecomposition { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DrawingShapeDecomposition? ShapeDecomposition { get; init; }
+    public string? WorkflowRevision { get; init; }
     public DrawingStageScope? StageScope { get; init; }
     public IReadOnlyList<DimensionEquation> DimensionEquations { get; init; } = [];
     public bool RequireGeometryAnchors { get; init; }
     public IReadOnlyList<DrawingGeometryAnchor> GeometryAnchors { get; init; } = [];
+    public IReadOnlyList<DrawingCircularProjection> CircularProjections { get; init; } = [];
     /// <summary>Enabled for newly prepared drawing reviews; legacy contexts remain readable.</summary>
     public bool RequireDimensionEvidence { get; init; }
     /// <summary>Opt-in for legacy callers; mandatory in the current drawing workflow.</summary>
@@ -89,4 +114,12 @@ public sealed record DrawingPlanContext
     public DrawingFactStatus ProjectionStatus { get; init; } = DrawingFactStatus.Assumed;
     public IReadOnlyList<DrawingPlanView> Views { get; init; } = [];
     public IReadOnlyList<DrawingDimensionFact> Dimensions { get; init; } = [];
+}
+
+public sealed record DrawingPageMetric
+{
+    public int PageNumber { get; init; } = 1;
+    public IReadOnlyList<string> NormalCircleAnchorIds { get; init; } = [];
+    public DrawingReviewState State { get; init; }
+    public required string Evidence { get; init; }
 }

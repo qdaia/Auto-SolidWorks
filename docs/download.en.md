@@ -1,36 +1,17 @@
-# Download the Auto SolidWorks Windows plugin
+# Download Auto SolidWorks 1025
 
-[简体中文](download.zh-CN.md) | **English** · [Back to README](../README.en.md)
+[简体中文](download.zh-CN.md) | **English** · [README](../README.en.md)
 
-Current version: **`26.10.17` (released October 17, 2026)**. Create, inspect and edit parametric parts and assemblies in local SolidWorks through Codex / MCP, exporting native models, STEP / STL and drawings.
+Current version: **1025**, released October 25, 2026.
 
-[Windows x64 package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.17/auto-solidworks-26.10.17-windows-x64.zip) · [SHA-256 checksum](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.17/auto-solidworks-26.10.17-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.17) · [Additions](release-26.10.17.en.md)
+[Windows x64 package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-windows-x64.zip) · [SHA-256](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-windows-x64.zip.sha256) · [Source ZIP](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-source.zip) · [Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1025) · [Release notes](release-1025.en.md)
 
-## Install
-
-1. Prepare Windows x64, an activated local SolidWorks installation, .NET 9 Windows Desktop Runtime x64, and Codex with plugin support.
-2. Download `auto-solidworks-26.10.17-windows-x64.zip` and extract it to a directory you will retain.
-3. Run this command in the extracted directory:
-
-   ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
-   ```
-
-4. Open a new Codex chat and enable Auto SolidWorks.
-
-The installer prefers the CLI bundled with the Codex desktop app and prepares Interop from the local SolidWorks installation. For a custom installation path, run:
+Prepare Windows x64, activated local SolidWorks, .NET 9 Windows Desktop Runtime x64 and Codex with plugin support. Verify the checksum, extract to a retained directory and run:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -SolidWorksInteropDir 'C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS'
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-## Checksum and package contents
+Open a new Codex chat and enable Auto SolidWorks. Custom SolidWorks installations use -SolidWorksInteropDir; see [installation](installation.md).
 
-```powershell
-Get-FileHash .\auto-solidworks-26.10.17-windows-x64.zip -Algorithm SHA256
-Get-Content .\auto-solidworks-26.10.17-windows-x64.zip.sha256
-```
-
-Compare the two digests. The archive also contains a per-file `SHA256SUMS.json`, compiled runtime, 16 default MCP tools (21 in the full profile), usage skills, installation scripts, documentation and license notices.
-
-Gordon requires local FreeCAD. Tesseract is optional for OCR and Poppler for PDF rasterization. Source and tests are available in the repository or the Release `auto-solidworks-26.10.17-source.zip`; choose the Windows ZIP for direct installation.
+The ZIP includes runtime, skills, documentation, licenses and SHA256SUMS.json. Interop comes from local SolidWorks. AI reads drawings without OCR. PDF rasterization and optional surface tools use their respective local dependencies. The default four stages do not add a separate delivery audit.

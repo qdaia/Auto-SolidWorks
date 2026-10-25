@@ -63,7 +63,7 @@ internal sealed partial class SolidWorksComExecutor
         var measuredSpec=measurementErrors.Count>0?spec with {CylinderGroups=[]}:spec;
         var localMeasurements=MeasureLocalRequirements(model,spec);
         var wholeModel=spec.WholeModelChecks.Count>0?MeasureWholeModel(model,geometry):null;
-        var evaluated=ModelVerification.Evaluate(measuredSpec,cylinders,dimensions,geometry,localMeasurements,wholeModel,MeasureShapeRequirements(model,spec),availableDimensionNames);
+        var evaluated=ModelVerification.Evaluate(measuredSpec,cylinders,dimensions,geometry,localMeasurements,wholeModel,MeasureShapeRequirements(model,spec),availableDimensionNames,MeasureSourceMaterial(model,spec));
         return new(evaluated.Checks.Concat(measurementErrors).ToArray());
     }
 

@@ -1,7 +1,7 @@
 {
   "name": "auto-solidworks",
-  "version": "26.10.17",
-  "description": "本地 SolidWorks 建模：源图复核、修改迭代、后台执行与保存重开验收",
+  "version": "1025",
+  "description": "本地 SolidWorks 建模：识图、尺寸绑定、编译、建模四步",
   "author": {
     "name": "csj17"
   },
@@ -15,9 +15,9 @@
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "Auto SolidWorks 26.10.17",
-    "shortDescription": "源图复核后交付；发现偏差继续修改迭代。",
-    "longDescription": "根据工程图或尺寸创建 SolidWorks 参数化零件与装配体，支持草图约束、孔、圆角倒角、旋转、放样扫描、阵列、多实体、钣金、焊件、曲面、装配配合与干涉检查。可检查并修改已有零件副本，默认毫米，直接返回模型。 建模后由Codex复核源图与必要视图，发现有依据的问题继续修改迭代；明确报告参数化及未验证范围。",
+    "displayName": "Auto SolidWorks 1025",
+    "shortDescription": "仅保留识图 → 尺寸绑定 → 编译 → 建模。",
+    "longDescription": "根据工程图或尺寸创建本地 SolidWorks 参数化零件与装配体。默认仅识图、尺寸绑定、编译、建模四步；尺寸绑定保留真实对象、基准、端点和参数归属，编译通过直接执行并保存原生文件。默认不追加复核台账、材料探针、预览合成图、源投影比较或独立交付审核。",
     "developerName": "csj17",
     "category": "Developer Tools",
     "capabilities": [
@@ -25,7 +25,7 @@
       "Write"
     ],
     "defaultPrompt": [
-      "根据这张工程图完成SolidWorks建模，复核源图和必要视图；发现问题继续修改迭代，保存重开验收后交付。未声明单位按mm处理。",
+      "根据这张图按识图、尺寸绑定、编译、建模四步创建本地SolidWorks零件，保存原生文件并简短返回结果。未声明单位按mm处理。",
       "根据我的尺寸描述创建零件，并保存 SLDPRT 和 STEP。"
     ],
     "brandColor": "#D71920"

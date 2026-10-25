@@ -1,3 +1,5 @@
+> 兼容文档：以下流程仅用于显式旧版草案或用户明确要求的专项复核。当前新任务默认只按SKILL.md中的识图、尺寸绑定、编译、建模四步，不执行本文附加步骤。
+
 # Drawing omission review
 
 This workflow is internal. Keep the user's direct-result experience: do not show candidate lists or ask for unchanged dimensions/plan approval. Ask only when a critical source requirement remains genuinely missing or conflicting after targeted inspection.

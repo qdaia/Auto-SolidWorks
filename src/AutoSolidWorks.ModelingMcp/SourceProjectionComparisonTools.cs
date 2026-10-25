@@ -6,6 +6,8 @@ using ModelContextProtocol.Server;
 
 public sealed record SourceProjectionComparisonRequest
 {
+    public ProjectionRegionMm? RegionMm { get; init; }
+    public IReadOnlyList<string> CoveredFeatureIds { get; init; } = [];
     public required string SourcePath { get; init; }
     public required string NativePath { get; init; }
     public required ProjectionSnapshot Source { get; init; }
@@ -37,6 +39,8 @@ public sealed class SourceProjectionComparisonTools
             request.Source.Primitives.Any(p=>!request.SourceRegions.TryGetValue(p.Id,out var box) || !DrawingOmissionValidation.ValidBox(box)))
             throw new ArgumentException("源投影需要当前原图哈希、独立的完整线/圆/弧、原图区域和固定毫米基准；不能采用模型测量充当来源。");
         // Preserve the independent expectation before native capture is requested.
+        var source=request.RegionMm is {} local?ProjectionLocalScope.Select(request.Source,local):request.Source;
+        if(source.Primitives.Count==0)throw new ArgumentException("局部区域没有必需源图元，不能提交空范围验收。");
         var expectation=artifacts.SaveResult(request);
         var before=DrawingPlanValidation.FileHash(request.NativePath);
         var capture=await executor.CaptureProjectionAsync(new(){NativePath=request.NativePath,SourceDrawingSha256=request.Source.SourceSha256,
@@ -49,11 +53,18 @@ public sealed class SourceProjectionComparisonTools
             !string.Equals(before,capture.Snapshot.NativeModelSha256,StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(DrawingPlanValidation.FileHash(request.SourcePath),request.Source.SourceSha256,StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("比较期间原图或原生模型身份发生变化，结果不可复用。");
-        var report=ProjectionVerifier.Compare(request.Source,capture.Snapshot,request.Options);
+        var actual=capture.Snapshot;
+        if(request.RegionMm is {} region)
+        {
+            actual=ProjectionLocalScope.Select(actual,region);
+        }
+        var report=ProjectionVerifier.Compare(source,actual,request.Options);
         var locations=report.Differences.Select(d=>new{difference=d,
             source_bounds=d.SourcePrimitiveId is { } id && request.SourceRegions.TryGetValue(id,out var bounds)?bounds:null}).ToArray();
         return CompactResponses.Present(artifacts,new{success=report.Passed,status=report.Passed?"declared_projection_passed":"projection_mismatch",
             difference_count=report.Differences.Count,expectation_id=expectation.ArtifactId,report,locations,capture,
+            local_region_mm=request.RegionMm,covered_feature_ids=request.CoveredFeatureIds,
+            scope=request.RegionMm is null?"declared_full_view_primitives":"complete_primitives_with_envelopes_intersecting_declared_region",
             full_drawing_equivalence=false},responseDetail);
     }
 }

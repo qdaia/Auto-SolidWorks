@@ -72,6 +72,7 @@ public sealed record NativeFeatureOptions
     public SurfaceFeatureOptions? Surface { get; init; }
     public NativeFeatureKind Kind { get; init; }
     public IReadOnlyList<EntityQuery> Selections { get; init; } = [];
+    public int SelectionCount => Selections.Count;
     public SketchFrame? Frame { get; init; }
     public string? SketchId { get; init; }
     public string? PathSketchId { get; init; }

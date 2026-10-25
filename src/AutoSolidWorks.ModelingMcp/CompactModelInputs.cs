@@ -28,17 +28,20 @@ public static class CompactModelInputs
         var node = input is { } value ? JsonNode.Parse(value.GetRawText()) : store.LoadInput(baseInputId!, artifactKind);
         if (node is not JsonObject) throw new ArgumentException("输入必须是 JSON 对象。");
         if (edits is { } changes) ApplyEdits(node, changes);
+        var prepared = SourceWorkflowInputs.Prepare(node, kind == "drawing_context");
+        node = prepared.Input;
 
         GenericModelDraft? draft = null;
         DrawingPlanContext? context;
         if (kind == "drawing_context") context = Decode<DrawingPlanContext>(node);
         else { draft = Decode<GenericModelDraft>(node); context = draft.DrawingContext; }
-        // Retain the submitted representation; defaults are interpreted by the original compiler.
+        // Retain references/formulas, including the explicitly declared consumers normalized above.
         var receipt = store.SaveInput(artifactKind, node, draft?.SourceModelPath, context, draft?.Recovery);
         return new { input_id = receipt.ArtifactId, input_sha256 = receipt.Sha256, input_path = receipt.Path,
             kind, base_input_id = baseInputId, operations_count = draft?.Operations.Count,
             source_path = context?.SourcePath, dimensions_count = context?.Dimensions.Count,
             features_count = context?.Features.Count, candidate_reviews_count = context?.OmissionReview?.Candidates.Count,
+            source_workflow = SourceWorkflowInputs.Summarize(prepared.Adoption),
             status = "stored_not_validated", compiled = false, full_drawing_equivalence = false,
             message = "完整输入已保存在本机；仍需遗漏复查、原有编译和原生验收。" };
     }

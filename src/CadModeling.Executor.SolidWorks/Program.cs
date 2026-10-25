@@ -594,6 +594,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                     throw new IOException($"SolidWorks 未导出非空的{view.Name}预览。");
                 previewPaths[view.Name] = preview;
                 evidence.Add(Pass("preview", $"已导出{view.Name}审阅预览。",
+                    ("sha256",DrawingPlanValidation.FileHash(preview)),
                     ("acceptance_scope", "image_file_written_only"), ("visual_coverage", "unverified_requires_source_image_review"),
                     ("view", view.Name), ("path", preview),
                     ("bytes", new FileInfo(preview).Length.ToString(CultureInfo.InvariantCulture))));
@@ -675,7 +676,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
             {
                 is_intermediate_stage=plan.DrawingContext?.StageScope is not null,
                 stage_scope=plan.DrawingContext?.StageScope,
-                source_coverage_complete=plan.DrawingContext?.StageScope is null,
+                source_coverage_complete=!SourceWorkflow.IsFourStage(plan.DrawingContext?.WorkflowRevision) && plan.DrawingContext?.StageScope is null,
+                workflow_revision=plan.DrawingContext?.WorkflowRevision,
+                separate_delivery_review_required=!SourceWorkflow.IsFourStage(plan.DrawingContext?.WorkflowRevision),
                 evaluation = new { status = "pass", message = "重建、特征、几何质量、导出和预览检查通过。" },
                 checks = new
                 {
@@ -814,6 +817,18 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
         var activeSketch = (ISketch?)model.IGetActiveSketch2()
                            ?? throw new InvalidOperationException("SolidWorks 未在 InsertSketch 后暴露活动草图。");
         var sketchToModel = activeSketch.ModelToSketchTransform.IInverse();
+        if (operation.Frame is not null)
+        {
+            // Constraints and horizontal/vertical dimensions use native sketch axes.
+            // Verify the declared local origin and axes before the solver can move geometry.
+            foreach (var (u, v) in new[] { (0d, 0d), (1d, 0d), (0d, 1d) })
+            {
+                var p = PointInSketch(mathUtility, sketchToModel, operation.Plane, u, v);
+                if (Math.Abs(p.X - Mm(u)) > 1e-8 || Math.Abs(p.Y - Mm(v)) > 1e-8)
+                    throw new InvalidOperationException(FormattableString.Invariant(
+                        $"SKETCH_FRAME_MISMATCH: 声明局部点({u},{v})mm映射为原生草图({p.X*1000},{p.Y*1000})mm；停止施加约束，避免坐标轴或基准错位。"));
+            }
+        }
         var primitiveSegments = new List<object[]>();
         var sketchManager = model.SketchManager;
         var previousAddToDb = sketchManager.AddToDB;
@@ -1013,6 +1028,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
 
     private static object ExecuteBossExtrude(IModelDoc2 model, ExtrudeBossOperation operation, IReadOnlyDictionary<string, object> objects)
     {
+        var beforeBodyCount=(((IPartDoc)model).GetBodies2((int)swBodyType_e.swSolidBody,false) as object[] ?? []).Length;
         model.ClearSelection2(true);
         var sketchFeature = (IFeature)objects[operation.SketchId];
         if (!Convert.ToBoolean(sketchFeature.Select2(false, 0)))
@@ -1028,6 +1044,9 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
             operation.Merge, false, true, startCondition, Mm(operation.StartOffsetMm), operation.ReverseStartOffset);
         if (feature is null) throw new InvalidOperationException("FeatureExtrusion3 返回 null。");
         feature.Name = operation.Name;
+        var afterBodyCount=(((IPartDoc)model).GetBodies2((int)swBodyType_e.swSolidBody,false) as object[] ?? []).Length;
+        if(operation.Merge && beforeBodyCount>0 && afterBodyCount>beforeBodyCount)
+            throw new InvalidOperationException($"BOSS_MERGE_NOT_CONNECTED: 操作{operation.Id}要求合并，但实体数量从{beforeBodyCount}增加到{afterBodyCount}；检查框架、拉伸位置与连接，未保存本步骤为可复用检查点。");
         return feature;
     }
 
@@ -1444,6 +1463,12 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
 
     private static CadExecutionException WrapOperationFailure(ModelingOperation operation, Exception exception)
     {
+        foreach(var code in new[]{"SKETCH_FRAME_MISMATCH","BOSS_MERGE_NOT_CONNECTED"})
+            if(exception.Message.StartsWith(code+":",StringComparison.Ordinal))
+                return new(code,ExecutionFailureCategory.GeometryQuality,false,
+                    $"操作 {operation.Id}（{operation.Name}）失败：{exception.Message}",
+                    "核对源框架、位置和连接；保留上一检查点，禁止不改输入直接重试。",operation.Id,
+                    new Dictionary<string,string>{{"operation_type",operation.GetType().Name}},exception);
         var referenceFailure = exception is EntitySelectionException || exception.Message.Contains("select", StringComparison.OrdinalIgnoreCase) ||
                                exception.Message.Contains("reference", StringComparison.OrdinalIgnoreCase) ||
                                exception.Message.Contains("选择", StringComparison.Ordinal) ||

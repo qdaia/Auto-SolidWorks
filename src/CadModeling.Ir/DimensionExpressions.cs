@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace CadModeling.Ir;
 
 [JsonConverter(typeof(JsonStringEnumConverter<DimensionExpressionKind>))]
-public enum DimensionExpressionKind { Reference, Constant, Add, Subtract, Multiply, Divide, Negate }
+public enum DimensionExpressionKind { Reference, Constant, Add, Subtract, Multiply, Divide, Negate, Sin, Cos }
 
 /// <summary>Bounded arithmetic only: no executable text, pixel measurements or inferred geometry.</summary>
 public sealed record DimensionExpression

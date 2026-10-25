@@ -1,6 +1,6 @@
 {
-  "version": "26.10.17",
-  "revision": "review-iterate-deliver-1",
+  "version": "1025",
+  "revision": "source-four-stage-2",
   "development_validation": "release_build_and_offline_public_mcp_validation",
   "current_native_acceptance": "dynamic_scoped_evidence",
   "native_evidence_policy": "Current native evidence is task-scoped and validated against runtime hashes, SOLIDWORKS revision and retained saved-file inspections. Historical evidence does not certify the current version or untested tasks.",
@@ -509,26 +509,31 @@
     "raw_region_hashes_checked": true,
     "error_prioritized_summary": true,
     "task_scoped_skill_reading": true,
-    "strict_source_and_native_gates_preserved": true,
+    "strict_source_and_native_gates_preserved": false,
     "native_acceptance": "not_run",
     "independent_visual_analysis_timing": "not_measured",
-    "end_to_end_speedup": "not_measured"
+    "end_to_end_speedup": "not_measured",
+    "default_steps": [
+      "recognition",
+      "dimension_binding",
+      "compile",
+      "model"
+    ],
+    "source_parameter_binding_and_native_save_checks_preserved": true,
+    "mandatory_review_worklists": false
   },
   "mini_workflow": {
-    "focus": "source_interpretation_dimension_binding_and_modeling",
-    "batch_source_gaps_in_existing_compile_response": true,
-    "additional_mcp_tools": 0,
-    "source_gap_review": "agent_checks_source_first_then_batches_only_unresolved_user_questions",
+    "focus": "recognition_dimension_binding_compile_model",
     "mandatory_checks": [
-      "source_interpretation",
-      "complete_dimension_bindings",
-      "omission_coverage",
-      "save_reopen_rebuild",
-      "native_body_validity",
-      "independent_source_geometry"
+      "actual_parameter_binding",
+      "quantity_and_unit",
+      "source_endpoint_evidence",
+      "compound_component_roles",
+      "compile_integrity",
+      "native_rebuild_save_and_body_validity"
     ],
     "native_speedup": "not_measured",
-    "reference": "skills/auto-solidworks/references/batch-clarification-workflow.md"
+    "reference": "skills/auto-solidworks/SKILL.md"
   },
   "optimization_workflow": {
     "editable_circle_positions": true,
@@ -577,20 +582,19 @@
     "native_scope": "controlled_four_hole_plate_two_stage_save_reopen; see local task receipts",
     "blind_recognition_success_rate": null,
     "end_to_end_speedup": null,
-    "full_drawing_equivalence": false
+    "full_drawing_equivalence": false,
+    "default_required": false
   },
   "iterative_delivery": {
     "revision": "review-iterate-deliver-1",
     "scope": "codex_agent_workflow_with_native_plugin_execution",
-    "first_result_is_candidate": true,
+    "first_result_is_candidate": false,
     "native_success_is_not_visual_acceptance": true,
     "source_review_before_correction": true,
     "correction": "revise_draft_compile_and_execute_again_using_verified_checkpoints_when_compatible",
     "final_gates": [
-      "save_reopen_rebuild",
-      "body_validity",
-      "declared_source_checks",
-      "actual_necessary_view_review"
+      "native_build_success",
+      "saved_native_file"
     ],
     "retain": [
       "failed_receipts",
@@ -606,6 +610,202 @@
       "no_general_whole_drawing_BREP_GDT_equivalence",
       "parametric_review_required_must_be_disclosed"
     ],
-    "reference": "skills/auto-solidworks/references/iterative-delivery.md"
+    "reference": "skills/auto-solidworks/SKILL.md",
+    "default_required": false
+  },
+  "source_workflow": {
+    "revision": "source-four-stage-2",
+    "defaults": "four_stages_only",
+    "shape_decomposition_required": false,
+    "delivery": "return native output and short build status",
+    "reference": "skills/auto-solidworks/SKILL.md",
+    "full_drawing_equivalence": false
+  },
+  "native_frame_repair": {
+    "revision": "native-frame-1",
+    "frame": "preserve_declared_local_axes_and_validate_native_transform_before_constraints",
+    "move": "resolve_generated_affected_or_membership_bodies_not_generated_faces_only",
+    "merge": "stop_before_checkpoint_when_merge_adds_disconnected_bodies",
+    "preflight": "known_dimension_names_and_unconsumed_construction_source_bindings",
+    "acceptance": "current_runtime_hash_bound_scoped_native_evidence",
+    "full_source_case_delivery": false
+  },
+  "shape_decomposition": {
+    "revision": "shape-decomposition-1",
+    "required_for_new_workflow": false,
+    "source_interpreter": "connected_ai_vision",
+    "contour_region_operation_links": true,
+    "axial_angular_coverage": "declared_radial_bands_height_layers_and_0_to_360_sectors",
+    "pending_inputs_never_auto_reviewed": true,
+    "legacy_policy": "source-workflow-2_3_4_and_precompiled_identity_retained",
+    "independent_image_understanding": false,
+    "native_material_occupancy_certified": false,
+    "blind_accuracy_improvement_measured": false,
+    "native_execution_for_change": false,
+    "reference": "skills/auto-solidworks/references/shape-decomposition.md",
+    "every_axial_sector_has_explicit_material_state": true,
+    "native_material_interval_checks": true,
+    "scope": "optional_or_explicit_legacy_workflow"
+  },
+  "dimension_binding_enhancement": {
+    "revision": "dimension-evidence-4",
+    "compound_nominal_and_count_validation": true,
+    "physical_circle_radius_diameter_validation": true,
+    "circular_target_region_overlap": true,
+    "source_interpreter": "connected_ai_vision",
+    "ocr": "disabled",
+    "native_execution_for_change": false,
+    "blind_accuracy_improvement_measured": false,
+    "unsupported_callouts": "critical_partial_or_unsupported_require_explicit_source_literal_bound_visual_component_review",
+    "reference": "skills/auto-solidworks/references/dimension-evidence.md"
+  },
+  "source_review_enhancement": {
+    "revision": "source-workflow-5",
+    "callout_coverage": "Verified_Partial_Unsupported_Conflict_NotApplicable",
+    "visual_review_does_not_claim_automatic_support": true,
+    "trace_revision": "source-trace-4",
+    "trace_scope": "bounded_source_ink_support_and_explicit_direction_not_independent_semantic_recognition",
+    "material_revision": "source-material-intervals-1",
+    "material_scope": "finite_source_line_intervals_all_native_solid_bodies",
+    "save_reopen": true,
+    "full_volume_equivalence": false,
+    "blind_baseline": "3_previously_unseen_synthetic_public_drawings_annotation_text_only",
+    "blind_accuracy_improvement_measured": false,
+    "reference": "skills/auto-solidworks/references/source-review-v4.md",
+    "ink_mask": "source-local-contrast-1",
+    "anchor_constructions": [
+      "ParallelMidline",
+      "LineIntersection"
+    ],
+    "source_support_fraction": 0.6,
+    "attachment_pixel_tolerance": 3,
+    "construction_reference": "skills/auto-solidworks/references/source-evidence-repair.md"
+  },
+  "annotation_ledger": {
+    "revision": "source-annotation-ledger-1",
+    "parser": "hole-callout-2",
+    "source": "AI_transcribed_no_OCR",
+    "region_sweeps": 0,
+    "raw_utf16_component_spans": true,
+    "complex_hole_roles": true,
+    "pcd_consumes_actual_hole_centers": true,
+    "thread_pitch_consumes_cosmetic_thread_designation": true,
+    "manufacturing_metadata_certified": false,
+    "unknown_suffix_policy": "blocked",
+    "independent_blind_recognition_improvement_measured": false,
+    "reference": "skills/auto-solidworks/references/binding-sheet.md",
+    "chamfer_shorthand": "C_distance_equal_45_degrees",
+    "edge_multiplicity": "unique_explicit_edge_selections_without_tangent_propagation_and_native_distinct_count",
+    "default_ledger_required": false,
+    "compound_component_bindings_required": true
+  },
+  "binding_assist": {
+    "revision": "source-binding-assist-1",
+    "source_validators_unchanged": false,
+    "automatic_visual_review": false,
+    "new_drawing_speedup": "not_established",
+    "reference": "skills/auto-solidworks/references/binding-assist.md",
+    "sheet_revision": "source-binding-sheet-1",
+    "atomic_sheet_assembly": true,
+    "source_binding_checks_preserved": true,
+    "default_workflow": "source-four-stage-2",
+    "focused_contracts": true,
+    "automatic_binding_workspace": true,
+    "automatic_compile_error_images": true,
+    "reversible_diagnostic_crop_coordinates": true,
+    "validation_policy_unchanged": true,
+    "end_to_end_speedup": "not_established",
+    "incremental_detail_crops": true,
+    "detail_crop_batch_limit": 12,
+    "detail_crop_tool": "cad_add_binding_crops",
+    "semantic_accuracy_improvement": "not_established",
+    "circular_projection_revision": "circular-projection-1",
+    "explicit_outside_arrow_tips": true,
+    "bounded_source_line_extension": true,
+    "physical_measurement_identity_checks": true
+  },
+  "four_stage_workflow": {
+    "revision": "source-four-stage-2",
+    "steps": [
+      "recognition",
+      "dimension_binding",
+      "compile",
+      "model"
+    ],
+    "default": true,
+    "removed_default_requirements": [
+      "interpretation_hypotheses",
+      "candidate_dispositions",
+      "annotation_sweeps",
+      "shape_decomposition",
+      "material_probes",
+      "independent_verification_table",
+      "preview_images",
+      "separate_projection_comparison",
+      "separate_delivery_review",
+      "checkpoint_workflow",
+      "phase_report"
+    ],
+    "retained": [
+      "actual_parameter_binding",
+      "quantity_and_unit",
+      "source_endpoint_evidence",
+      "compound_component_roles",
+      "compile_integrity",
+      "native_rebuild_save_and_body_validity"
+    ],
+    "legacy_policy": "Explicit source-four-stage-1 and source-workflow-2/3/4/5 keep original rules; new inputs use source-four-stage-2.",
+    "native_validation": "not_run",
+    "general_accuracy_or_speedup_claim": false
+  },
+  "source_geometry_proposals": {
+    "revision": "source-lines-1",
+    "tool": "cad_find_source_geometry",
+    "all_angle_straight_lines": true,
+    "uses_source_ink_mask": true,
+    "semantic_review_automatic": false,
+    "line_coordinates_only": true,
+    "general_accuracy_or_speed_leadership": "not_established",
+    "circle_tool": "cad_find_source_circles",
+    "circle_revision": "source-circles-2",
+    "source_supported_circular_arcs": true,
+    "circle_engine": "OpenCV 4.13.0 EdgeDrawing/EDCircles + source-ink fitting",
+    "ellipse_proposals": false,
+    "semantic_hole_detection": false,
+    "fragmented_circle_proposals": true,
+    "selection_tool": "cad_bind_source_geometry",
+    "selection_revision": "source-geometry-selection-1"
+  },
+  "support_drawing_repair": {
+    "revision": "support-source-repair-1",
+    "page_metric": "explicit independent normal circles in at least two views; same page; full ink-supported closed contours; no automatic normal-view inference",
+    "angular_nominal_consistency_degrees": 2,
+    "source_expression_revision": "dimension-expressions-2",
+    "sin_cos": "Degree input, Unitless output; source recompilation only, no native associative angle editing claim",
+    "construction_consumption": "Requires a geometric consumer or source expression reaching real geometry; editability and DependsOn do not bypass",
+    "known_source_stated_dimensions": 21,
+    "blind_accuracy_improvement_measured": false,
+    "whole_source_geometry_equivalence_certified": false,
+    "native_execution_status": "Task-scoped known-source native replay succeeded; inspect retained local runtime-hashed receipts. No broad native certification."
+  },
+  "source_model_orientation": {
+    "revision": "source-model-direction-1",
+    "default_workflow": "source-four-stage-2",
+    "scope": "Stated angles reaching actual sketch frame.x_direction through source expressions require signed angular-ray bindings. One reviewed orthonormal front basis determines all six standard view bases.",
+    "signed_direction_tolerance_degrees": 2,
+    "uses_verified_source_page_metric": true,
+    "checks_compiled_operations_again": true,
+    "retains_explicit_legacy_contracts": true,
+    "limits": [
+      "No automatic proof of the AI-reviewed front basis or view labels",
+      "Does not validate absolute feature location, arbitrary primitive directions or auxiliary-view orientation",
+      "No whole-shape equivalence or blind recognition accuracy claim"
+    ]
+  },
+  "release_1025": {
+    "date": "2026-10-25",
+    "source_baseline": "26.10.24-vision.9",
+    "native_execution_for_release": false,
+    "scope": "Local source/runtime synchronization and publication. Prior vision.9 native modeling remains evidence for that exact version; not recertified under 1025."
   }
 }

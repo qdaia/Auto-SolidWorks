@@ -4,217 +4,217 @@
       "package": "Microsoft.Extensions.AI.Abstractions",
       "version": "10.8.3",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Caching.Abstractions",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Configuration.Abstractions",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Configuration.Binder",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Configuration.CommandLine",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Configuration.EnvironmentVariables",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Configuration.FileExtensions",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Configuration.Json",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Configuration.UserSecrets",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Configuration",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.DependencyInjection.Abstractions",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.DependencyInjection",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Diagnostics.Abstractions",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Diagnostics",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.FileProviders.Abstractions",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.FileProviders.Physical",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.FileSystemGlobbing",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Hosting.Abstractions",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Hosting",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Logging.Abstractions",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Logging.Configuration",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Logging.Console",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Logging.Debug",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Logging.EventLog",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Logging.EventSource",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Logging",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Options.ConfigurationExtensions",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Options",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "Microsoft.Extensions.Primitives",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "ModelContextProtocol.Core",
       "version": "2.0.0",
       "license": "Apache-2.0",
-      "copyright": "© Model Context Protocol a Series of LF Projects, LLC.",
+      "copyright": "漏 Model Context Protocol a Series of LF Projects, LLC.",
       "project": "https://csharp.sdk.modelcontextprotocol.io/"
     },
     {
       "package": "ModelContextProtocol",
       "version": "2.0.0",
       "license": "Apache-2.0",
-      "copyright": "© Model Context Protocol a Series of LF Projects, LLC.",
+      "copyright": "漏 Model Context Protocol a Series of LF Projects, LLC.",
       "project": "https://csharp.sdk.modelcontextprotocol.io/"
     },
     {
@@ -228,43 +228,68 @@
       "package": "System.Diagnostics.DiagnosticSource",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "System.Diagnostics.EventLog",
       "version": "9.0.8",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "System.IO.Pipelines",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "System.Net.ServerSentEvents",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "System.Text.Encodings.Web",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
     },
     {
       "package": "System.Text.Json",
       "version": "10.0.10",
       "license": "MIT",
-      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "copyright": "漏 Microsoft Corporation. All rights reserved.",
       "project": "https://dot.net/"
+    },
+    {
+      "package": "OpenCvSharp4",
+      "version": "4.13.0.20260627",
+      "license": "Apache-2.0",
+      "copyright": "Copyright 2008-2026",
+      "project": "https://github.com/shimat/opencvsharp",
+      "repository_commit": "b161e7e012f5101f6d5dc68a835c59db6cc88b18"
+    },
+    {
+      "package": "OpenCvSharp4.runtime.win",
+      "version": "4.13.0.20260627",
+      "license": "Apache-2.0",
+      "copyright": "Copyright 2008-2026",
+      "project": "https://github.com/shimat/opencvsharp",
+      "repository_commit": "b161e7e012f5101f6d5dc68a835c59db6cc88b18"
+    },
+    {
+      "package": "System.Memory",
+      "version": "4.6.3",
+      "license": "MIT",
+      "copyright": "Microsoft Corporation",
+      "project": "https://github.com/dotnet/maintenance-packages",
+      "repository_commit": "f62ca0009b038cab4725a720f386623a969d73ad",
+      "metadata_source": "local NuGet system.memory.4.6.3.nuspec"
     }
   ],
   "license_documents": [
@@ -303,6 +328,24 @@
       "source": "https://github.com/UglyToad/PdfPig/blob/master/NOTICES.txt",
       "git_blob": "b31cbe75835abeeeaa162ff1dd0508f7758212e5",
       "sha256": "d7a07a105f64d9240ed40a8ebe0c45658616c1660bf9fd8a36e2dbf3165f6e92"
+    },
+    {
+      "file": "opencvsharp-LICENSE.txt",
+      "source": "https://github.com/shimat/opencvsharp/blob/b161e7e012f5101f6d5dc68a835c59db6cc88b18/LICENSE",
+      "revision": "b161e7e012f5101f6d5dc68a835c59db6cc88b18",
+      "sha256": "3b8e2788bb24bf5282f67dabfa5d880dbc7759676086879d3bc5581c25cc966d"
+    },
+    {
+      "file": "opencv-LICENSE.txt",
+      "source": "https://github.com/opencv/opencv/blob/4.13.0/LICENSE",
+      "revision": "4.13.0",
+      "sha256": "8c6db340475136df3c1201d458fa5755698eace76e510471ecc9d857d6083dac"
+    },
+    {
+      "file": "opencv-contrib-LICENSE.txt",
+      "source": "https://github.com/opencv/opencv_contrib/blob/4.13.0/LICENSE",
+      "revision": "4.13.0",
+      "sha256": "8c6db340475136df3c1201d458fa5755698eace76e510471ecc9d857d6083dac"
     }
   ]
 }

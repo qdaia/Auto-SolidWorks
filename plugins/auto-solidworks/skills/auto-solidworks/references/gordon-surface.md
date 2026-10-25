@@ -1,8 +1,8 @@
 # Local Gordon curve-network surfaces
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Local version: `26.10.17`; revision: `review-iterate-deliver-1`. Unit-checked source expressions, geometry anchors, explicit stage scope, serial background execution, verified checkpoint resume and fixed-frame source projection differences. Controlled plate validation does not certify general first-attempt accuracy or speedup. Complete source coverage and final native reopen gates remain. See [capability manifest](capability-manifest.json).
-<!-- Capability manifest SHA256: ff92dc2459f941264add1388925e1b3f1de9bc01dd189a69d2939e761b91d3fb -->
+Local version: `1025`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](capability-manifest.json).
+<!-- Capability manifest SHA256: 203b2763562d8e401f8fccc85fec2c8f76c172b10604f28edb64105bb18c7cb1 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 `cad_build_gordon_surface` was introduced in historical development version `0.6.0+surface.20260930.1`; current package/version status is in the bundled capability manifest. It calls the **unmodified upstream CurvesWB/TiGL Gordon interpolator**, pinned at `e47b47927f59c87b93a1820c9f6ad4b4dc187076`, through a separate local FreeCAD Python process. FreeCAD 1.1.4 / OCC 7.8.1 is the previously tested runtime. Execution is offline and does not launch SolidWorks; this hardening revision does not rerun FreeCAD/native import acceptance.

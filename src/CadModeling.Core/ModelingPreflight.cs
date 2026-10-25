@@ -7,6 +7,13 @@ public static class ModelingPreflight
     public static IReadOnlyList<ModelingDiagnostic> Validate(GenericModelDraft draft)
     {
         var result = new List<ModelingDiagnostic>();
+        result.AddRange(ExtrusionPlacement.Validate(draft));
+        result.AddRange(ConnectionPreflight.Validate(draft));
+        result.AddRange(NativeDimensionPreflight.Validate(draft));
+        foreach(var op in draft.Operations)
+            if(op.DrivenProfile is not null && op.Type!=GenericOperationKind.ProfileSketch ||
+                op.PlacementIntent is not null && op.Type is not (GenericOperationKind.ExtrudeBoss or GenericOperationKind.ExtrudeCut))
+                result.Add(new("WORKFLOW_FIELD_UNUSED",DiagnosticSeverity.Error,"驱动轮廓只用于ProfileSketch，厚度定位只用于拉伸；不允许静默忽略字段。","operations."+op.Id));
         foreach(var sketch in draft.Operations.Where(o=>o.CenterPositionDimensionName is not null||o.CenterPositionDimensionAxis is not null))
             if(!sketch.AutoDimensionPrimitives||string.IsNullOrWhiteSpace(sketch.CenterPositionDimensionName)||
                 sketch.CenterPositionDimensionAxis is not ("X" or "Y")||sketch.Primitives.FirstOrDefault() is not {Type:GenericPrimitiveKind.Circle} first||

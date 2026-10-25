@@ -69,6 +69,13 @@ public sealed class CompactArtifactStore
         return ModelingIrJson.Deserialize(envelope.Payload.ToJsonString(ModelingIrJson.Options));
     }
 
+    public JsonNode LoadResult(string id)
+    {
+        var envelope=Load(id,"result");
+        ValidateProducerAndSources(envelope);
+        return envelope.Payload.DeepClone();
+    }
+
     private void ValidateProducerAndSources(ArtifactEnvelope envelope)
     {
         if (envelope.Producer != producer) throw new InvalidOperationException("计划编译器身份已变化，请重新编译计划。");

@@ -24,7 +24,7 @@ var source=Path.Combine(outDir,"source.txt"); File.WriteAllText(source,"independ
 DrawingPlanContext Context(params DrawingDimensionFact[] facts)=>new(){SourcePath=source,Dimensions=facts,RequireCompleteBindings=false};
 double Value(DrawingPlanContext context,string id)=>DimensionExpressions.Resolve(context).Dimensions.Single(d=>d.Id==id).Value;
 var d=Fact("diameter",20);
-var r=Derived("radius",Op(DimensionExpressionKind.Divide,Ref("diameter"),Const(2)));
+var r=Derived("radius",Op(DimensionExpressionKind.Divide,Ref("diameter"),Const(2))) with {ParameterPath="primitives.0.height_mm"};
 Check(Value(Context(d,r),"radius")==10,"diameter / 2 evaluates radius");
 Check(Value(Context(r,d),"radius")==10,"evaluation is independent of input order");
 var resolved=DimensionExpressions.Resolve(Context(d,r));

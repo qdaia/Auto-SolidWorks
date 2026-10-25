@@ -1,3 +1,5 @@
+> 兼容文档：以下流程仅用于显式旧版草案或用户明确要求的专项复核。当前新任务默认只按SKILL.md中的识图、尺寸绑定、编译、建模四步，不执行本文附加步骤。
+
 # 复核、修改迭代与交付 / Review, iterate and deliver
 
 Revision: `review-iterate-deliver-1`; release: `26.10.17`.

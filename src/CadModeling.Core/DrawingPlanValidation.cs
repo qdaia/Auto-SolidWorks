@@ -9,8 +9,14 @@ public static class DrawingPlanValidation
     {
         if(draft.DrawingContext is not { } context) return [];
         var errors=new List<ModelingDiagnostic>();
+        if (context.ShapeDecomposition is { Features: not null } shape)
+            foreach (var feature in context.Features)
+                if (draft.Operations.Any(o => feature.OperationIds.Contains(o.Id) && o.DrivenProfile?.Kind is DrivenProfileKind.HalfAnnulus or DrivenProfileKind.QuarterAnnulus) &&
+                    shape.Features.FirstOrDefault(f => f?.FeatureId == feature.Id)?.Kind != DrawingShapeKind.AxialAngular)
+                    errors.Add(new("SOURCE_SHAPE_KIND", DiagnosticSeverity.Error, "局部圆环轮廓必须使用 AxialAngular 分解，不能以 General/Prismatic 避开轴向与周向复核。", "drawing_context.shape_decomposition.features." + feature.Id));
         errors.AddRange(SourceInterpretationValidation.Validate(context));
         errors.AddRange(DimensionEvidenceValidation.Validate(context));
+        errors.AddRange(DrawingModelOrientationValidation.Validate(context,draft.Operations.Select(o=>(o.Id,o.Frame))));
         errors.AddRange(DrawingStageValidation.ValidateRecovery(context,draft.Recovery,draft.Operations.Select(o=>o.Id).ToArray()));
         errors.AddRange(DrawingOmissionValidation.Diagnostics(context));
         void Error(string text,string path) => errors.Add(new("DRAWING_BINDING",DiagnosticSeverity.Error,text,path));
@@ -53,6 +59,7 @@ public static class DrawingPlanValidation
         IReadOnlyList<string> operationIds, ModelVerificationSpec verification)
     {
         var errors=new List<ModelingDiagnostic>();
+        errors.AddRange(DrawingShapeDecompositionValidation.Validate(context, operationIds, verification));
         void Error(string text) => errors.Add(new("DRAWING_COVERAGE",DiagnosticSeverity.Error,text,"drawing_context.features"));
         var viewIds=context.Views.Select(v=>v.Id).ToHashSet(StringComparer.Ordinal);
         var checks=verification.CylinderGroups.Select(c=>c.Id).Concat(verification.NativeDimensions.Select(c=>c.Id)).Concat(verification.Bounds.Select(c=>c.Id)).Concat(verification.SurfaceSamples.Select(c=>c.Id)).Concat(verification.BoundaryClearances.Select(c=>c.Id)).Concat(verification.WholeModelChecks.Select(c=>c.Id)).Concat(verification.EdgeShapes.Select(c=>c.Id)).Concat(verification.SurfaceContinuity.Select(c=>c.Id)).ToHashSet(StringComparer.Ordinal);
@@ -71,7 +78,7 @@ public static class DrawingPlanValidation
                 Error($"特征 '{feature.Id}' 需要其几何推导。");
             if(feature.Critical && feature.CriticalParameters.Count==0)
                 Error($"关键特征 '{feature.Id}' 必须列出其关键参数绑定。");
-            if(feature.Critical && feature.VerificationCheckIds.Count==0 || feature.VerificationCheckIds.Any(id=>!checks.Contains(id)))
+            if(feature.Critical && !SourceWorkflow.IsFourStage(context.WorkflowRevision) && feature.VerificationCheckIds.Count==0 || feature.VerificationCheckIds.Any(id=>!checks.Contains(id)))
                 Error($"特征 '{feature.Id}' 需要现有的独立验证检查。");
             foreach(var binding in feature.CriticalParameters)
             {
@@ -83,7 +90,7 @@ public static class DrawingPlanValidation
                         fact.ViewIds.Count==0 || !fact.ViewIds.Any(feature.ViewIds.Contains)))
                     Error($"关键尺寸 '{fact.Id}' 必须由源视图支撑，不能假设。");
             }
-            if(feature.Critical)
+            if(feature.Critical && !SourceWorkflow.IsFourStage(context.WorkflowRevision))
             {
                 var checkedDimensions=verification.CylinderGroups.Where(c=>feature.VerificationCheckIds.Contains(c.Id)).SelectMany(c=>c.SourceDimensionIds)
                     .Concat(verification.NativeDimensions.Where(c=>feature.VerificationCheckIds.Contains(c.Id)).SelectMany(c=>c.SourceDimensionIds))
@@ -119,8 +126,11 @@ public static class DrawingPlanValidation
             yield return new("DRAWING_COMPILED_CHANGED",DiagnosticSeverity.Error,"绘制绑定或操作在编译后更改。请重新编译修正后的类型化草案。","drawing_binding_digest");
         if(plan.DrawingContext is { } context)
         {
+            foreach(var error in SourceAnnotationValidation.ValidateOperations(context,plan.Operations.OfType<NativeFeatureOperation>()
+                .Select(o=>new GenericOperationDraft{Id=o.Id,Type=GenericOperationKind.NativeFeature,Feature=o.Options}).ToArray())) yield return error;
             foreach(var error in SourceInterpretationValidation.Validate(context)) yield return error;
             foreach(var error in DimensionEvidenceValidation.Validate(context)) yield return error;
+            foreach(var error in DrawingModelOrientationValidation.Validate(context,plan.Operations.OfType<ProfileSketchOperation>().Select(o=>(o.Id,o.Frame)))) yield return error;
             foreach(var error in DrawingStageValidation.ValidateRecovery(context,plan.Recovery,plan.Operations.Select(o=>o.Id).ToArray()))yield return error;
             if(!File.Exists(context.SourcePath) || plan.DrawingSourceSha256!=FileHash(context.SourcePath))
                 yield return new("DRAWING_SOURCE_CHANGED",DiagnosticSeverity.Error,"源图在编译后更改或消失。读取当前源图并重新编译。","drawing_context.source_path");

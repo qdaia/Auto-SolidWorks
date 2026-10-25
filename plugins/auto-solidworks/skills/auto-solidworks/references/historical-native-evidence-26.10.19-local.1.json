@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "runtime_version": "26.10.19-local.1",
+  "runtime_hashes": {
+    "runtime/executor/CadModeling.Core.dll": "bc0d7c4d11f845a26004d3f6cf8dddfff0113958fc551d4e659e9650ac23db8e",
+    "runtime/executor/CadModeling.Executor.SolidWorks.dll": "732b39bae6d398c25e1ecdbe6781e1135709d2afa792b2893c34ee425b552918",
+    "runtime/executor/CadModeling.Ir.dll": "c27934bd23fabacc35c87bf72480b55a73f4c3966c0590fe75b439299e1bad04",
+    "runtime/mcp/AutoSolidWorks.ModelingMcp.dll": "4a836f989597c131e7e2a4eb584c0a573b3ca4dc8f6757d491ef8036672d318f",
+    "runtime/mcp/CadModeling.Core.dll": "bc0d7c4d11f845a26004d3f6cf8dddfff0113958fc551d4e659e9650ac23db8e",
+    "runtime/mcp/CadModeling.Drawing.Contracts.dll": "ea7d10e83bdbd709aaa34306327fc736b8822e820f71cba468f64cb49ffea3dd",
+    "runtime/mcp/CadModeling.Drawing.Ingestion.dll": "674bc775b6723c39cfd8950976098684f3c35afcb586bb10b5af4f850989dc1d",
+    "runtime/mcp/CadModeling.Drawing.Providers.Abstractions.dll": "2752fc8b2f1f67363e78044b6b16da9ee58509bbcdf80cb5f9ca4df5165cbfed",
+    "runtime/mcp/CadModeling.Ir.dll": "c27934bd23fabacc35c87bf72480b55a73f4c3966c0590fe75b439299e1bad04",
+    "runtime/mcp/Microsoft.Extensions.AI.Abstractions.dll": "c725997b529ff9f9090398123aeead13a1d53b811ad7fb36fdd3d30ff76e0112",
+    "runtime/mcp/Microsoft.Extensions.Caching.Abstractions.dll": "2aae87459d529ec8ac2a571fb8b835f0c5abdc90a6464e38075b1bf43dcc8f0c",
+    "runtime/mcp/Microsoft.Extensions.Configuration.Abstractions.dll": "7545ca18ceec2fb8e02d3e7911035cb4f5d6386f7ac8a974321192735841b673",
+    "runtime/mcp/Microsoft.Extensions.Configuration.Binder.dll": "b08ecbd99f88507e08b0a3f0ee145aaa0e54da59eb337b037f7e203f09cd472b",
+    "runtime/mcp/Microsoft.Extensions.Configuration.CommandLine.dll": "35578dd08d10fc477180d347c74fb38356fa84269b1e13ca35d70041a054d0a6",
+    "runtime/mcp/Microsoft.Extensions.Configuration.dll": "aaf1c4a6dc397ae58b97f938063748234d12c29f1c88a43532e3b1ecbf2ced2a",
+    "runtime/mcp/Microsoft.Extensions.Configuration.EnvironmentVariables.dll": "02d735d8982fc58301acdc07fd3cdee191c3221e4d36191ccdffe1009ad6e454",
+    "runtime/mcp/Microsoft.Extensions.Configuration.FileExtensions.dll": "248b9c112b7f5e3382243e198bdc9d1c6bd97cc37143a468c57d86f297380534",
+    "runtime/mcp/Microsoft.Extensions.Configuration.Json.dll": "81020c11768798b2c64e7524313864c26245bd22e248632f6dbace0eeabb835a",
+    "runtime/mcp/Microsoft.Extensions.Configuration.UserSecrets.dll": "23f53f1e37815ce580556a904692890986fa04fb7e1e4fd046f8665f315c0775",
+    "runtime/mcp/Microsoft.Extensions.DependencyInjection.Abstractions.dll": "db07665fa94ac0ebde4cfafce9ae6768d14c262b278a0b47d3139568caa7e03e",
+    "runtime/mcp/Microsoft.Extensions.DependencyInjection.dll": "6081b777dd4600f49e530fd11761885c87ab1a17613c18184aadefb7dee101be",
+    "runtime/mcp/Microsoft.Extensions.Diagnostics.Abstractions.dll": "84ab87ea27a486b89cba006e8f379835934d153313b05ec1cbc10b1473be02f6",
+    "runtime/mcp/Microsoft.Extensions.Diagnostics.dll": "62299435ff660ac127d03bb0bea7b7e092f9569e5ffeb4d9a638a1a6ba63b7ff",
+    "runtime/mcp/Microsoft.Extensions.FileProviders.Abstractions.dll": "2aa37378a38c00dc9ecd83a77f2c72e2fecb303ac8aa3de182ff84e7e5f8f73c",
+    "runtime/mcp/Microsoft.Extensions.FileProviders.Physical.dll": "15afbcd50df1573260d32e80caf58e90c1ee36ad67b93af2903248ea91c31b2a",
+    "runtime/mcp/Microsoft.Extensions.FileSystemGlobbing.dll": "32d96d5b6aa323105632c64fcc53395fb31aeaab55c8110d60f0d1f9e5169acc",
+    "runtime/mcp/Microsoft.Extensions.Hosting.Abstractions.dll": "4df2b1e844ad770bca86229f48f27fece2aa806aefe3fbe86d11096ab15dd826",
+    "runtime/mcp/Microsoft.Extensions.Hosting.dll": "3df48aa2d47d6fe3c182b151c952a4c2604fb84a7cf3a58375f652332fdc2bd9",
+    "runtime/mcp/Microsoft.Extensions.Logging.Abstractions.dll": "3d4d1ba079e7a301a06047b97ee1ab4f44cbf0da2aa56697753fc3da49c9c66f",
+    "runtime/mcp/Microsoft.Extensions.Logging.Configuration.dll": "9fe59379762d3522f0ec4295e525f64a05650125a5fb8a1df4657d3f58d22e6a",
+    "runtime/mcp/Microsoft.Extensions.Logging.Console.dll": "b4f37a813fcf8ed5581ff78bf737493bf769bc0faeba2ddf920c2ffa36ea632d",
+    "runtime/mcp/Microsoft.Extensions.Logging.Debug.dll": "367274f4c38e85d8e672228bbceda4f82a250180c6bc1e4e23ffdf74ed86b1bb",
+    "runtime/mcp/Microsoft.Extensions.Logging.dll": "88498a97e02f41bbf3f206872f05774a638eec07623a104b4cef7c3cd310c5c4",
+    "runtime/mcp/Microsoft.Extensions.Logging.EventLog.dll": "3cd9cb005b45558a5114e9a6331c24f355c32096471fbc836f11e5dd473a89bc",
+    "runtime/mcp/Microsoft.Extensions.Logging.EventSource.dll": "a93d6e4beb43ea6dccfdff0d3585c699c25f91639342dd8cd64187d018697c28",
+    "runtime/mcp/Microsoft.Extensions.Options.ConfigurationExtensions.dll": "04fcb7fa4d29ee933c6d76c52ca2783ca3f724ef8adb07219b2c22c7292abbda",
+    "runtime/mcp/Microsoft.Extensions.Options.dll": "660511f10ccdd892eff62143b96831c68d55c5a92fb4f643b208745c5da0d236",
+    "runtime/mcp/Microsoft.Extensions.Primitives.dll": "fb564ae906421a27a99264763695d68814626cb41f1c925cd756632990897ac4",
+    "runtime/mcp/ModelContextProtocol.Core.dll": "6d0d12909177a4a140bed6186a00516f7948c2d5681cae7e2f6db94f052bd624",
+    "runtime/mcp/ModelContextProtocol.dll": "5571a66d3a2751c3412f7ef6a0ee2dd38e408db912b8f1f09e25525df8ecc558",
+    "runtime/mcp/System.Diagnostics.DiagnosticSource.dll": "dc24fd9f9dec597592d246d64aceeb70ef87f1a85272dfad8b46d281002d9471",
+    "runtime/mcp/System.IO.Pipelines.dll": "17b4ec00a384f01be1ed016fc387f50aa2339461001558e5d90954b20324c6b4",
+    "runtime/mcp/System.Net.ServerSentEvents.dll": "b9454cd51debf0b5e0800fa0416d00257a38f004dcc5d7f2b82e240b5763a70e",
+    "runtime/mcp/System.Text.Encodings.Web.dll": "427bcc11ddd7acd774f5f60ab321fb7114b4c81c4e8dd0756ef1a10336a6360f",
+    "runtime/mcp/System.Text.Json.dll": "d0e961334ac6008c07bf00370d719301cc355860f8f8d5818dbf0a55f6966265",
+    "runtime/mcp/UglyToad.PdfPig.Core.dll": "cbdd1809ee0f4ba617900845d182e5e67183377fe5848a8d9d1222b3c395116b",
+    "runtime/mcp/UglyToad.PdfPig.dll": "c47abebdffebb6e48a1d40f4c22ce5f673c57558ecdb3187841b728112dea279",
+    "runtime/mcp/UglyToad.PdfPig.DocumentLayoutAnalysis.dll": "c0d1e237eabcb2c741fc7ab7b26c255af6f5751d1cd7e86d7ae613611f79bc88",
+    "runtime/mcp/UglyToad.PdfPig.Fonts.dll": "30521d2aa02252c0097cd3a9b12832368d5c925e1ccb4bc3a5735671bd3d2e1e",
+    "runtime/mcp/UglyToad.PdfPig.Package.dll": "3227f79347329b57e50745d2ade1deb7ccdfe57da1d382796283832aae6ea41a",
+    "runtime/mcp/UglyToad.PdfPig.Tokenization.dll": "539d0ca2c7981b9eaf8541e17434911042f7cc73d3abc24962994bb99472ed3c",
+    "runtime/mcp/UglyToad.PdfPig.Tokens.dll": "d6fbd73a520bb961ffcc98030ab686f43c88b03f5b059ba11e3781e0f091433d",
+    "runtime/mcp/runtimes/win/lib/net9.0/System.Text.Encodings.Web.dll": "8362122a3bdf6f67b881a5924ed39c03d7a455ab1ef6ac6431edf880c1ba3fd0",
+    "runtime/mcp/runtimes/browser/lib/net8.0/System.Text.Encodings.Web.dll": "da808440792e010b374d20dd4695574ea60f893382bd5afc8c444853033a38aa"
+  },
+  "task_families": [
+    {
+      "name": "half",
+      "scope": [
+        "original failed frame extracted as controlled fixture",
+        "analytic whole model inventory and world position",
+        "save reopen and geometry changing parameter edit restore"
+      ],
+      "solidworks_revision": "33.0.0",
+      "files": [
+        {
+          "path": "evidence/native-frame-1/half/inspection.json",
+          "sha256": "cd384567a34130315806c5b8ca0fe19e73e288522a7e88abe280ebe63e548850"
+        },
+        {
+          "path": "evidence/native-frame-1/half/half.SLDPRT",
+          "sha256": "5d0d953834fe46978d74dd899bd813320886d5c86e771b51f55a7baee0b2a9e0"
+        },
+        {
+          "path": "evidence/native-frame-1/half/half-draft.json",
+          "sha256": "6967a561a3ca009387d7bcc5e67d3a89245428de1eff6c32b72920a43bb220e0"
+        },
+        {
+          "path": "evidence/native-frame-1/half/half-build.json",
+          "sha256": "4716592842b7a9b000634b1c5e5d499fbc628ba40180bf50ae669c9a4addf6cc"
+        }
+      ],
+      "inspection_path": "evidence/native-frame-1/half/inspection.json",
+      "model_path": "evidence/native-frame-1/half/half.SLDPRT"
+    },
+    {
+      "name": "ear",
+      "scope": [
+        "original failed frame extracted as controlled fixture",
+        "analytic whole model inventory and world position",
+        "save reopen and geometry changing parameter edit restore"
+      ],
+      "solidworks_revision": "33.0.0",
+      "files": [
+        {
+          "path": "evidence/native-frame-1/ear/inspection.json",
+          "sha256": "83d9a007c38fce7994a7fd8c5c4e509bf8174050ea3697921e974a23e9e96854"
+        },
+        {
+          "path": "evidence/native-frame-1/ear/ear.SLDPRT",
+          "sha256": "11619ddf730e41ae7d31a3c45e34cebf0c239c0ca5d2e51472d44142c58b13cf"
+        },
+        {
+          "path": "evidence/native-frame-1/ear/ear-draft.json",
+          "sha256": "a82493048f797d9a90fd2f01e061a6e315dec09487ce25d1cd542400e0992cfd"
+        },
+        {
+          "path": "evidence/native-frame-1/ear/ear-build.json",
+          "sha256": "5a1b9faaa7b4beac3bc1e10f378749c3f6ffcf1d39ec7e2d5aa070309a84ea9a"
+        }
+      ],
+      "inspection_path": "evidence/native-frame-1/ear/inspection.json",
+      "model_path": "evidence/native-frame-1/ear/ear.SLDPRT"
+    },
+    {
+      "name": "diagonal",
+      "scope": [
+        "original failed frame extracted as controlled fixture",
+        "analytic whole model inventory and world position",
+        "save reopen and geometry changing parameter edit restore"
+      ],
+      "solidworks_revision": "33.0.0",
+      "files": [
+        {
+          "path": "evidence/native-frame-1/diagonal/inspection.json",
+          "sha256": "e539797da8072ab8240ef9da839c148c5ade1e16be4372cfeca1111bc76a9790"
+        },
+        {
+          "path": "evidence/native-frame-1/diagonal/diagonal.SLDPRT",
+          "sha256": "0afbca55a3f457870c254807572936ad29cffc7da3ea723ae1c85fe7231e4e85"
+        },
+        {
+          "path": "evidence/native-frame-1/diagonal/diagonal-draft.json",
+          "sha256": "9a8a4b4ccba2cab9db6807ed6fe6a919753721630aa19b66fe118178ed68c49a"
+        },
+        {
+          "path": "evidence/native-frame-1/diagonal/diagonal-build.json",
+          "sha256": "3776eab1b048116cdbcc4acf077a478b9a87e6f6631a9afeb7a8577f73d130a5"
+        }
+      ],
+      "inspection_path": "evidence/native-frame-1/diagonal/inspection.json",
+      "model_path": "evidence/native-frame-1/diagonal/diagonal.SLDPRT"
+    }
+  ]
+}

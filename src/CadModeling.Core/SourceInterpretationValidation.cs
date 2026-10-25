@@ -38,7 +38,7 @@ public static class SourceInterpretationValidation
             foreach (var f in context.Features.Where(f => f.Critical))
                 if (!context.InterpretationReviews.Any(r => r.FeatureId == f.Id))
                     Error("SOURCE_INTERPRETATION_REQUIRED", "关键源特征需要独立于建模数值预期的解释复核：" + f.Id);
-        if (!context.RequireInterpretationReview && context.Features.Any(f => f.Critical))
+        if (!context.RequireInterpretationReview && !SourceWorkflow.IsFourStage(context.WorkflowRevision) && context.Features.Any(f => f.Critical))
             errors.Add(new("SOURCE_INTERPRETATION_LEGACY", DiagnosticSeverity.Warning,
                 "旧合同未强制解释复核；数值验收不能证明源形状正确。完整新建读图任务必须设置 require_interpretation_review=true。", "drawing_context.require_interpretation_review"));
         foreach (var fact in context.Dimensions)

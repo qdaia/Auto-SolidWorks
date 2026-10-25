@@ -41,6 +41,7 @@ Auto SolidWorks source is MIT licensed. Dependencies retain their own licenses. 
 | System.Diagnostics.DiagnosticSource | 10.0.10 | MIT | © Microsoft Corporation. All rights reserved. |
 | System.Diagnostics.EventLog | 9.0.8 | MIT | © Microsoft Corporation. All rights reserved. |
 | System.IO.Pipelines | 10.0.10 | MIT | © Microsoft Corporation. All rights reserved. |
+| System.Memory | 4.6.3 | MIT | Microsoft Corporation |
 | System.Net.ServerSentEvents | 10.0.10 | MIT | © Microsoft Corporation. All rights reserved. |
 | System.Text.Encodings.Web | 10.0.10 | MIT | © Microsoft Corporation. All rights reserved. |
 | System.Text.Json | 10.0.10 | MIT | © Microsoft Corporation. All rights reserved. |
@@ -58,6 +59,16 @@ Auto SolidWorks source is MIT licensed. Dependencies retain their own licenses. 
 
 SolidWorks and its interop assemblies are external proprietary dependencies. The public ZIP does not redistribute them. The installer copies the required interop assemblies from the user's own local SolidWorks installation.
 
-.NET Windows Desktop Runtime, Tesseract, language data and Poppler are installed separately and are not bundled.
+.NET Windows Desktop Runtime and Poppler are external local dependencies. The default drawing workflow does not invoke OCR or require OCR language data.
 
 Dependency versions and license-document provenance are recorded in [dependencies.json](third-party/dependencies.json).
+
+
+## Circular image geometry
+
+OpenCvSharp4 and OpenCvSharp4.runtime.win 4.13.0.20260627 are bundled for local image geometry. Their source revision is b161e7e012f5101f6d5dc68a835c59db6cc88b18; the engine is OpenCV 4.13.0 with contrib. This plugin invokes EdgeDrawing/EDCircles for geometric proposals, not text/OCR recognition. Native runtime files are covered by build-identity hashes.
+
+- [OpenCvSharp license](third-party/opencvsharp-LICENSE.txt)
+- [OpenCV license](third-party/opencv-LICENSE.txt)
+- [OpenCV contrib license](third-party/opencv-contrib-LICENSE.txt)
+- Algorithm reference: C. Akinlar and C. Topal, EDCircles: A Real-time Circle Detector with a False Detection Control, Pattern Recognition 46(3), 725-740, 2013.

@@ -1,32 +1,17 @@
-# 下载 Auto SolidWorks Windows 插件
+# 下载 Auto SolidWorks 1025
 
 **简体中文** | [English](download.en.md) · [返回 README](../README.md)
 
-当前版本：**`26.10.17`（2026 年 10 月 17 日发布）**。通过 Codex / MCP 在本机 SolidWorks 创建、检查和修改参数化零件与装配体，保存原生模型、STEP / STL 和工程图。
+当前版本：**1025**，发布日期：2026年10月25日。
 
-[Windows x64 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.17/auto-solidworks-26.10.17-windows-x64.zip) · [SHA-256 校验文件](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.17/auto-solidworks-26.10.17-windows-x64.zip.sha256) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.17) · [新增内容](release-26.10.17.zh-CN.md)
+[Windows x64 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-windows-x64.zip) · [SHA-256](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-windows-x64.zip.sha256) · [源码包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-source.zip) · [Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1025) · [更新说明](release-1025.zh-CN.md)
 
-## 安装
-
-1. 准备 Windows x64、已激活的本机 SolidWorks、.NET 9 Windows Desktop Runtime x64，以及支持插件的 Codex。
-2. 下载 `auto-solidworks-26.10.17-windows-x64.zip`，解压到长期保留的目录。
-3. 在解压目录运行：
-
-   ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
-   ```
-
-4. 打开新的 Codex 聊天并启用 Auto SolidWorks。
-
-安装器优先使用 Codex 桌面版内置 CLI。SolidWorks 位于自定义目录时，追加 `-SolidWorksInteropDir '你的 SolidWorks 目录'`。安装器从本机准备 Interop；详细说明见[安装指南](installation.md)。
-
-## 校验与包内容
+准备 Windows x64、已激活的本机 SolidWorks、.NET 9 Windows Desktop Runtime x64 和支持插件的 Codex。核对SHA-256，解压到长期保留的目录后运行：
 
 ```powershell
-Get-FileHash .\auto-solidworks-26.10.17-windows-x64.zip -Algorithm SHA256
-Get-Content .\auto-solidworks-26.10.17-windows-x64.zip.sha256
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-核对两处摘要一致。ZIP 内另有逐文件 `SHA256SUMS.json`，并包含运行程序、16 个默认 MCP 工具（完整配置 21 个）、使用技能、安装脚本、文档和许可声明。
+打开新的 Codex 聊天并启用 Auto SolidWorks。自定义SolidWorks路径使用 -SolidWorksInteropDir 参数，详见[安装说明](installation.md)。
 
-Gordon 工具另需本地 FreeCAD；OCR 可选 Tesseract，PDF 栅格化可选 Poppler。源代码与测试另见仓库或 Release 的 `auto-solidworks-26.10.17-source.zip`；直接安装请选择 Windows ZIP。
+ZIP包含运行时、技能、文档、许可与逐文件SHA256SUMS.json；Interop从本机SolidWorks准备。AI实际读图，不运行OCR。PDF栅格化及可选曲面工具依其各自本机依赖。默认四步工作流，不自动追加独立交付审核。

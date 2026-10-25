@@ -1,0 +1,41 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using CadModeling.Core;
+using CadModeling.Ir;
+var input=JsonNode.Parse(File.ReadAllText(args[0]))!;var output=Path.GetFullPath(args[1]);Directory.CreateDirectory(output);
+var checks=new List<string>();void Check(bool passed,string name){if(!passed)throw new Exception(name);checks.Add(name);Console.WriteLine("PASS "+name);}
+var prepared=SourceWorkflowInputs.Prepare(input).Input;var draft=CompactModelInputs.Decode<GenericModelDraft>(prepared);var c=draft.DrawingContext!;
+var compiler=new GenericPlanCompiler();var compiled=compiler.Compile(draft,Path.Combine(output,"support.SLDPRT"));
+Check(compiled.Success,"original failed source corrected without dropping any of the 21 stated dimensions");
+Check(c.Dimensions.Count(f=>f.Status==DrawingFactStatus.Stated)==21,"all 21 source facts retained");
+void Reject(DrawingPlanContext context,string code,string name)=>Check(DrawingDimensionTraceValidation.Validate(context).Any(d=>d.Code==code),name);
+Reject(c with{PageMetrics=[]},"DIMENSION_ANGLE_PATH","uncalibrated stretched angle remains rejected");
+Reject(c with{PageMetrics=[c.PageMetrics[0] with{State=DrawingReviewState.Unresolved}]},"DRAWING_PAGE_METRIC","unreviewed metric rejected");
+Reject(c with{PageMetrics=[c.PageMetrics[0] with{NormalCircleAnchorIds=["upper_hole_d_target","upper_hole_d_target"]}]},"DRAWING_PAGE_METRIC","duplicate circle cannot establish page metric");
+Reject(c with{PageMetrics=[c.PageMetrics[0] with{NormalCircleAnchorIds=["mid_angle_a","mid_angle_b"]}]},"DRAWING_PAGE_METRIC","angle being tested cannot calibrate itself");
+Reject(c with{GeometryAnchors=c.GeometryAnchors.Select(a=>a.Id=="bore_d_target"?a with{PhysicalEntityId="upper_hole_d_target"}:a).ToArray()},"DRAWING_PAGE_METRIC","same physical circle under two IDs rejected");
+Reject(c with{GeometryAnchors=c.GeometryAnchors.Select(a=>a.Id=="bore_d_target"?a with{ViewId="front"}:a).ToArray()},"DRAWING_PAGE_METRIC","same-view pair rejected");
+Reject(c with{GeometryAnchors=c.GeometryAnchors.Select(a=>a.Id=="bore_d_target"?a with{SourcePath=a.SourcePath.Take(60).ToArray()}:a).ToArray()},"DRAWING_PAGE_METRIC","partial arc cannot establish full-circle metric");
+Reject(c with{GeometryAnchors=c.GeometryAnchors.Select(a=>a.Id=="bore_d_target"?a with{SourcePath=a.SourcePath.Select(p=>p with{X=p.X+.1}).ToArray()}:a).ToArray()},"DRAWING_PAGE_METRIC","calibration moved onto other source region rejected");
+Reject(c with{Dimensions=c.Dimensions.Select(f=>f.Id=="mid_angle"?f with{Value=20,SourceLiteral="20°"}:f).ToArray()},"DIMENSION_ANGLE_VALUE","valid 45-degree arc cannot authenticate 20-degree literal");
+Reject(c with{Dimensions=c.Dimensions.Select(f=>f.Id=="mid_half"?f with{BindingEvidence=f.BindingEvidence! with{Trace=f.BindingEvidence!.Trace! with{StartExtension=[new(461/1206d,474/903d),new(469/1206d,466/903d)]}}}:f).ToArray()},"DIMENSION_TRACE_INK","original misplaced 4 mm extension still rejected");
+var detached=c with{Dimensions=c.Dimensions.Where(f=>f.Expression is null).ToArray()};
+Check(NativeDimensionPreflight.Validate(draft with{DrawingContext=detached}).Any(d=>d.Code=="SOURCE_DIMENSION_UNCONSUMED_DATUM"),"noneditable detached source datum now rejected");
+Check(NativeDimensionPreflight.Validate(draft with{DrawingContext=detached with{Dimensions=detached.Dimensions.Select(f=>f with{Critical=false}).ToArray()}}).Any(d=>d.Code=="SOURCE_DIMENSION_UNCONSUMED_DATUM"),"feature-level criticality cannot bypass detached datum check");
+Check(NativeDimensionPreflight.Validate(draft with{DrawingContext=detached,Operations=draft.Operations.Select(o=>o.Id=="middle"?o with{DependsOn=["layout"]}:o).ToArray()}).Any(d=>d.Code=="SOURCE_DIMENSION_UNCONSUMED_DATUM"),"ordering-only DependsOn cannot consume source datum");
+Check(!NativeDimensionPreflight.Validate(draft).Any(d=>d.Severity==DiagnosticSeverity.Error),"source expressions consumed by physical geometry accepted");
+var changed=prepared.DeepClone();var changedFacts=changed["drawing_context"]!["dimensions"]!.AsArray();changedFacts.First(f=>f!["id"]!.GetValue<string>()=="mid_angle")!["value"]=30;
+var changedDraft=CompactModelInputs.Decode<GenericModelDraft>(changed);
+Check(Math.Abs(changedDraft.Operations.Single(o=>o.Id=="middle_sk").Frame!.XDirection.X-Math.Cos(Math.PI/6))<1e-10,"source 45 to 30 changes actual sketch frame cosine on resolution");
+Check(Math.Abs(changedDraft.Operations.Single(o=>o.Id=="middle_hole_sk").Frame!.XDirection.Y-.5)<1e-10,"source angle change also moves hole frame");
+Check(!compiler.Compile(changedDraft,Path.Combine(output,"must-not-build.SLDPRT")).Success,"changed angle without matching source evidence is rejected by full compile");
+var invalidUnit=c with{Dimensions=c.Dimensions.Select(f=>f.Id=="mid_angle"?f with{Unit=DrawingValueUnit.Millimeter}:f).ToArray()};
+Check(DimensionExpressions.Validate(invalidUnit).Any(d=>d.Code=="DIMENSION_EXPRESSION_UNIT"),"Sin/Cos cannot consume length units");
+File.WriteAllText(Path.Combine(output,"checks.json"),JsonSerializer.Serialize(new{success=true,count=checks.Count,checks},ModelingIrJson.Options));
+File.WriteAllText(Path.Combine(output,"compilation.json"),JsonSerializer.Serialize(compiled,ModelingIrJson.Options));
+if(args.Length>2){
+ using var executor=new AutoStartingNamedPipeModelingExecutor(new(){PipeName="support-native-"+Guid.NewGuid().ToString("N"),ExecutablePath=Path.GetFullPath(args[2]),LogDirectory=output,StartupTimeoutMilliseconds=60000});
+ var started=DateTimeOffset.UtcNow;var result=await executor.ExecuteAsync(compiled.Plan!,false);var ended=DateTimeOffset.UtcNow;
+ File.WriteAllText(Path.Combine(output,"native-result.json"),JsonSerializer.Serialize(new{started,ended,elapsed_seconds=(ended-started).TotalSeconds,result},ModelingIrJson.Options));
+ Check(result.Success,"corrected 21-source-fact plan builds and saves natively");
+}

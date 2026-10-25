@@ -6,6 +6,7 @@ public static class DrawingGeometryAnchorValidation
     public static IReadOnlyList<ModelingDiagnostic> Validate(DrawingPlanContext context)
     {
         var errors=new List<ModelingDiagnostic>();
+        errors.AddRange(DrawingCircularProjectionValidation.Validate(context));
         void Error(string code,string id,string message)=>errors.Add(new(code,DiagnosticSeverity.Error,message,"drawing_context.geometry_anchors."+id));
         if(!context.RequireGeometryAnchors && context.GeometryAnchors.Count==0 &&
             context.Dimensions.All(f=>f.BindingEvidence is not {StartAnchorId:not null} and not {EndAnchorId:not null} and not {TargetAnchorId:not null})) return errors;
@@ -13,7 +14,7 @@ public static class DrawingGeometryAnchorValidation
         DrawingOmissionInventory? inventory=null;
         try
         {
-            if(context.OmissionReview is { } review)
+            if(SourceWorkflow.Evidence(context) is { } review)
             {
                 inventory=DrawingOmissionValidation.Load(review.InventoryPath,review.InventorySha256);
                 if(!string.Equals(Path.GetFullPath(inventory.SourcePath),Path.GetFullPath(context.SourcePath),StringComparison.OrdinalIgnoreCase))
@@ -45,6 +46,7 @@ public static class DrawingGeometryAnchorValidation
             if(group.Select(a=>a.Kind).Distinct().Count()>1 || group.Select(a=>a.FeatureId).Distinct().Count()>1)
                 Error("ANCHOR_PHYSICAL_ID",group.Key,"同一物理实体在多视图中的类型与所属特征必须一致。");
         var measurements=new Dictionary<(string,string),string>();
+        var circularValues=new Dictionary<(string,string),(double Diameter,string FactId)>();
         var critical=context.Features.Where(f=>f.Critical).SelectMany(f=>f.CriticalParameters).Select(p=>p.DimensionId).ToHashSet();
         foreach(var fact in context.Dimensions)
         {
@@ -62,6 +64,20 @@ public static class DrawingGeometryAnchorValidation
             var start=Get(e.StartAnchorId,false);var end=Get(e.EndAnchorId,false);var target=Get(e.TargetAnchorId,true);
             if(e.QuantityKind is DrawingQuantityKind.Linear or DrawingQuantityKind.Angle)
             {
+                if (SourceAnnotationValidation.ChamferAnnotation(context,fact) is not null)
+                {
+                    if(target is null || target.Construction is not null || target.Kind is not (DrawingAnchorKind.Line or DrawingAnchorKind.Contour) || !Overlap(e.TargetBounds,target.Bounds))
+                        Error("ANCHOR_CHAMFER",fact.Id,"C倒角须定位具体倒角边，并由公共引线证明归属。");
+                    else Compare(target.PhysicalEntityId+":chamfer_distance");
+                    continue;
+                }
+                if (SourceAnnotationValidation.CompoundAnnotation(context, fact) is { } compound)
+                {
+                    if (target is null || target.Kind is not (DrawingAnchorKind.Circle or DrawingAnchorKind.Arc))
+                        Error("ANCHOR_COMPOUND_HOLE", fact.Id, "复合孔深/角度须绑定具体孔圈，并由整条标注的公共引线证明归属。");
+                    else Compare(target.PhysicalEntityId + ":" + fact.SourceComponentKey);
+                    continue;
+                }
                 if(required || e.StartAnchorId is not null || e.EndAnchorId is not null)
                 {
                     if(start is null || end is null || start.PhysicalEntityId==end.PhysicalEntityId)
@@ -80,9 +96,27 @@ public static class DrawingGeometryAnchorValidation
             {
                 if(required || e.TargetAnchorId is not null)
                 {
-                    if(target is null || target.Kind is not (DrawingAnchorKind.Circle or DrawingAnchorKind.Arc))
+                    var circular=DrawingCircularProjectionValidation.CircularTarget(context,target);
+                    if(circular is null)
                         Error("ANCHOR_CIRCULAR",fact.Id,"圆径必须定位到具体圆/弧轮廓。");
-                    else Compare(target.PhysicalEntityId);
+                    else
+                    {
+                        Compare(circular.PhysicalEntityId);
+                        if(!Overlap(e.TargetBounds,target!.Bounds))
+                            Error("ANCHOR_TARGET_REGION",fact.Id,"圆径引线目标区域与所选圆/弧锚点不相交；回查引线落点，不能借用邻近圆。");
+                        if(fact.Status is DrawingFactStatus.Stated or DrawingFactStatus.Derived &&
+                            fact.Unit is DrawingValueUnit.Millimeter or DrawingValueUnit.Inch or DrawingValueUnit.Meter)
+                        {
+                            var diameter=SourceInterpretationValidation.SourceLiteralValue(fact)*DimensionExpressions.Scale(fact.Unit)*
+                                (e.QuantityKind==DrawingQuantityKind.Radius?2:1);
+                            var key=(circular.FeatureId,circular.PhysicalEntityId);
+                            if(!double.IsFinite(diameter) || diameter<=0)
+                                Error("ANCHOR_CIRCULAR_VALUE",fact.Id,"源圆/弧的半径或直径必须为有限正数。");
+                            else if(circularValues.TryGetValue(key,out var prior) && !DimensionExpressions.Equal(prior.Diameter,diameter))
+                                Error("ANCHOR_CIRCULAR_CONFLICT",fact.Id,"同一物理圆/弧与尺寸 "+prior.FactId+" 的半径/直径不一致；不同 measurement_id 也不能隐藏冲突。");
+                            else circularValues.TryAdd(key,(diameter,fact.Id));
+                        }
+                    }
                 }
             }
             void Compare(string signature)

@@ -27,7 +27,7 @@ internal sealed partial class SolidWorksComExecutor
         var (u,v,_) = FrameBasis(frame); var p=frame.OriginMm;
         var created=model.CreatePlaneFixed2(new[]{Mm(p.X),Mm(p.Y),Mm(p.Z)},
             new[]{Mm(p.X+u.X*10),Mm(p.Y+u.Y*10),Mm(p.Z+u.Z*10)},
-            new[]{Mm(p.X+v.X*10),Mm(p.Y+v.Y*10),Mm(p.Z+v.Z*10)},true);
+            new[]{Mm(p.X+v.X*10),Mm(p.Y+v.Y*10),Mm(p.Z+v.Z*10)},false);
         if (created is null) throw new InvalidOperationException("SolidWorks 无法创建指定的基准面。");
         var feature=created as IFeature ?? model.IFeatureByPositionReverse(0)
             ?? throw new InvalidOperationException("参考平面特征缺失。");
@@ -232,6 +232,7 @@ internal sealed partial class SolidWorksComExecutor
                 result=model.IFeatureByPositionReverse(0); break;
             case NativeFeatureKind.Chamfer:
                 SelectQueries(model,objects,o.Selections);
+                ValidateFiniteEdgeCount(model,o);
                 // EqualDistance is a modifier of DistanceDistance, not a standalone chamfer type.
                 var mode=o.ChamferMode switch {
                     ChamferMode.DistanceAngle=>(int)swChamferType_e.swChamferAngleDistance,
@@ -246,6 +247,7 @@ internal sealed partial class SolidWorksComExecutor
                 if(o.VariableFillet is not null){result=CreateVariableFillet(model,o,objects);break;}
                 SelectQueries(model,objects,o.Selections);
                 var faceMode=o.Selections.Any(s=>s.Kind==EntityKind.Face);
+                ValidateFiniteEdgeCount(model,o);
                 result=fm.FeatureFillet3(2|(o.TangentPropagation?1:0),Mm(o.RadiusMm),0,0,faceMode?2:0,0,0,null,null,null,null,null,null,null); break;
             case NativeFeatureKind.RevolveBoss: case NativeFeatureKind.RevolveCut:
                 SelectFeature(model,ResolveFeature(model,objects,o.SketchId!),false,0);
@@ -269,7 +271,11 @@ internal sealed partial class SolidWorksComExecutor
                         0,0,0,0,0,0,o.Copy,o.Copy?o.Count:1) ?? throw new InvalidOperationException("体移动失败。");
                     translated.Name=operation.Name+"_平移";
                     model.ClearSelection2(true);
-                    var movedBodies=(translated.GetFaces() as object[] ?? []).Cast<IFace2>().Select(f=>(IBody2)f.GetBody()).Distinct().ToArray();
+                    // Move features need not generate faces. Resolve their affected bodies
+                    // through the same feature-membership path used by public selections.
+                    var translatedObjects=new Dictionary<string,object>(objects) { [operation.Id]=translated };
+                    var movedBodies=ResolveEntities(model,translatedObjects,new EntityQuery
+                        { Kind=EntityKind.Body,FeatureId=operation.Id,AllMatches=true }).Cast<IBody2>().ToArray();
                     if(movedBodies.Length==0) throw new InvalidOperationException("无法为旋转操作解析到变形体。");
                     for(var i=0;i<movedBodies.Length;i++)
                     { var data=model.ISelectionManager.CreateSelectData(); data.Mark=1; if(!movedBodies[i].Select2(i>0,data)) throw new InvalidOperationException("无法选择已翻译的体。"); }
@@ -348,6 +354,12 @@ internal sealed partial class SolidWorksComExecutor
         data.RotationOriginX=0;data.RotationOriginY=0;data.RotationOriginZ=0;
         data.TransformX=Radians(rotation.X);data.TransformY=Radians(rotation.Y);data.TransformZ=Radians(rotation.Z);
         if(!feature.ModifyDefinition(data,model,null)) { data.ReleaseSelectionAccess();throw new InvalidOperationException("无法设置体 XYZ 旋转。"); }
+    }
+    private static void ValidateFiniteEdgeCount(IModelDoc2 model, NativeFeatureOptions options)
+    {
+        if (!options.TangentPropagation && options.Selections.All(q => q.Kind == EntityKind.Edge && !q.AllMatches) &&
+            model.ISelectionManager.GetSelectedObjectCount2(-1) != options.SelectionCount)
+            throw new InvalidOperationException("SOURCE_EDGE_COUNT_MISMATCH: overlapping or duplicate queries do not prove the declared number of distinct source edges.");
     }
     private static void SelectQueries(IModelDoc2 model,IReadOnlyDictionary<string,object> objects,IReadOnlyList<EntityQuery> queries)
     {

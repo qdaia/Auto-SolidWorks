@@ -5,7 +5,7 @@ namespace CadModeling.Core;
 /// <summary>Single calculation engine for MCP normalization and immutable IR validation.</summary>
 public static class DimensionExpressions
 {
-    public const string Revision = "dimension-expressions-1";
+    public const string Revision = "dimension-expressions-2";
     private readonly record struct Quantity(double Value, int Family);
     private static InvalidDataException Error(string code, string detail) => new(code + ": " + detail);
     public static int Family(DrawingValueUnit unit) => unit switch
@@ -49,7 +49,7 @@ public static class DimensionExpressions
             else
             {
                 if (node.DimensionId is not null || node.Value is not null || node.Unit is not null ||
-                    node.Arguments.Count != (node.Kind == DimensionExpressionKind.Negate ? 1 : 2))
+                    node.Arguments.Count != (node.Kind is DimensionExpressionKind.Negate or DimensionExpressionKind.Sin or DimensionExpressionKind.Cos ? 1 : 2))
                     throw Error("DIMENSION_EXPRESSION_SHAPE", "运算符只能包含正确数量的 arguments。");
                 foreach (var arg in node.Arguments) pending.Push((arg, item.Depth+1));
             }
@@ -74,6 +74,11 @@ public static class DimensionExpressions
         }
         var a = Evaluate(node.Arguments[0], facts);
         if (node.Kind == DimensionExpressionKind.Negate) return Checked(-a.Value, a.Family);
+        if (node.Kind is DimensionExpressionKind.Sin or DimensionExpressionKind.Cos)
+        {
+            if (a.Family != 2) throw Error("DIMENSION_EXPRESSION_UNIT", "Sin/Cos 必须引用明确的角度量，输出无量纲方向分量。");
+            return Checked(node.Kind == DimensionExpressionKind.Sin ? Math.Sin(a.Value*Math.PI/180) : Math.Cos(a.Value*Math.PI/180), 0);
+        }
         var b = Evaluate(node.Arguments[1], facts);
         switch (node.Kind)
         {

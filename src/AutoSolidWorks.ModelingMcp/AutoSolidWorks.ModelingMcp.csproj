@@ -5,8 +5,8 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>26.10.17</Version>
-    <InformationalVersion>26.10.17</InformationalVersion>
+    <Version>1025.0.0</Version>
+    <InformationalVersion>1025</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
   <ItemGroup>

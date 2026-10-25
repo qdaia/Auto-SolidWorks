@@ -1,3 +1,44 @@
+# 1025 — 2026-10-25
+
+Synchronize local vision.9 to the installed plugin and GitHub release. Public plugin/MCP/Executor identity is 1025; .NET package Version is 1025.0.0. Retains source-four-stage-2 and signed direction checks. See docs/release-1025.en.md and docs/release-1025.zh-CN.md. Native CAD was not rerun for this release.
+
+# 26.10.24-vision.9 (local)
+
+Reject source-to-model handedness mismatches for source angles driving sketch X axes. New source-four-stage-2 inputs bind actual source angle rays through one reviewed front-view basis; existing explicit revisions retain their rules. Checks run at compile and compiled-plan validation, with page-stretch correction. This is a bounded direction check, not full drawing equivalence.
+
+## 26.10.24-vision.8 - Known support drawing repair
+
+- Calibrate uniform page stretch only from explicitly reviewed independent normal circles in two views; retain source ink checks and compare angular sweep with the stated angle.
+- Add unit-checked Sin/Cos source expressions for actual sketch frame directions. Reject unconsumed construction dimensions regardless of editability or ordering-only dependencies.
+- Add focused guidance for first-compile field errors and retain all 21 source dimensions in the reported support regression. Native shape was unchanged; this does not establish unseen drawing accuracy or end-to-end speedup.
+
+## 26.10.24-vision.7 (local)
+
+- Add explicit circle-to-silhouette correspondence, physical linear identity checks, source outside-arrow endpoints, bounded line extensions, and primary/corroborating cross-view dimensions.
+- Preserve source ink, unit, entity ownership and native validation gates. No OCR or dimension inference from pixel scale.
+- Development sample 0015 completed native save/reopen and independent STEP geometry comparison. This is not held-out accuracy evidence.
+- Frozen held-out samples 0026–0028 and supplemental 0029–0031: zero complete native models; incomplete source dimensions stopped execution. Literal/view transcription matched 100/102 dataset dimension/callout annotations; this is not semantic ownership accuracy. Full unseen native accuracy and timing remain unproven.
+
+# Local 26.10.22-local.2 — source-workflow-4
+
+Add explicit callout coverage and source-bound visual review, actual source-ink-supported attachment paths and measurement direction, and source-derived finite material line intervals checked against native solids after save/reopen. Retain AI vision without OCR, legacy policy identities, and prior gates. Controlled negative native models catch missing layers/walls and extra material; a three-image annotation baseline does not establish general accuracy improvement or full BREP/GD&T equivalence.
+
+# Local 26.10.22-local.1 — dimension-evidence-2
+
+Validate AI-transcribed compound callout nominal values and multiplicities, normalize radius/diameter constraints by source physical circle identity across measurement IDs, and require circular target/anchor region overlap. Correct stale OCR capability text and arithmetic-expression guidance. Existing source-workflow-3, decomposition, editability and native acceptance gates retained. Managed/interface checks do not establish blind image-recognition accuracy or native CAD equivalence.
+
+# Local 26.10.20-local.1 — shape-decomposition-1
+
+New drawing tasks use source-workflow-3: source contours, material/void regions, operation/check correspondence, and explicit radial-band/axial-layer/angular-sector decomposition. Detect missing layers, angular gaps/overlaps and orphan references before modeling. Agent instructions now trace cross-view boundaries before dimension binding. Legacy plans keep their identity. Validation is offline and scoped; no new native execution or blind image-understanding accuracy claim.
+
+# Local 26.10.19-local.1 — native-frame-1
+
+Preserve arbitrary sketch axes; validate frame before constraints; resolve moved bodies by feature membership; stop disconnected merge; reject known invalid dimension names and isolated construction-only source bindings. Local repair, bounded native regression only.
+
+# Local 26.10.18-local.1 — source-workflow-2
+
+来源绑定、聚合预检、拉伸位置、驱动轮廓、验证检查点和分层交付。仅本地；证据与限制见 docs/local-source-workflow-2.md。
+
 # 26.10.17 — 2026-10-17
 
 - 建模后复核并按来源修改迭代；首轮成功不自动作为最终交付。

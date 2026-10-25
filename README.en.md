@@ -1,23 +1,14 @@
 # Auto SolidWorks
 
-**Turn engineering drawings and dimension descriptions into editable SolidWorks parametric models.**
+**Version 1025 · 2026-10-25 · Windows x64 · Codex / MCP**
 
-Auto SolidWorks is a local CAD plugin for Codex / MCP. It creates, inspects and edits parts and assemblies in your SolidWorks installation, exporting native models, STEP / STL and drawings. Its local Gordon tool builds NURBS surfaces from curve networks.
+Turn drawings and dimensions into parametric models in local SolidWorks. Four default stages: **recognition → dimension binding → compile → model**, ending with a saved native file.
 
 [简体中文](README.md) | **English**
 
-**Version `26.10.17` · October 17, 2026 · Windows x64 · Codex / MCP**
+[Windows download](docs/download.en.md) · [Release notes](docs/release-1025.en.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1025) · [Validation scope](docs/release-validation-1025.md)
 
-[Download Windows plugin](docs/download.en.md) · [Release notes](docs/release-26.10.17.en.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v26.10.17) · [Build from source](docs/development.en.md)
-
-## 26.10.17: Review, correct and iterate before delivery
-
-Review the model after creation. Correct evidence-backed discrepancies and model again instead of treating the first result as final. Codex works with the plugin, preserving source bindings, failed receipts, checkpoints and final save/reopen gates; remaining parametric or source uncertainties are disclosed.
-
-![Actual modeling iteration: rejected candidates and delivered geometry](docs/images/modeling-iteration-26.10.17.en.png)
-
-Also includes direct AI drawing review and endpoint binding, source expressions, serial background execution, staged continuation and fixed-frame projection comparison. See the [English release notes](docs/release-26.10.17.en.md) and [release validation scope](docs/release-validation-26.10.17.md).
-
+1025 synchronizes local vision.9, including source geometry proposals, batch binding, angle expressions, page calibration and mirrored-ear direction checks. AI still reviews source semantics. Release validation and native CAD acceptance are recorded separately; native modeling is not rerun for this release.
 
 ## From input to deliverable
 
@@ -32,7 +23,6 @@ Provide an engineering image, PDF or explicit dimensions. The plugin turns the i
 | Assemblies | Components, mates, interference checks and bounded spatial-tree mobility checks; SLDASM |
 | Drawings | First-angle views, native dimension import, view layout and pagination; SLDDRW / PDF |
 | Execution management | Status, pause, deadlines, cross-process leases, checkpoints and recovery identity checks |
-
 
 ## Examples
 
@@ -57,7 +47,7 @@ Engineering drawing PDF: `docs/examples/hollow-shaft/drawing.pdf`
 ## Quick start
 
 1. Prepare Windows x64, an activated local SolidWorks installation, [.NET 9 Windows Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/9.0), and Codex with plugin support.
-2. Download and extract the [26.10.17 Windows package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v26.10.17/auto-solidworks-26.10.17-windows-x64.zip). Run this command in the extracted directory:
+2. Download and extract the [1025 Windows package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-windows-x64.zip). Run this command in the extracted directory:
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
@@ -71,11 +61,11 @@ The installer prefers the CLI bundled with the Codex desktop app and prepares In
 
 ## Local execution and capability queries
 
-CAD execution, native files and geometry checks run locally. Users install and license SolidWorks; Gordon also requires local FreeCAD. Image / PDF interpretation uses your selected model and service. OCR and PDF rasterization dependencies can be configured as needed.
+CAD execution, native files and geometry checks run locally. Users install and license SolidWorks; Gordon also requires local FreeCAD. Image / PDF interpretation uses your selected model and service. AI reviews drawings without OCR; PDF rasterization dependencies can be configured as needed.
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Local version: `26.10.17`; revision: `review-iterate-deliver-1`. Unit-checked source expressions, geometry anchors, explicit stage scope, serial background execution, verified checkpoint resume and fixed-frame source projection differences. Controlled plate validation does not certify general first-attempt accuracy or speedup. Complete source coverage and final native reopen gates remain. See [capability manifest](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json).
-<!-- Capability manifest SHA256: ff92dc2459f941264add1388925e1b3f1de9bc01dd189a69d2939e761b91d3fb -->
+Local version: `1025`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json).
+<!-- Capability manifest SHA256: 203b2763562d8e401f8fccc85fec2c8f76c172b10604f28edb64105bb18c7cb1 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 [Feature parameters](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md) · [Gordon guide](plugins/auto-solidworks/skills/auto-solidworks/references/gordon-surface.md) · [Surface controls](plugins/auto-solidworks/skills/auto-solidworks/references/surface-modeling.md) · [Geometry verification](plugins/auto-solidworks/skills/auto-solidworks/references/local-geometry-verification.md)

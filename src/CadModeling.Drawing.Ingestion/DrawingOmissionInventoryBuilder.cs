@@ -77,7 +77,7 @@ public sealed class DrawingOmissionInventoryBuilder
         local.AddRange(DrawingAnnotationAssembler.Assemble(local));
         // A separate foreground channel retains ink not near any recognized text or actual primitive stroke.
         // Geometry bounding rectangles are NEVER filled: that would hide an omitted hole inside an outer contour.
-        var ink = raw.ToBinaryOtsu(out _);
+        var ink = raw.ToSourceInk();
         var explained = new byte[ink.Length];
         foreach (var mappedItem in mapped)
         {
@@ -88,8 +88,15 @@ public sealed class DrawingOmissionInventoryBuilder
         Directory.CreateDirectory(reviewDir);
         var localRegions = new List<DrawingReviewRegion>();
         var overviewId = $"page-{pageNumber:D4}-overview";
+        // Geometry support only: no OCR, text recognition or semantic inference.
+        var inkMaskPath = Path.Combine(reviewDir, "source-ink-mask.bin");
+        var packedInk = new byte[(ink.Length + 7) / 8];
+        for (var i = 0; i < ink.Length; i++) if (ink[i] != 0) packedInk[i / 8] |= (byte)(1 << (i % 8));
+        using (var maskFile = new FileStream(inkMaskPath, FileMode.CreateNew, FileAccess.Write, FileShare.None)) maskFile.Write(packedInk);
         localRegions.Add(new()
         {
+            InkMaskPath = inkMaskPath, InkMaskSha256 = IngestionUtilities.Sha256File(inkMaskPath), InkMaskEncoding = "bitset-row-major-lsb0-v1",
+            InkMaskAlgorithm = "source-local-contrast-1; window=31; k=0.12; min_contrast=12; no_dilation",
             Id = overviewId, PageNumber = pageNumber, Bounds = new(0, 0, 1, 1), Purpose = "overview",
             ImagePath = rawPath, ImageSha256 = IngestionUtilities.Sha256File(rawPath), PixelWidth = width, PixelHeight = height,
             InkPixels = ink.LongCount(p => p != 0), ResidualInkPixels = Enumerable.Range(0, ink.Length).LongCount(i => ink[i] != 0 && explained[i] == 0)

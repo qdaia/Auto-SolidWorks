@@ -1,8 +1,8 @@
 # Local geometry verification
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Local version: `26.10.17`; revision: `review-iterate-deliver-1`. Unit-checked source expressions, geometry anchors, explicit stage scope, serial background execution, verified checkpoint resume and fixed-frame source projection differences. Controlled plate validation does not certify general first-attempt accuracy or speedup. Complete source coverage and final native reopen gates remain. See [capability manifest](capability-manifest.json).
-<!-- Capability manifest SHA256: ff92dc2459f941264add1388925e1b3f1de9bc01dd189a69d2939e761b91d3fb -->
+Local version: `1025`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](capability-manifest.json).
+<!-- Capability manifest SHA256: 203b2763562d8e401f8fccc85fec2c8f76c172b10604f28edb64105bb18c7cb1 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 Use source-derived local checks for intentionally partial/intersecting holes, stepped bores, conical sinks/tips and planar shoulders. These inspect actual trimmed faces in model coordinates before save and after reopening the native file; the same checks work on STEP imports. They supplement the complete-cylinder checks. Do not remove or replace a failed full-cylinder requirement with samples unless the source itself requires a partial wall.

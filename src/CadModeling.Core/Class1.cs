@@ -150,7 +150,7 @@ public static class ModelingCapabilityCatalog
          "80 x 50 x 10 毫米平板，中心直径 10 毫米的通孔",
          "圆柱直径 40 毫米 高度 60 毫米"],
         ["长度默认为毫米，旋转和角度使用度；SetDimension 按原生参数类型推断单位，整数数量保持无单位。",
-         "绘制 OCR 返回候选项。该代理在规划前解释视图几何并绑定尺寸；低分辨率 OCR 可能出错。",
+         "本地 OCR 已停用；当前聊天中的 AI 直接查看原图、解释视图并绑定尺寸。校验声明一致性不等于识图准确率或整图等价认证。",
          "Tapped 孔使用钻孔与装饰标注；PhysicalThread 使用固定牙型身份的单线公制外螺纹，并核对实体螺旋牙长、螺距与旋向。内螺纹和配合公差等级尚未实现。",
          "原生的SLDPRT、SLDASM和基于模型的SLDDRW/PDF导出功能被支持。导入的尺寸并不保证完全符合一份制造图纸。",
          "自由曲面建模使用提供的轮廓/路径，而不是任意的自动形状重建。",
@@ -198,9 +198,15 @@ public interface IModelingExecutor
 public sealed class ModelingIrValidator
 {
     public ValidationReport Validate(ModelingPlan plan, bool forExecution = false)
+        => ValidateCore(plan, forExecution, true);
+
+    // A partial typed draft is diagnostic-only. The compiler never returns it as an executable plan.
+    internal ValidationReport ValidateDraftProjection(ModelingPlan plan) => ValidateCore(plan, false, false);
+
+    private ValidationReport ValidateCore(ModelingPlan plan, bool forExecution, bool validateSourceIdentity)
     {
         var diagnostics = new List<ModelingDiagnostic>();
-        diagnostics.AddRange(DrawingPlanValidation.ValidateCompiled(plan));
+        if (validateSourceIdentity) diagnostics.AddRange(DrawingPlanValidation.ValidateCompiled(plan));
         diagnostics.AddRange(ModelVerification.Validate(plan.Verification, plan.DrawingContext));
         diagnostics.AddRange(ModelingRecovery.Validate(plan));
         diagnostics.AddRange(DesignIntentContract.Validate(plan.DesignIntent));
@@ -259,11 +265,12 @@ public sealed class ModelingIrValidator
 
         var nativePath = plan.Output.NativePath;
         var permittedViews=new[]{"isometric","front","top","right","left","back"};
-        ErrorIf(plan.Output.PreviewViews.Count is <1 or >6||plan.Output.PreviewViews.Distinct().Count()!=plan.Output.PreviewViews.Count||
-            plan.Output.PreviewViews.Any(v=>!permittedViews.Contains(v))||!plan.Output.PreviewViews.Contains("isometric"),
+        var fourStage=SourceWorkflow.IsFourStage(plan.DrawingContext?.WorkflowRevision);
+        ErrorIf(plan.Output.PreviewViews.Count>6||!fourStage&&plan.Output.PreviewViews.Count<1||plan.Output.PreviewViews.Distinct().Count()!=plan.Output.PreviewViews.Count||
+            plan.Output.PreviewViews.Any(v=>!permittedViews.Contains(v))||!fourStage&&!plan.Output.PreviewViews.Contains("isometric"),
             "OUT_PREVIEW_SCOPE","预览需要唯一的受支持视图，并保留等轴测。","output.preview_views");
-        ErrorIf((plan.DrawingContext is not null && new[]{"isometric","front","top","right","left"}.Any(v=>!plan.Output.PreviewViews.Contains(v))) ||
-            (plan.Output.PreviewViews.Count<5 && string.IsNullOrWhiteSpace(plan.Output.PreviewScopeReason)),
+        ErrorIf(!fourStage && ((plan.DrawingContext is not null && new[]{"isometric","front","top","right","left"}.Any(v=>!plan.Output.PreviewViews.Contains(v))) ||
+            (plan.Output.PreviewViews.Count<5 && string.IsNullOrWhiteSpace(plan.Output.PreviewScopeReason))),
             "OUT_PREVIEW_COVERAGE","缩减视图需要明确覆盖理由；图纸建模保留全部标准视图。","output.preview_scope_reason");
         if (plan.SourceModelPath is { } source)
         {

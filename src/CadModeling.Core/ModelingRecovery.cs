@@ -48,6 +48,9 @@ public static partial class ModelingRecovery
     {
         var errors=new List<ModelingDiagnostic>();
         void Error(string text)=>errors.Add(new("RECOVERY_INVALID",DiagnosticSeverity.Error,text,"recovery"));
+        if(SourceWorkflow.IsGoverned(plan.DrawingContext?.WorkflowRevision) && plan.Recovery.Enabled &&
+            CheckpointAfter(plan).Count>0 && string.IsNullOrWhiteSpace(plan.Recovery.SourceRevisionId))
+            Error("源图检查点需要明确的 source_revision_id；在首次原生操作前冻结当前来源修订。");
         if(!Enum.IsDefined(plan.Recovery.CheckpointMode)||plan.Recovery.FeatureInterval is <1 or >200)
             Error("检查点模式或特征间隔无效；间隔必须为1..200。");
         if(plan.Recovery.Directory is { } directory&&!Path.IsPathFullyQualified(directory)) Error("检查点目录必须是绝对路径。");
