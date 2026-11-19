@@ -9,6 +9,13 @@ internal sealed partial class SolidWorksComExecutor
         return Type.GetTypeFromProgID($"SldWorks.Application.{major}", throwOnError);
     }
 
+    private static string TemplateDirectory()
+    {
+        var year = 1992 + typeof(ISldWorks).Assembly.GetName().Version!.Major;
+        return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.CommonApplicationData),
+            "SOLIDWORKS", $"SOLIDWORKS {year}");
+    }
+
     private static bool? ConcentricRotationLock(IFeature feature)
     {
 #if SW_BEFORE_CONCENTRIC_DEFINITION
@@ -21,7 +28,7 @@ internal sealed partial class SolidWorksComExecutor
     private static IBody2? CopySectionBody(IBody2 body)
     {
 #if SW_BEFORE_2020
-        throw new NotSupportedException("SW_API_UNAVAILABLE: 此构建的截面检查需要 SolidWorks 2020 或更新版本的交线接口。");
+        return body.Copy() as IBody2;
 #else
         return body.Copy2(true) as IBody2;
 #endif
@@ -30,7 +37,8 @@ internal sealed partial class SolidWorksComExecutor
     private static object[] SectionIntersectionEdges(IBody2 body, IBody2 sheet)
     {
 #if SW_BEFORE_2020
-        throw new NotSupportedException("SW_API_UNAVAILABLE: 缺少成对的目标体和工具体交线接口。");
+        // The legacy API also returns alternating target/tool edges on temporary bodies.
+        return body.GetIntersectionEdges(sheet) as object[] ?? [];
 #else
         return body.GetIntersectionEdges2(sheet, false) as object[] ?? [];
 #endif

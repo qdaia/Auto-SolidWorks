@@ -318,7 +318,7 @@ internal sealed partial class SolidWorksComExecutor
 
     private static string FindDrawingTemplate(SldWorks app)
     {
-        var root=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),"SOLIDWORKS");
+        var root=TemplateDirectory();
         if(Directory.Exists(root))
         {
             var match=Directory.EnumerateFiles(root,"gb_a3.drwdot",SearchOption.AllDirectories).OrderDescending().FirstOrDefault();

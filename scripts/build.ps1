@@ -6,7 +6,10 @@ $interop = & (Join-Path $PSScriptRoot 'find-solidworks.ps1') -SolidWorksInteropD
 $interop = $interop.TrimEnd([char]'\', [char]'/')
 $runtime = Join-Path $root 'plugins\auto-solidworks\runtime'
 $interopVersion = [Reflection.AssemblyName]::GetAssemblyName((Join-Path $interop 'SolidWorks.Interop.sldworks.dll')).Version
-$artifacts = Join-Path $root "artifacts\build\$interopVersion"
+# Redistributable variants can share an assembly version but have different bytes.
+$sldHash = (Get-FileHash -LiteralPath (Join-Path $interop 'SolidWorks.Interop.sldworks.dll')).Hash.Substring(0,16)
+$constHash = (Get-FileHash -LiteralPath (Join-Path $interop 'SolidWorks.Interop.swconst.dll')).Hash.Substring(0,16)
+$artifacts = Join-Path $root "artifacts\build\$interopVersion-$sldHash-$constHash"
 $projects = @(
     @{File='src\AutoSolidWorks.ModelingMcp\AutoSolidWorks.ModelingMcp.csproj'; Output='mcp'},
     @{File='src\CadModeling.Executor.SolidWorks\CadModeling.Executor.SolidWorks.csproj'; Output='executor'}

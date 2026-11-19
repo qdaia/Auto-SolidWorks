@@ -1450,8 +1450,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 if (template is not null) return template;
             }
         }
-        var programDataRoot = Path.Combine(
-            System.Environment.GetFolderPath(System.Environment.SpecialFolder.CommonApplicationData), "SOLIDWORKS");
+        var programDataRoot = TemplateDirectory();
         if (Directory.Exists(programDataRoot))
         {
             var standardTemplate = Directory.EnumerateFiles(programDataRoot, "*.prtdot", SearchOption.AllDirectories)

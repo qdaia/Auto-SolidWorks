@@ -43,7 +43,7 @@ internal sealed partial class SolidWorksComExecutor
             if(string.IsNullOrWhiteSpace(template)||!File.Exists(template))
             {
                 var configured=Environment.GetEnvironmentVariable("SOLIDWORKS_ASSEMBLY_TEMPLATE");
-                var templatesRoot=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),"SOLIDWORKS");
+                var templatesRoot=TemplateDirectory();
                 template=configured is not null && File.Exists(configured)?configured:
                     Directory.Exists(templatesRoot)?Directory.EnumerateFiles(templatesRoot,"*.asmdot",SearchOption.AllDirectories)
                         .OrderBy(p=>p.Contains("MBD",StringComparison.OrdinalIgnoreCase)).FirstOrDefault():null;

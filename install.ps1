@@ -11,11 +11,13 @@ foreach ($relative in @('mcp\AutoSolidWorks.ModelingMcp.exe','executor\CadModeli
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { throw 'Install the .NET 9 Windows Desktop Runtime (x64) first.' }
 $runtimes = & dotnet --list-runtimes
 if ($LASTEXITCODE -ne 0 -or -not ($runtimes -match '^Microsoft.WindowsDesktop.App 9\.')) { throw 'The .NET 9 Windows Desktop Runtime is required.' }
-$interop = & (Join-Path $root 'scripts\find-solidworks.ps1') -SolidWorksInteropDir $SolidWorksInteropDir
 $deps = Get-Content -Raw -LiteralPath (Join-Path $runtime 'executor\CadModeling.Executor.SolidWorks.deps.json') | ConvertFrom-Json
 $targetGraph = $deps.targets.PSObject.Properties[$deps.runtimeTarget.name].Value
 $executorEntry = @($targetGraph.PSObject.Properties | Where-Object Name -like 'CadModeling.Executor.SolidWorks/*')
 if ($executorEntry.Count -ne 1) { throw 'Missing executor dependency information. Rebuild the executor.' }
+$dependencies = $executorEntry[0].Value.dependencies
+$interop = & (Join-Path $root 'scripts\find-solidworks.ps1') -SolidWorksInteropDir $SolidWorksInteropDir `
+    -RequiredVersion $dependencies.'SolidWorks.Interop.sldworks' -RequiredConstantsVersion $dependencies.'SolidWorks.Interop.swconst'
 $names = 'SolidWorks.Interop.sldworks.dll','SolidWorks.Interop.swconst.dll'
 foreach ($name in $names) {
     $simpleName = [IO.Path]::GetFileNameWithoutExtension($name)
@@ -24,15 +26,20 @@ foreach ($name in $names) {
     if (-not $required -or $local.Name -ne $simpleName -or $local.Version.Major -ne $required.Major -or $local.Version -lt $required) {
         throw "SW_INTEROP_MISMATCH: $simpleName requires $required, local version is $($local.Version). Build this source with scripts\build.ps1 -SolidWorksInteropDir pointing to the target installation."
     }
-}
-foreach ($name in $names) {
     $source = Join-Path $interop $name
     $target = Join-Path $runtime "executor\$name"
     if (Test-Path -LiteralPath $target) {
         if ((Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash) {
             throw "Different local interop already exists at $target. Extract this release into a new directory."
         }
-    } else { Copy-Item -LiteralPath $source -Destination $target }
+    }
+}
+# Validate both files before copying either one. A failed preflight is safe to retry.
+foreach ($name in $names) {
+    $target = Join-Path $runtime "executor\$name"
+    if (-not (Test-Path -LiteralPath $target)) {
+        Copy-Item -LiteralPath (Join-Path $interop $name) -Destination $target -ErrorAction Stop
+    }
 }
 if ($SkipCodex) { Write-Output 'Runtime prerequisites prepared. Codex configuration was not changed.'; return }
 # Prefer the desktop CLI, whose configuration schema matches this installation.

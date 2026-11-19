@@ -11,11 +11,21 @@
 
 从修订后的源码运行 `scripts\build.ps1 -SolidWorksInteropDir <目标版本的安装目录>`。目录须同时包含 `SolidWorks.Interop.sldworks.dll` 和 `SolidWorks.Interop.swconst.dll`。执行器按所引用的年度版本选择 COM 应用。安装器发现年度不匹配或本机引用低于构建版本时，会报告 `SW_INTEROP_MISMATCH`。本地兼容性候选包沿用 v1025 源码版本，请按目标年度分别解压。
 
-2018 和 2019 构建通过旧版质量属性接口读取实体体积和质心；截面交线检查在此阶段要求 2020 或更新版本。2018 构建无法验证同心配合旋转锁定，2018 SP2 之前的引用还缺少高精度射线检查接口。每个年度版本可用下面的脚本从 MCP 验证连接、矩形板建模、保存、重开和尺寸读回。请填写实际测试年度，并提供一个新的输出目录。
+2018 和 2019 构建通过旧版质量属性接口读取实体体积和质心；截面交线检查使用临时实体副本和旧版配对交线接口。2018 构建无法验证同心配合旋转锁定，2018 SP2 之前的引用还缺少高精度射线检查接口。每个年度版本可用下面的脚本从 MCP 验证连接、矩形板建模、保存、重开和尺寸读回。请填写实际测试年度，并提供一个新的输出目录。
 
 ```powershell
 python scripts/verify-native-compatibility.py 2018 C:\CADTests\sw2018-plate-01
 ```
+
+### 离线验收
+
+将两份 Interop DLL 放在按年度命名的目录下，例如 `C:\SWRefs\2018`。使用下面的命令编译各年度执行器，逐项比对输出程序集引用和 DLL 哈希，并通过模拟执行器检查超时、租约与回执。输出目录应为新目录。缺少年度引用或出现失败时，脚本仍写出完整的 `matrix.json` 并返回非零退出码。全程无需启动 SolidWorks。
+
+```powershell
+.\scripts\verify-interop-matrix.ps1 -ReferenceRoot C:\SWRefs -OutputDirectory C:\CADTests\offline-01
+```
+
+2027 的文档比对可用于发现接口变更；要完成年度二进制验收，仍需 35.x 的原始 Interop。边界曲面编辑器中使用原生界面命令的读回流程保留其 2025 SP0 限制。
 
 ## 恢复中断的健康检查
 

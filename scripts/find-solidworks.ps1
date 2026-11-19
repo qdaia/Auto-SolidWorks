@@ -1,4 +1,4 @@
-param([string]$SolidWorksInteropDir)
+param([string]$SolidWorksInteropDir, [version]$RequiredVersion, [version]$RequiredConstantsVersion)
 $ErrorActionPreference = 'Stop'
 $candidates = [System.Collections.Generic.List[string]]::new()
 if ($SolidWorksInteropDir) {
@@ -29,7 +29,18 @@ if (Test-Path -LiteralPath $registryRoot) {
 foreach ($candidate in $candidates) {
     if ((Test-Path -LiteralPath (Join-Path $candidate 'SolidWorks.Interop.sldworks.dll')) -and
         (Test-Path -LiteralPath (Join-Path $candidate 'SolidWorks.Interop.swconst.dll'))) {
+        if ($RequiredVersion) {
+            $version = [Reflection.AssemblyName]::GetAssemblyName((Join-Path $candidate 'SolidWorks.Interop.sldworks.dll')).Version
+            if ($version.Major -ne $RequiredVersion.Major -or $version -lt $RequiredVersion) { continue }
+        }
+        if ($RequiredConstantsVersion) {
+            $constants = [Reflection.AssemblyName]::GetAssemblyName((Join-Path $candidate 'SolidWorks.Interop.swconst.dll')).Version
+            if ($constants.Major -ne $RequiredConstantsVersion.Major -or $constants -lt $RequiredConstantsVersion) { continue }
+        }
         return (Resolve-Path -LiteralPath $candidate).Path
     }
+}
+if ($RequiredVersion) {
+    throw "SW_INTEROP_MISMATCH: No compatible installed Interop for $RequiredVersion. Pass -SolidWorksInteropDir to select the target installation."
 }
 throw 'SolidWorks interop assemblies were not found. Pass -SolidWorksInteropDir with your local SOLIDWORKS installation directory, or set SOLIDWORKS_INTEROP_DIR.'
