@@ -55,7 +55,7 @@ internal sealed partial class SolidWorksComExecutor
             }
             for(var f=model.IFirstFeature();f is not null;f=f.IGetNextFeature())Visit(f);
             if(mates.Count!=1||mates[0].Mate.Type!=(int)swMateType_e.swMateCONCENTRIC||mates[0].Mate.GetMateEntityCount()!=2
-                ||mates[0].Feature.GetErrorCode2(out _)!=0||mates[0].Feature.GetDefinition() is not IConcentricMateFeatureData definition)return null;
+                ||mates[0].Feature.GetErrorCode2(out _)!=0||ConcentricRotationLock(mates[0].Feature) is not bool rotationLocked)return null;
             var attached=moving.GetMates() as object[];
             if(attached is not {Length:1})return null;
             // GetMates returns a component-context mate proxy. Its IUnknown and
@@ -73,7 +73,7 @@ internal sealed partial class SolidWorksComExecutor
                 ||ends.Any(e=>e.ReferenceType2!=(int)swSelectType_e.swSelFACES || e.Reference is not IFace2 face || !((ISurface)face.GetSurface()).IsCylinder()))return null;
             var values=ends.Select(e=>ToDoubles(e.EntityParams,8,"原生装配坐标圆柱配合参数")).ToArray();
             try{return ConcentricMobilityContract.Basis(new(){CompleteMateInventory=true,TwoResolvedTopLevelParts=true,ReferenceFixed=true,ActiveMateCount=1,
-                ConcentricDefinitionVerified=true,LockRotation=definition.LockRotation,
+                ConcentricDefinitionVerified=true,LockRotation=rotationLocked,
                 FirstAxisPointMm=new(values[0][0]*1000,values[0][1]*1000,values[0][2]*1000),SecondAxisPointMm=new(values[1][0]*1000,values[1][1]*1000,values[1][2]*1000),
                 FirstAxis=new(values[0][3],values[0][4],values[0][5]),SecondAxis=new(values[1][3],values[1][4],values[1][5]),FirstRadiusMm=values[0][6]*1000,SecondRadiusMm=values[1][6]*1000});}
             catch(ArgumentException){return null;}

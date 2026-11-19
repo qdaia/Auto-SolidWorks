@@ -12,7 +12,20 @@ if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { throw 'Install th
 $runtimes = & dotnet --list-runtimes
 if ($LASTEXITCODE -ne 0 -or -not ($runtimes -match '^Microsoft.WindowsDesktop.App 9\.')) { throw 'The .NET 9 Windows Desktop Runtime is required.' }
 $interop = & (Join-Path $root 'scripts\find-solidworks.ps1') -SolidWorksInteropDir $SolidWorksInteropDir
-foreach ($name in @('SolidWorks.Interop.sldworks.dll','SolidWorks.Interop.swconst.dll')) {
+$deps = Get-Content -Raw -LiteralPath (Join-Path $runtime 'executor\CadModeling.Executor.SolidWorks.deps.json') | ConvertFrom-Json
+$targetGraph = $deps.targets.PSObject.Properties[$deps.runtimeTarget.name].Value
+$executorEntry = @($targetGraph.PSObject.Properties | Where-Object Name -like 'CadModeling.Executor.SolidWorks/*')
+if ($executorEntry.Count -ne 1) { throw 'Missing executor dependency information. Rebuild the executor.' }
+$names = 'SolidWorks.Interop.sldworks.dll','SolidWorks.Interop.swconst.dll'
+foreach ($name in $names) {
+    $simpleName = [IO.Path]::GetFileNameWithoutExtension($name)
+    $required = [version]$executorEntry[0].Value.dependencies.$simpleName
+    $local = [Reflection.AssemblyName]::GetAssemblyName((Join-Path $interop $name))
+    if (-not $required -or $local.Name -ne $simpleName -or $local.Version.Major -ne $required.Major -or $local.Version -lt $required) {
+        throw "SW_INTEROP_MISMATCH: $simpleName requires $required, local version is $($local.Version). Build this source with scripts\build.ps1 -SolidWorksInteropDir pointing to the target installation."
+    }
+}
+foreach ($name in $names) {
     $source = Join-Path $interop $name
     $target = Join-Path $runtime "executor\$name"
     if (Test-Path -LiteralPath $target) {

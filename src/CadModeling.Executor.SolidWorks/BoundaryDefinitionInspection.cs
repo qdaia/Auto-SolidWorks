@@ -98,7 +98,7 @@ internal sealed partial class SolidWorksComExecutor
             // The static native kernel does not retain an application reference.
             // Activation attaches to the existing application; verify its active
             // document identity before using its command state as evidence.
-            var app=(ISldWorks)(Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application",true)!)
+            var app=(ISldWorks)(Activator.CreateInstance(ApplicationType(true)!)
                 ??throw new InvalidOperationException("BOUNDARY_NATIVE_CREATION_UNVERIFIABLE：无法取得原生应用。"));
             if(app.IActiveDoc2 is not { } active || app.IsSame(active,model)!=(int)swObjectEquality.swObjectSame)
                 throw new InvalidOperationException("BOUNDARY_NATIVE_CREATION_UNVERIFIABLE：活动文档不是本次工厂的文档。");

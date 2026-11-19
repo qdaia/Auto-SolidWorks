@@ -5,13 +5,26 @@ $interop = & (Join-Path $PSScriptRoot 'find-solidworks.ps1') -SolidWorksInteropD
 # A trailing backslash can escape the closing native-command quote in Windows PowerShell.
 $interop = $interop.TrimEnd([char]'\', [char]'/')
 $runtime = Join-Path $root 'plugins\auto-solidworks\runtime'
+$interopVersion = [Reflection.AssemblyName]::GetAssemblyName((Join-Path $interop 'SolidWorks.Interop.sldworks.dll')).Version
+$artifacts = Join-Path $root "artifacts\build\$interopVersion"
 $projects = @(
     @{File='src\AutoSolidWorks.ModelingMcp\AutoSolidWorks.ModelingMcp.csproj'; Output='mcp'},
     @{File='src\CadModeling.Executor.SolidWorks\CadModeling.Executor.SolidWorks.csproj'; Output='executor'}
 )
 foreach ($project in $projects) {
-    & dotnet publish (Join-Path $root $project.File) --configuration Release -m:1 -nodeReuse:false --no-self-contained --output (Join-Path $runtime $project.Output) "-p:SolidWorksInteropDir=$interop" '-p:DebugType=none' '-p:DebugSymbols=false'
+    $publish = Join-Path $artifacts ("publish\" + $project.Output)
+    $target = Join-Path $runtime $project.Output
+    & dotnet publish (Join-Path $root $project.File) --configuration Release --artifacts-path $artifacts -m:1 -nodeReuse:false --no-self-contained --output $publish "-p:SolidWorksInteropDir=$interop" '-p:DebugType=none' '-p:DebugSymbols=false'
     if ($LASTEXITCODE -ne 0) { throw "Build failed: $($project.File)" }
+    if ($project.Output -eq 'executor') {
+        foreach ($name in 'SolidWorks.Interop.sldworks.dll','SolidWorks.Interop.swconst.dll') {
+            if ((Get-FileHash -LiteralPath (Join-Path $publish $name)).Hash -ne (Get-FileHash -LiteralPath (Join-Path $interop $name)).Hash) {
+                throw "Published $name differs from the selected SolidWorks installation."
+            }
+        }
+    }
+    $null = New-Item -ItemType Directory -Path $target -Force
+    Copy-Item -Path (Join-Path $publish '*') -Destination $target -Recurse -Force
 }
 & python (Join-Path $PSScriptRoot 'record-build-identity.py')
 if ($LASTEXITCODE -ne 0) { throw 'Could not record runtime/source identity.' }

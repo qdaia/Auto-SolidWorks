@@ -15,7 +15,7 @@ internal sealed partial class SolidWorksComExecutor
     {
         var processes=Process.GetProcessesByName("SLDWORKS");
         if(processes.Length!=1)throw new InvalidOperationException("BOUNDARY_EDITOR_UNAVAILABLE：现有原生会话不唯一，不启动新会话。");
-        var app=(ISldWorks)(Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application",true)!)
+        var app=(ISldWorks)(Activator.CreateInstance(ApplicationType(true)!)
             ??throw new InvalidOperationException("BOUNDARY_EDITOR_UNAVAILABLE：无法绑定现有原生应用。"));
         if(app.GetProcessID()!=processes[0].Id||app.RevisionNumber()!="33.0.0")
             throw new InvalidOperationException("BOUNDARY_EDITOR_UNAVAILABLE：原生编辑读回只认证现有 SOLIDWORKS 2025 SP0 会话。");

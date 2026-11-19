@@ -29,7 +29,7 @@ internal sealed partial class SolidWorksComExecutor
         {
             if(!Path.IsPathFullyQualified(request.InputPath) || !File.Exists(request.InputPath))
                 throw new ArgumentException("检测需要现有的绝对模型路径。");
-            app=borrowedApplication??(SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application",true)!)!;
+            app=borrowedApplication??(SldWorks)Activator.CreateInstance(ApplicationType(true)!)!;
             var requestedExtension=Path.GetExtension(request.InputPath);
             var neutral=requestedExtension.Equals(".step",StringComparison.OrdinalIgnoreCase)||requestedExtension.Equals(".stp",StringComparison.OrdinalIgnoreCase);
             var nativeModel=requestedExtension.Equals(".sldprt",StringComparison.OrdinalIgnoreCase)||requestedExtension.Equals(".sldasm",StringComparison.OrdinalIgnoreCase);

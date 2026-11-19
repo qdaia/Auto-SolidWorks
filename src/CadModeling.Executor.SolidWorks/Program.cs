@@ -50,9 +50,9 @@ internal static class ExecutorProgram
                 }
                 return 0;
             case "health":
-                var healthResponse=await DispatchCliAsync(executor,new("health",DeadlineMilliseconds:5000));
+                var healthResponse=await DispatchCliAsync(executor,new("health",DeadlineMilliseconds:60_000));
                 Console.WriteLine(JsonSerializer.Serialize(healthResponse.Health??new(false,"solidworks-com-service",healthResponse.Error??"健康请求未完成。"),ModelingIrJson.Options));
-                return 0;
+                return healthResponse.Health?.Available == true ? 0 : 1;
             case "execute":
                 var irPath = Option(args, "--ir");
                 if (irPath is null || !File.Exists(irPath))
@@ -279,7 +279,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
         try
         {
             using var startupDialog = SolidWorksStartupDialogSuppressor.Start();
-            var type = Type.GetTypeFromProgID("SldWorks.Application", throwOnError: false);
+            var type = ApplicationType(false);
             if (type is null) return new(false, "solidworks-com", "SldWorks.Application 未注册。");
             var app = (SldWorks?)Activator.CreateInstance(type)
                       ?? throw new InvalidOperationException("COM 激活返回 null。");
@@ -326,7 +326,7 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 checkpointPath=resumePath;
             }
             using var startupDialog = SolidWorksStartupDialogSuppressor.Start();
-            var type = Type.GetTypeFromProgID("SldWorks.Application", throwOnError: true)
+            var type = ApplicationType(true)
                        ?? throw new InvalidOperationException("SldWorks.Application 未注册。");
             app = (SldWorks?)Activator.CreateInstance(type) ?? throw new InvalidOperationException("COM 激活返回 null。");
             var suppression = startupDialog.WaitForResult(TimeSpan.FromSeconds(5));
@@ -1201,10 +1201,18 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                     false, "SolidWorks 返回了一个不完整的部分包围盒。",
                     "重建零件，并检查是否存在有效的实体体。");
 
+#if SW_BEFORE_2020
+            IMassProperty? massProperty = null;
+#else
             IMassProperty2? massProperty = null;
+#endif
             try
             {
+#if SW_BEFORE_2020
+                massProperty = solidBodyCount > 0 ? model.Extension.CreateMassProperty() : null;
+#else
                 massProperty = solidBodyCount>0 ? model.Extension.CreateMassProperty2() as IMassProperty2 : null;
+#endif
                 if (massProperty is null && solidBodyCount>0)
                     throw new CadExecutionException("MASS_PROPERTIES_UNAVAILABLE", ExecutionFailureCategory.GeometryQuality,
                         true, "无法在SolidWorks创建质量属性评估器。",
@@ -1212,9 +1220,15 @@ internal sealed partial class SolidWorksComExecutor : IModelingExecutor, IDispos
                 if(massProperty is not null)
                 {
                     massProperty.UseSystemUnits=true;
+#if SW_BEFORE_2020
+                    var solidBodies = bodies.Take(solidBodyCount).Select(b => new DispatchWrapper(b)).ToArray();
+                    if (!massProperty.AddBodies(solidBodies))
+                        throw new InvalidOperationException("SolidWorks 无法将全部实体纳入质量属性计算。");
+#else
                     massProperty.IncludeHiddenBodiesOrComponents=true;
                     massProperty.AccuracyLevel=(int)swMassPropertyAccuracyLevel_e.swMassPropertyAccuracyLevel_Higher;
                     if(!massProperty.Recalculate()) throw new InvalidOperationException("无法重新计算质量属性。");
+#endif
                 }
                 var center = massProperty is not null?ToDoubles(massProperty.CenterOfMass, 3, "质心"):new double[3];
                 var area=bodies.SelectMany(b=>(b.GetFaces() as object[] ?? []).Cast<IFace2>()).Sum(f=>f.GetArea());

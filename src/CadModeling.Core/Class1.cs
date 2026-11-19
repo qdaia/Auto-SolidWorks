@@ -1247,7 +1247,7 @@ public sealed class NamedPipeModelingExecutor(
     public async Task<ExecutorHealth> HealthAsync(CancellationToken cancellationToken = default)
     {
         var response = await SendAsync(new("health"), cancellationToken);
-        return (response.Health ?? new(false, "named-pipe", response.Error ?? "执行器返回无健康结果。")) with{ServerReached=response.ServerReached};
+        return (response.Health ?? new(false, "named-pipe", response.Error ?? "执行器返回无健康结果。")) with{ServerReached=response.ServerReached || response.OutcomeUnknown};
     }
 
     public async Task<ExecutionResult> ExecuteAsync(ModelingPlan plan, bool dryRun, CancellationToken cancellationToken = default)
@@ -1306,7 +1306,7 @@ public sealed class NamedPipeModelingExecutor(
 
     private async Task<ExecutorServiceResponse> SendAsync(ExecutorServiceRequest request, CancellationToken cancellationToken)
     {
-        var budget=request.DeadlineMilliseconds??(request.Action is "pause" or "execution_status"?1000:request.Action=="health"?Math.Min(responseTimeoutMilliseconds,5000):responseTimeoutMilliseconds);
+        var budget=request.DeadlineMilliseconds??(request.Action is "pause" or "execution_status"?1000:request.Action=="health"?Math.Min(responseTimeoutMilliseconds,60_000):responseTimeoutMilliseconds);
         if(budget is <1 or >3_600_000)return new(Error:"无效的执行器截止时间。",ErrorCode:"EXECUTOR_DEADLINE_INVALID");
         request=request with{RequestId=request.RequestId??Guid.NewGuid().ToString("N"),DeadlineMilliseconds=budget};
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -1404,7 +1404,7 @@ public sealed class AutoStartingNamedPipeModelingExecutor : IModelingExecutor, I
     {
         _options = options;
         _client = new(options.PipeName,responseTimeoutMilliseconds:options.ResponseTimeoutMilliseconds);
-        _fastProbe = new(options.PipeName, connectTimeoutMilliseconds: 250);
+        _fastProbe = new(options.PipeName, connectTimeoutMilliseconds: 250, responseTimeoutMilliseconds: options.ResponseTimeoutMilliseconds);
     }
 
     public async Task<ExecutorHealth> HealthAsync(CancellationToken cancellationToken = default)
@@ -1427,7 +1427,7 @@ public sealed class AutoStartingNamedPipeModelingExecutor : IModelingExecutor, I
                     $"SolidWorks 执行器在启动时退出，代码为{_ownedProcess.ExitCode}。查看 '{CurrentLogPath()}'。");
 
             last = await _fastProbe.HealthAsync(cancellationToken);
-            if (last.Available) return last;
+            if (last.ServerReached || last.Available || cancellationToken.IsCancellationRequested) return last;
             await Task.Delay(150, cancellationToken);
         }
 

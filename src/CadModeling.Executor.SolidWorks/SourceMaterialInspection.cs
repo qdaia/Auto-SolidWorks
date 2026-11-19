@@ -37,7 +37,7 @@ internal sealed partial class SolidWorksComExecutor
                         bases.Add(ModelVerification.Add(segment.StartMm,ModelVerification.Scale(axis,offset)));axes.Add(axis);starts.Add(-offset);ends.Add(-offset+length);
                     }
                     var options=(int)(swRayPtsOpts_e.swRayPtsOptsENTRY_EXIT|swRayPtsOpts_e.swRayPtsOptsNORMALS);
-                    var count=model.Extension.RayIntersections(bodies.Select(b=>new DispatchWrapper(b)).ToArray(),bases.SelectMany(p=>new[]{p.X/1000,p.Y/1000,p.Z/1000}).ToArray(),axes.SelectMany(p=>new[]{p.X,p.Y,p.Z}).ToArray(),options,0,check.ToleranceMm/1000,true);
+                    var count=HighPrecisionIntersections(model, bodies.Select(b=>new DispatchWrapper(b)).ToArray(),bases.SelectMany(p=>new[]{p.X/1000,p.Y/1000,p.Z/1000}).ToArray(),axes.SelectMany(p=>new[]{p.X,p.Y,p.Z}).ToArray(),options,0,check.ToleranceMm/1000,true);
                     if(count<0)throw new InvalidOperationException("原生交点计数无效。");
                     var values=count==0?[]:ToDoubles(model.GetRayIntersectionsPoints(),count*9,"源材料射线交点");
                     if(values.Length!=count*9||values.Any(v=>!double.IsFinite(v)))throw new InvalidOperationException("原生交点数据不完整。");

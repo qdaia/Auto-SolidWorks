@@ -70,7 +70,7 @@ internal sealed partial class SolidWorksComExecutor
                 var concentric=group.Where(m=>m.Mate.Type==(int)swMateType_e.swMateCONCENTRIC).ToArray();
                 if(concentric.Length!=1)return null;
                 var c=concentric[0];
-                if(c.Feature.GetDefinition() is not IConcentricMateFeatureData definition
+                if(ConcentricRotationLock(c.Feature) is not bool rotationLocked
                     ||c.Ends.Any(e=>!((ISurface)((IFace2)e.Reference).GetSurface()).IsCylinder()))return null;
                 var values=c.Ends.Select(e=>ToDoubles(e.EntityParams,8,"完整开链原生圆柱参数")).ToArray();
                 Vector3 Point(double[] v)=>new(v[0]*1000,v[1]*1000,v[2]*1000);
@@ -88,7 +88,7 @@ internal sealed partial class SolidWorksComExecutor
                 joints.Add(new(){FirstComponentId=c.Ids[0],SecondComponentId=c.Ids[1],ConcentricMateIdentity=identity,
                     FirstAxis=new(Point(values[0]),Axis(values[0]),values[0][6]*1000),
                     SecondAxis=new(Point(values[1]),Axis(values[1]),values[1][6]*1000),
-                    NativeDefinitionsVerified=true,LockRotation=definition.LockRotation,
+                    NativeDefinitionsVerified=true,LockRotation=rotationLocked,
                     AxialMateIdentity=axialIdentity,AxialCoincidence=axial});
             }
             return new(){CompleteMateInventory=true,AllResolvedTopLevelParts=true,ComponentIds=components.Keys.ToArray(),

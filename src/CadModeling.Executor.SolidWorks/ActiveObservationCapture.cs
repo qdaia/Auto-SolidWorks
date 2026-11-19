@@ -58,7 +58,7 @@ internal sealed partial class SolidWorksComExecutor
         SldWorks? app=null;IModelDoc2? model=null;var owned=false;
         try
         {
-            app=(SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application",true)!)!;
+            app=(SldWorks)Activator.CreateInstance(ApplicationType(true)!)!;
             model=(IModelDoc2?)app.GetOpenDocumentByName(nativePath);
             if(model is not null)
                 throw new InvalidOperationException("活动位图观察拒绝更改已打开用户文档的视图；关闭它以便执行者可以打开一个隔离的只读实例。");

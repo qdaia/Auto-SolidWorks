@@ -7,6 +7,27 @@
 - 支持 `codex plugin` 的 Codex CLI，用于 Codex 插件注册。
 - 可选：Tesseract 与语言数据用于 OCR；Poppler 的 `pdftoppm.exe` 用于 PDF 页面栅格化。它们不随本插件分发。
 
+## 按 SolidWorks 年度版本构建和验证
+
+从修订后的源码运行 `scripts\build.ps1 -SolidWorksInteropDir <目标版本的安装目录>`。目录须同时包含 `SolidWorks.Interop.sldworks.dll` 和 `SolidWorks.Interop.swconst.dll`。执行器按所引用的年度版本选择 COM 应用。安装器发现年度不匹配或本机引用低于构建版本时，会报告 `SW_INTEROP_MISMATCH`。本地兼容性候选包沿用 v1025 源码版本，请按目标年度分别解压。
+
+2018 和 2019 构建通过旧版质量属性接口读取实体体积和质心；截面交线检查在此阶段要求 2020 或更新版本。2018 构建无法验证同心配合旋转锁定，2018 SP2 之前的引用还缺少高精度射线检查接口。每个年度版本可用下面的脚本从 MCP 验证连接、矩形板建模、保存、重开和尺寸读回。请填写实际测试年度，并提供一个新的输出目录。
+
+```powershell
+python scripts/verify-native-compatibility.py 2018 C:\CADTests\sw2018-plate-01
+```
+
+## 恢复中断的健康检查
+
+如服务仍在运行，可先用 `cad_execution_status` 和原请求 ID 查询结果。若原执行器已退出且缺少最终回执，保存工作，正常关闭 MCP 客户端与 SolidWorks，然后在插件包根目录运行以下命令。第一条只核对，第二条归档旧锁。自定义回执目录可用 `-ReceiptsDir` 指定。
+
+```powershell
+.\scripts\recover-health-lease.ps1 -RequestId <原请求ID>
+.\scripts\recover-health-lease.ps1 -RequestId <原请求ID> -Apply
+```
+
+工具要求锁与回执都为 active、编号和 PID 一致、原 PID 已退出，且回执记录的是 health。它在持有文件句柄时将旧锁改名留档，保留原回执。建模请求、记录不完整和仍有进程持有锁的情况需要核对现场。
+
 ## Release ZIP 安装
 
 下载 [Releases](https://github.com/qdaia/Auto-SolidWorks/releases) 中的 Windows ZIP，解压后保留完整目录结构。在该目录执行：

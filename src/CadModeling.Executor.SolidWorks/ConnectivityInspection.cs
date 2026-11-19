@@ -282,7 +282,7 @@ internal sealed partial class SolidWorksComExecutor
         // Explicitly request normals so the documented hit layout is always nine doubles.
         var options = (int)(swRayPtsOpts_e.swRayPtsOptsENTRY_EXIT | swRayPtsOpts_e.swRayPtsOptsNORMALS);
         // SOLIDWORKS expects SAFEARRAY(IDispatch), not a VARIANT array of RCWs.
-        var count = model.Extension.RayIntersections(bodies.Select(body => new DispatchWrapper(body)).ToArray(), baseValues.ToArray(), directions.ToArray(), options,
+        var count = HighPrecisionIntersections(model, bodies.Select(body => new DispatchWrapper(body)).ToArray(), baseValues.ToArray(), directions.ToArray(), options,
             0, query.NumericalToleranceMm / 1000, true);
         if (count < 0) return Incomplete("SOLIDWORKS 返回了一个负的轴向通路射线计数。");
         var values = count == 0 ? [] : ToDoubles(model.GetRayIntersectionsPoints(), count * 9, "轴向通道射线相交");
@@ -356,7 +356,7 @@ internal sealed partial class SolidWorksComExecutor
         }
         // Explicitly request normals so the documented hit layout is always nine doubles.
         var options = (int)(swRayPtsOpts_e.swRayPtsOptsENTRY_EXIT | swRayPtsOpts_e.swRayPtsOptsNORMALS);
-        var intersectionCount = model.Extension.RayIntersections(bodies.Select(body => new DispatchWrapper(body)).ToArray(), basePoints.ToArray(), directions.ToArray(),
+        var intersectionCount = HighPrecisionIntersections(model, bodies.Select(body => new DispatchWrapper(body)).ToArray(), basePoints.ToArray(), directions.ToArray(),
             options, 0, query.NumericalToleranceMm / 1000, true);
         if (intersectionCount < 0) return Incomplete("SOLIDWORKS 返回了一个负的交线计数。");
         var values = intersectionCount == 0 ? [] : ToDoubles(model.GetRayIntersectionsPoints(), intersectionCount * 9, "连接性交点射线");

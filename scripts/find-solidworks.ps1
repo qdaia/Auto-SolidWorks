@@ -1,7 +1,14 @@
 param([string]$SolidWorksInteropDir)
 $ErrorActionPreference = 'Stop'
 $candidates = [System.Collections.Generic.List[string]]::new()
-if ($SolidWorksInteropDir) { $candidates.Add($SolidWorksInteropDir) }
+if ($SolidWorksInteropDir) {
+    foreach ($dll in 'SolidWorks.Interop.sldworks.dll', 'SolidWorks.Interop.swconst.dll') {
+        if (-not (Test-Path -LiteralPath (Join-Path $SolidWorksInteropDir $dll) -PathType Leaf)) {
+            throw "Missing $dll in the requested SolidWorksInteropDir: $SolidWorksInteropDir"
+        }
+    }
+    return (Resolve-Path -LiteralPath $SolidWorksInteropDir).Path
+}
 if ($env:SOLIDWORKS_INTEROP_DIR) { $candidates.Add($env:SOLIDWORKS_INTEROP_DIR) }
 foreach ($base in @($env:ProgramW6432, $env:ProgramFiles)) {
     if ($base) { $candidates.Add((Join-Path $base 'SOLIDWORKS Corp\SOLIDWORKS')) }

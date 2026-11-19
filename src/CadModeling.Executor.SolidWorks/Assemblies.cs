@@ -29,9 +29,13 @@ internal sealed partial class SolidWorksComExecutor
         try
         {
             AssemblyPlanValidation.Validate(plan);
+#if SW_BEFORE_CONCENTRIC_DEFINITION
+            if (plan.Mates.Any(mate => mate.Kind == AssemblyMateKind.Concentric))
+                throw new NotSupportedException("SW_API_UNAVAILABLE: 此版本无法验证同心配合的旋转锁定状态。");
+#endif
             cancellationToken.ThrowIfCancellationRequested();
             using var startup=SolidWorksStartupDialogSuppressor.Start();
-            app=(SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application",true)!)!;
+            app=(SldWorks)Activator.CreateInstance(ApplicationType(true)!)!;
             app.Visible=true;
             originalUpdateComponentNames=app.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swExtRefUpdateCompNames);
             app.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swExtRefUpdateCompNames,false);

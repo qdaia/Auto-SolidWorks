@@ -15,9 +15,9 @@ internal sealed partial class SolidWorksComExecutor
         bool? lockRotation=null;
         if(spec.Kind==AssemblyMateKind.Concentric)
         {
-            if(feature.GetDefinition() is not IConcentricMateFeatureData definition||definition.LockRotation!=spec.LockRotation)
+            if(ConcentricRotationLock(feature) is not bool rotationLocked||rotationLocked!=spec.LockRotation)
                 throw new IOException($"ASSEMBLY_MATE_ROTATION: 配合 '{spec.Name}' 的旋转锁定未保留。");
-            lockRotation=definition.LockRotation;
+            lockRotation=rotationLocked;
         }
         if(mate.GetMateEntityCount()!=2)throw new IOException("ASSEMBLY_MATE_ENTITIES: 配合未保留两个端点。");
         var remaining=new List<AssemblyMateEntity>{spec.First,spec.Second};

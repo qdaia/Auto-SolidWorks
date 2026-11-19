@@ -27,7 +27,7 @@ internal sealed partial class SolidWorksComExecutor
             if(!File.Exists(request.InputPath)||(!isAssembly&&!Path.GetExtension(request.InputPath).Equals(".sldprt",StringComparison.OrdinalIgnoreCase)))
                 throw new ArgumentException("绘制导出需要现有的原生 SLDPRT 或 SLDASM。");
             var sourceHash=DrawingSourceHash(request.InputPath);
-            app=(SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application",true)!)!;
+            app=(SldWorks)Activator.CreateInstance(ApplicationType(true)!)!;
             previousTitle=(app.IActiveDoc2)?.GetTitle();
             source=(IModelDoc2?)app.GetOpenDocumentByName(request.InputPath);
             int errors=0,warnings=0;

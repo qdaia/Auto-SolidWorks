@@ -34,7 +34,7 @@ internal sealed partial class SolidWorksComExecutor
                 throw new ArgumentException("投影框架的平移必须是有限的。");
 
             var sourceHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(request.NativePath)));
-            app = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application", true)!)!;
+            app = (SldWorks)Activator.CreateInstance(ApplicationType(true)!)!;
             int errors = 0, warnings = 0;
             source = (IModelDoc2?)app.GetOpenDocumentByName(request.NativePath);
             if (source is null)

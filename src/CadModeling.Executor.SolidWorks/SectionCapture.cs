@@ -37,7 +37,7 @@ internal sealed partial class SolidWorksComExecutor
                 throw new ArgumentException("截面捕捉公差/边缘必须是有限且正数。");
 
             var modelHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(request.NativePath)));
-            app = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application", true)!)!;
+            app = (SldWorks)Activator.CreateInstance(ApplicationType(true)!)!;
             int errors = 0, warnings = 0;
             model = (IModelDoc2?)app.GetOpenDocumentByName(request.NativePath);
             if (model is null)
@@ -74,14 +74,14 @@ internal sealed partial class SolidWorksComExecutor
                 ISurface? plane = null;
                 try
                 {
-                    target = (IBody2?)body.Copy2(true) ?? throw new IOException("无法复制固体体，因为非可变截面捕获。");
+                    target = CopySectionBody(body) ?? throw new IOException("无法复制固体体，因为非可变截面捕获。");
                     plane = (ISurface?)modeler.CreatePlanarSurface2(
                         new[] { originMm.X / 1000, originMm.Y / 1000, originMm.Z / 1000 },
                         new[] { normal.X, normal.Y, normal.Z }, new[] { xAxis.X, xAxis.Y, xAxis.Z })
                         ?? throw new IOException("无法创建临时剖面平面。");
                     sheet = (IBody2?)modeler.CreateSheetFromSurface(plane, new[] { uMin / 1000, uMax / 1000, vMin / 1000, vMax / 1000 })
                         ?? throw new IOException("无法创建有界临时剖面曲面。");
-                    var raw = target.GetIntersectionEdges2(sheet, false) as object[] ?? [];
+                    var raw = SectionIntersectionEdges(target, sheet);
                     if (raw.Length == 0) continue;
                     if (raw.Length % 2 != 0)
                     {

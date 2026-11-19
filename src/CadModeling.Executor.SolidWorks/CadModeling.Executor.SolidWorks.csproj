@@ -25,4 +25,16 @@
       <Private>true</Private>
     </Reference>
   </ItemGroup>
+  <!-- The SP matters: the high-precision ray API first shipped in 2018 SP2. -->
+  <Target Name="SelectSolidWorksApi" BeforeTargets="CoreCompile">
+    <GetAssemblyIdentity AssemblyFiles="$(SolidWorksInteropDir)\SolidWorks.Interop.sldworks.dll">
+      <Output TaskParameter="Assemblies" ItemName="_SwAssembly" />
+    </GetAssemblyIdentity>
+    <PropertyGroup>
+      <_SwVersion>@(_SwAssembly->'%(Version)')</_SwVersion>
+      <DefineConstants Condition="$([MSBuild]::VersionLessThan('$(_SwVersion)', '26.2'))">$(DefineConstants);SW_BEFORE_HIGH_PRECISION_RAYS</DefineConstants>
+      <DefineConstants Condition="$([MSBuild]::VersionLessThan('$(_SwVersion)', '27.0'))">$(DefineConstants);SW_BEFORE_CONCENTRIC_DEFINITION</DefineConstants>
+      <DefineConstants Condition="$([MSBuild]::VersionLessThan('$(_SwVersion)', '28.0'))">$(DefineConstants);SW_BEFORE_2020</DefineConstants>
+    </PropertyGroup>
+  </Target>
 </Project>
