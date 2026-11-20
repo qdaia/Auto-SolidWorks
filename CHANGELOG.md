@@ -1,5 +1,9 @@
 # 1025 — 2026-10-25
 
+## 1120 · 2026-11-20
+
+2018–2026 统一插件包，按本机 Interop 选择执行器。仅做离线测试，未做真实 SolidWorks 回归验收。[更新说明](docs/release-1120.zh-CN.md)
+
 Synchronize local vision.9 to the installed plugin and GitHub release. Public plugin/MCP/Executor identity is 1025; .NET package Version is 1025.0.0. Retains source-four-stage-2 and signed direction checks. See docs/release-1025.en.md and docs/release-1025.zh-CN.md. Native CAD was not rerun for this release.
 
 # 26.10.24-vision.9 (local)

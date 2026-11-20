@@ -1,14 +1,14 @@
 # Auto SolidWorks
 
-**版本 1025 · 2026-10-25 · Windows x64 · Codex / MCP**
+**版本 1120 · 2026-11-20 · Windows x64 · Codex / MCP**
 
 把工程图与尺寸描述转成本机 SolidWorks 参数化模型。默认按 **识图 → 尺寸绑定 → 编译 → 建模** 四步执行，保存原生文件。
 
 **简体中文** | [English](README.en.md)
 
-[下载 Windows 插件](docs/download.zh-CN.md) · [本次更新](docs/release-1025.zh-CN.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1025) · [验证范围](docs/release-validation-1025.md)
+[下载 Windows 统一包](docs/download.zh-CN.md) · [更新说明与验证范围](docs/release-1120.zh-CN.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1120)
 
-1025同步本机vision.9，包含源图几何候选、批量尺寸绑定、角度表达式、页面校准及耳板镜像方向检查。源图语义仍由AI复核。发布验证与原生CAD验收分别记录；本次未重新运行原生建模。
+**本次发布仅做了离线测试，未做真实 SolidWorks 回归验收。** 一个 Windows 插件包覆盖 2018–2026 的 11 个执行器构建，安装时按本机 Interop 版本选择。
 
 ## 从输入到交付
 
@@ -47,7 +47,7 @@
 ## 快速开始
 
 1. 准备 Windows x64、已激活的本机 SolidWorks、[.NET 9 Windows Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)，以及支持插件的 Codex。
-2. 下载并解压 [1025 Windows 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-windows-x64.zip)，在解压目录运行：
+2. 下载并解压 [1120 Windows 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1120/auto-solidworks-1120-windows-x64.zip)，在解压目录运行：
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
@@ -64,8 +64,8 @@
 CAD 执行、原生文件和几何检查在本机完成。SolidWorks 由使用者安装并授权；Gordon 另需本地 FreeCAD。图片 / PDF 的理解使用你选择的模型与服务，OCR 和 PDF 栅格化依赖可按需配置。
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-本地版本：`1025`；修订：`source-four-stage-2`。默认仅识图、尺寸绑定、编译、建模四步；保留真实参数/单位/源图端点检查和建模保存，移除强制复核台账、分区探针、预览与独立交付审核。历史草案仍按原修订校验。不认证完整图纸/BREP/GD&T等价。详见[能力清单](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json)。
-<!-- Capability manifest SHA256: 203b2763562d8e401f8fccc85fec2c8f76c172b10604f28edb64105bb18c7cb1 -->
+本地版本：`1120`；修订：`source-four-stage-2`。默认仅识图、尺寸绑定、编译、建模四步；保留真实参数/单位/源图端点检查和建模保存，移除强制复核台账、分区探针、预览与独立交付审核。历史草案仍按原修订校验。不认证完整图纸/BREP/GD&T等价。详见[能力清单](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json)。
+<!-- Capability manifest SHA256: fd61c03a4e300a3a032698ea6be903747f4bb05be7cca6f2349e8e11606679c7 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 [功能参数](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md) · [Gordon 使用](plugins/auto-solidworks/skills/auto-solidworks/references/gordon-surface.md) · [曲面控制](plugins/auto-solidworks/skills/auto-solidworks/references/surface-modeling.md) · [几何验证](plugins/auto-solidworks/skills/auto-solidworks/references/local-geometry-verification.md)

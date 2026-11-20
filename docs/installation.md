@@ -9,7 +9,7 @@
 
 ## 按 SolidWorks 年度版本构建和验证
 
-从修订后的源码运行 `scripts\build.ps1 -SolidWorksInteropDir <目标版本的安装目录>`。目录须同时包含 `SolidWorks.Interop.sldworks.dll` 和 `SolidWorks.Interop.swconst.dll`。执行器按所引用的年度版本选择 COM 应用。安装器发现年度不匹配或本机引用低于构建版本时，会报告 `SW_INTEROP_MISMATCH`。本地兼容性候选包沿用 v1025 源码版本，请按目标年度分别解压。
+从修订后的源码运行 `scripts\build.ps1 -SolidWorksInteropDir <目标版本的安装目录>`。目录须同时包含 `SolidWorks.Interop.sldworks.dll` 和 `SolidWorks.Interop.swconst.dll`。执行器按所引用的年度版本选择 COM 应用。安装器发现年度不匹配或本机引用低于构建版本时，会报告 `SW_INTEROP_MISMATCH`。1120 为统一 ZIP，在解压根目录运行 install.ps1 即可选择匹配的执行器。安装器会显示选中的构建和实际安装目录。
 
 2018 和 2019 构建通过旧版质量属性接口读取实体体积和质心；截面交线检查使用临时实体副本和旧版配对交线接口。2018 构建无法验证同心配合旋转锁定，2018 SP2 之前的引用还缺少高精度射线检查接口。每个年度版本可用下面的脚本从 MCP 验证连接、矩形板建模、保存、重开和尺寸读回。请填写实际测试年度，并提供一个新的输出目录。
 
@@ -29,7 +29,7 @@ python scripts/verify-native-compatibility.py 2018 C:\CADTests\sw2018-plate-01
 
 ## 恢复中断的健康检查
 
-如服务仍在运行，可先用 `cad_execution_status` 和原请求 ID 查询结果。若原执行器已退出且缺少最终回执，保存工作，正常关闭 MCP 客户端与 SolidWorks，然后在插件包根目录运行以下命令。第一条只核对，第二条归档旧锁。自定义回执目录可用 `-ReceiptsDir` 指定。
+如服务仍在运行，可先用 `cad_execution_status` 和原请求 ID 查询结果。若原执行器已退出且缺少最终回执，保存工作，正常关闭 MCP 客户端与 SolidWorks，然后在安装器显示的实际安装目录运行以下命令。第一条只核对，第二条归档旧锁。自定义回执目录可用 `-ReceiptsDir` 指定。
 
 ```powershell
 .\scripts\recover-health-lease.ps1 -RequestId <原请求ID>
@@ -59,7 +59,7 @@ codex plugin marketplace add .
 codex plugin add auto-solidworks@auto-solidworks-local
 ```
 
-脚本实际传递解压目录的绝对路径。此本地插件源名为 `auto-solidworks-local`。打开新的 Codex 任务，选择 Auto SolidWorks。安装脚本不启动 SolidWorks，也不创建或关闭 CAD 文档。
+统一包传递实际安装目录的绝对路径，目录位于解压位置的 local 子目录中。此本地插件源名为 `auto-solidworks-local`。打开新的 Codex 任务，选择 Auto SolidWorks。安装脚本不启动 SolidWorks，也不创建或关闭 CAD 文档。
 
 新版本请解压到新目录，运行新目录中的安装脚本。源码中的 `runtime/` 不由 Git 管理，克隆仓库后需要先构建，见[开发说明](development.md)。
 

@@ -1,8 +1,8 @@
-# Auto SolidWorks 1025
+# Auto SolidWorks 1120
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-本地版本：`1025`；修订：`source-four-stage-2`。默认仅识图、尺寸绑定、编译、建模四步；保留真实参数/单位/源图端点检查和建模保存，移除强制复核台账、分区探针、预览与独立交付审核。历史草案仍按原修订校验。不认证完整图纸/BREP/GD&T等价。详见[能力清单](skills/auto-solidworks/references/capability-manifest.json)。
-<!-- Capability manifest SHA256: 203b2763562d8e401f8fccc85fec2c8f76c172b10604f28edb64105bb18c7cb1 -->
+本地版本：`1120`；修订：`source-four-stage-2`。默认仅识图、尺寸绑定、编译、建模四步；保留真实参数/单位/源图端点检查和建模保存，移除强制复核台账、分区探针、预览与独立交付审核。历史草案仍按原修订校验。不认证完整图纸/BREP/GD&T等价。详见[能力清单](skills/auto-solidworks/references/capability-manifest.json)。
+<!-- Capability manifest SHA256: fd61c03a4e300a3a032698ea6be903747f4bb05be7cca6f2349e8e11606679c7 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 本地插件，默认流程只有：**识图 → 尺寸绑定 → 编译 → 建模**。

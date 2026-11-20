@@ -1,8 +1,8 @@
 # Reference drawing export
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Local version: `1025`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](capability-manifest.json).
-<!-- Capability manifest SHA256: 203b2763562d8e401f8fccc85fec2c8f76c172b10604f28edb64105bb18c7cb1 -->
+Local version: `1120`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](capability-manifest.json).
+<!-- Capability manifest SHA256: fd61c03a4e300a3a032698ea6be903747f4bb05be7cca6f2349e8e11606679c7 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 Use `cad_export_drawing(inputPath, nativePath, pdfPath, templatePath?, layout?)` on a saved local `.SLDPRT` or `.SLDASM`. All paths must be absolute; outputs must not exist. A dirty open source is rejected. Assemblies require saved, resolved, unmodified active components; component hashes are checked after export. The default template search prefers installed `gb_a3.drwdot`, then the configured native drawing template. An explicit template must exist and end in `.drwdot`; layout overrides its paper geometry.

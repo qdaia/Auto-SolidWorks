@@ -1,14 +1,14 @@
 # Auto SolidWorks
 
-**Version 1025 · 2026-10-25 · Windows x64 · Codex / MCP**
+**Version 1120 · 2026-11-20 · Windows x64 · Codex / MCP**
 
 Turn drawings and dimensions into parametric models in local SolidWorks. Four default stages: **recognition → dimension binding → compile → model**, ending with a saved native file.
 
 [简体中文](README.md) | **English**
 
-[Windows download](docs/download.en.md) · [Release notes](docs/release-1025.en.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1025) · [Validation scope](docs/release-validation-1025.md)
+[Download the unified Windows package](docs/download.en.md) · [Release notes](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1120)
 
-1025 synchronizes local vision.9, including source geometry proposals, batch binding, angle expressions, page calibration and mirrored-ear direction checks. AI still reviews source semantics. Release validation and native CAD acceptance are recorded separately; native modeling is not rerun for this release.
+**Offline tests only. No regression acceptance was performed in a real SOLIDWORKS session for this release.** One Windows package selects among 11 executor builds for 2018–2026.
 
 ## From input to deliverable
 
@@ -47,7 +47,7 @@ Engineering drawing PDF: `docs/examples/hollow-shaft/drawing.pdf`
 ## Quick start
 
 1. Prepare Windows x64, an activated local SolidWorks installation, [.NET 9 Windows Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/9.0), and Codex with plugin support.
-2. Download and extract the [1025 Windows package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-windows-x64.zip). Run this command in the extracted directory:
+2. Download and extract the [1120 Windows package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1120/auto-solidworks-1120-windows-x64.zip). Run this command in the extracted directory:
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
@@ -64,8 +64,8 @@ The installer prefers the CLI bundled with the Codex desktop app and prepares In
 CAD execution, native files and geometry checks run locally. Users install and license SolidWorks; Gordon also requires local FreeCAD. Image / PDF interpretation uses your selected model and service. AI reviews drawings without OCR; PDF rasterization dependencies can be configured as needed.
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Local version: `1025`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json).
-<!-- Capability manifest SHA256: 203b2763562d8e401f8fccc85fec2c8f76c172b10604f28edb64105bb18c7cb1 -->
+Local version: `1120`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json).
+<!-- Capability manifest SHA256: fd61c03a4e300a3a032698ea6be903747f4bb05be7cca6f2349e8e11606679c7 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 [Feature parameters](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md) · [Gordon guide](plugins/auto-solidworks/skills/auto-solidworks/references/gordon-surface.md) · [Surface controls](plugins/auto-solidworks/skills/auto-solidworks/references/surface-modeling.md) · [Geometry verification](plugins/auto-solidworks/skills/auto-solidworks/references/local-geometry-verification.md)

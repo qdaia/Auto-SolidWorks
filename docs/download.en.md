@@ -1,10 +1,10 @@
-# Download Auto SolidWorks 1025
+# Download Auto SolidWorks 1120
 
 [简体中文](download.zh-CN.md) | **English** · [README](../README.en.md)
 
-Current version: **1025**, released October 25, 2026.
+Current version: **1120**, released November 20, 2026.
 
-[Windows x64 package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-windows-x64.zip) · [SHA-256](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-windows-x64.zip.sha256) · [Source ZIP](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1025/auto-solidworks-1025-source.zip) · [Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1025) · [Release notes](release-1025.en.md)
+[Windows x64 package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1120/auto-solidworks-1120-windows-x64.zip) · [SHA-256](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1120/auto-solidworks-1120-windows-x64.zip.sha256) · [Source ZIP](https://github.com/qdaia/Auto-SolidWorks/archive/refs/tags/v1120.zip) · [Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1120) · [Release notes](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1120)
 
 Prepare Windows x64, activated local SolidWorks, .NET 9 Windows Desktop Runtime x64 and Codex with plugin support. Verify the checksum, extract to a retained directory and run:
 

@@ -6,8 +6,8 @@ description: 本地 SolidWorks 建模，仅按识图、尺寸绑定、编译、�
 # Auto SolidWorks
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Local version: `1025`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](references/capability-manifest.json).
-<!-- Capability manifest SHA256: 203b2763562d8e401f8fccc85fec2c8f76c172b10604f28edb64105bb18c7cb1 -->
+Local version: `1120`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](references/capability-manifest.json).
+<!-- Capability manifest SHA256: fd61c03a4e300a3a032698ea6be903747f4bb05be7cca6f2349e8e11606679c7 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 默认仅四步：**识图 → 尺寸绑定 → 编译 → 建模**。用户当前指令优先。新输入采用 `source-four-stage-2`；已有显式旧修订不自动迁移。默认简体中文、毫米、角度Degree、数量Unitless。

@@ -38,11 +38,15 @@ result=subprocess.run(['powershell.exe','-NoLogo','-NoProfile','-NonInteractive'
 (work/'install.log').write_text(result.stdout+'\n'+result.stderr,encoding='utf-8')
 if result.returncode:
     raise SystemExit('Isolated install failed; see '+str(work/'install.log'))
-version=json.loads((unpacked/'plugins/auto-solidworks/.codex-plugin/plugin.json').read_text(encoding='utf-8'))['version']
+installation=unpacked
+if (unpacked/'executors.json').is_file():
+    installation, = [p for p in (unpacked/'local').iterdir() if (p/'plugins/auto-solidworks').is_dir()]
+plugin=installation/'plugins/auto-solidworks'
+version=json.loads((plugin/'.codex-plugin/plugin.json').read_text(encoding='utf-8'))['version']
 cache=Path(env['CODEX_HOME'])/'plugins/cache/auto-solidworks-local/auto-solidworks'/version
 assert (cache/'.codex-plugin/plugin.json').is_file(),str(cache)
-expected={p.relative_to(unpacked/'plugins/auto-solidworks').as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
-          for p in (unpacked/'plugins/auto-solidworks').rglob('*') if p.is_file()}
+expected={p.relative_to(plugin).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
+          for p in plugin.rglob('*') if p.is_file()}
 actual={p.relative_to(cache).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
         for p in cache.rglob('*') if p.is_file()}
 assert expected==actual,'Installed-cache hashes differ'
