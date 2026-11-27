@@ -1,5 +1,5 @@
 {
-  "version": "1120",
+  "version": "1127",
   "revision": "source-four-stage-2",
   "development_validation": "release_build_and_offline_public_mcp_validation",
   "current_native_acceptance": "dynamic_scoped_evidence",
@@ -454,8 +454,7 @@
     "historical_handoff": "artifacts/native-acceptance-20261005/resume-03/handoff-20261005-144321/acceptance-progress-normalized-paused.json"
   },
   "token_economy": {
-    "default_tool_profile": "compact",
-    "full_tool_profile": "AUTO_SOLIDWORKS_TOOL_PROFILE=full",
+    "default_tool_profile": "lite",
     "default_response_detail": "summary",
     "full_response": "responseDetail=full",
     "plan_handle": "planId; content_addressed_local_payload_and_compiler_source_recovery_identity",
@@ -758,24 +757,6 @@
     "native_validation": "not_run",
     "general_accuracy_or_speedup_claim": false
   },
-  "source_geometry_proposals": {
-    "revision": "source-lines-1",
-    "tool": "cad_find_source_geometry",
-    "all_angle_straight_lines": true,
-    "uses_source_ink_mask": true,
-    "semantic_review_automatic": false,
-    "line_coordinates_only": true,
-    "general_accuracy_or_speed_leadership": "not_established",
-    "circle_tool": "cad_find_source_circles",
-    "circle_revision": "source-circles-2",
-    "source_supported_circular_arcs": true,
-    "circle_engine": "OpenCV 4.13.0 EdgeDrawing/EDCircles + source-ink fitting",
-    "ellipse_proposals": false,
-    "semantic_hole_detection": false,
-    "fragmented_circle_proposals": true,
-    "selection_tool": "cad_bind_source_geometry",
-    "selection_revision": "source-geometry-selection-1"
-  },
   "support_drawing_repair": {
     "revision": "support-source-repair-1",
     "page_metric": "explicit independent normal circles in at least two views; same page; full ink-supported closed contours; no automatic normal-view inference",
@@ -807,5 +788,22 @@
     "source_baseline": "26.10.24-vision.9",
     "native_execution_for_release": false,
     "scope": "Local source/runtime synchronization and publication. Prior vision.9 native modeling remains evidence for that exact version; not recertified under 1025."
+  },
+  "public_tools": [
+    "cad_read_drawing",
+    "cad_get_contract",
+    "cad_create_model_plan",
+    "cad_build_model",
+    "cad_inspect_model",
+    "cad_build_assembly",
+    "cad_execution_status",
+    "cad_read_result"
+  ],
+  "assembly_workflow": {
+    "tool": "cad_build_assembly",
+    "contract": "assembly",
+    "native_output": "SLDASM",
+    "drawing_option": "export_drawing",
+    "drawing_default": false
   }
 }

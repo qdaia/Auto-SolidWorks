@@ -1,8 +1,8 @@
 # Surface workflows
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Local version: `1120`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](capability-manifest.json).
-<!-- Capability manifest SHA256: fd61c03a4e300a3a032698ea6be903747f4bb05be7cca6f2349e8e11606679c7 -->
+Local version: `1127`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](capability-manifest.json).
+<!-- Capability manifest SHA256: da5b1c411b6abd4f0eba30d326d137f777bbefb1e8dcdd33fd84db58d5010694 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 Current revision is defined in the bundled capability manifest. The trim adapter displays selectable regions and releases locks in finally; `SurfaceTrim.merge` controls sewing. Boundary now uses InsertNetBlend2 ordered selection roles, checks the selected inventory and reads back both curve families. Selected edge Contact/Tangent Fill and seam fixtures now have native saved readback. Boundary itself was not rerun in this upgrade, and Curvature Fill failed retained-control acceptance. Use [advanced modeling](advanced-modeling.md) for current scope; no broad G2 certificate is claimed.

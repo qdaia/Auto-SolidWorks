@@ -62,11 +62,11 @@ def rpc(method, params):
         return response['result']
     raise TimeoutError('Offline MCP request deadline exceeded')
 def call(name, arguments):
-    assert name in {'cad_get_capabilities', 'cad_create_model_plan', 'cad_build_model', 'cad_get_contract'}, 'Native-capable tool forbidden'
+    assert name in {'cad_create_model_plan', 'cad_build_model', 'cad_get_contract', 'cad_read_drawing', 'cad_read_result', 'cad_execution_status'}, 'Native-capable tool forbidden'
     if name == 'cad_build_model':
         assert arguments.get('dryRun') is True, 'Native build forbidden'
-    if name != 'cad_get_contract':
-        arguments = dict(arguments, responseDetail='full')
+    if name in {'cad_create_model_plan', 'cad_build_model'}:
+        arguments = {'responseDetail': 'full', **arguments}
     calls.append(dict(name=name, arguments=arguments))
     result = rpc('tools/call', dict(name=name, arguments=arguments))
     assert not result.get('isError'), result
@@ -79,19 +79,16 @@ def check(condition, name):
     checks.append(name)
     print('PASS:', name, flush=True)
 try:
-    rpc('initialize', dict(protocolVersion='2025-06-18', capabilities={}, clientInfo=dict(name='offline-design-intent-regression', version='1')))
+    initialization = rpc('initialize', dict(protocolVersion='2025-06-18', capabilities={}, clientInfo=dict(name='offline-design-intent-regression', version='1')))
     proc.stdin.write(json.dumps(dict(jsonrpc='2.0', method='notifications/initialized'))+'\n')
     proc.stdin.flush()
     listing = rpc('tools/list', {})
-    capabilities = call('cad_get_capabilities', {})
-    expected_version=json.loads((plugin/'.codex-plugin/plugin.json').read_text(encoding='utf-8'))['version']
-    check(capabilities['server_version']==expected_version, 'source runtime offline version')
-    expected_native=json.loads((plugin/'skills/auto-solidworks/references/capability-manifest.json').read_text(encoding='utf-8'))['current_native_acceptance']
-    if expected_native == 'dynamic_scoped_evidence':
-        check(capabilities['current_native_acceptance'] == capabilities['current_native_evidence']['status'], 'native acceptance matches identity-validated current evidence')
-        check(capabilities['current_native_acceptance'] in ('not_run','scoped_native_verified','stale_or_unverifiable'), 'current evidence never grants universal native certification')
-    else:
-        check(capabilities['current_native_acceptance'] == expected_native and expected_native.startswith(('not_run','not_recertified')), 'native acceptance explicitly unrun and matches candidate manifest')
+    capabilities = json.loads((plugin/'skills/auto-solidworks/references/capability-manifest.json').read_text(encoding='utf-8'))
+    expected_version = json.loads((plugin/'.codex-plugin/plugin.json').read_text(encoding='utf-8'))['version']
+    check(capabilities['version'] == expected_version and initialization['serverInfo']['version'].split('.')[0] == expected_version,
+          'built MCP and packaged contract expose the same version')
+    check(not tuple((plugin/'runtime').rglob('*OpenCv*')),
+          'the lite runtime does not depend on OpenCV')
     check(capabilities['design_intent_authoring']['native_acceptance'].startswith('historical26_') and 'not_natively_recertified' in capabilities['design_intent_authoring']['native_acceptance'], 'authoring evidence historical only for this release')
     check(capabilities['offline_modeling_boundaries']['native_acceptance'].startswith('historical26_') and 'not_natively_recertified' in capabilities['offline_modeling_boundaries']['native_acceptance'], 'text and mobility evidence historical only for this release')
     check('unavailable_and_rejected' in capabilities['offline_modeling_boundaries']['assembly_native_mobility_adapter'], 'moving native basis limitation public')
@@ -156,7 +153,7 @@ try:
     for field in ['mobility', 'expected_basis', 'relative_to_component_id', 'source_literal', 'direction', 'point_mm',
                   'pitch_mm_per_radian', 'evaluation_point_mm', 'characteristic_length_mm', 'subspace_tolerance']:
         check('"'+field+'"' in assembly_schema, 'public assembly schema '+field)
-    draft = json.loads((plugin/'skills/auto-solidworks/references/examples/design-intent-plate.json').read_text(encoding='utf-8'))
+    draft = json.loads((root/'plugins/auto-solidworks/skills/auto-solidworks/references/examples/design-intent-plate.json').read_text(encoding='utf-8'))
     compilation = call('cad_create_model_plan', dict(draft=draft, nativeOutputPath=str(output/'uncreated.SLDPRT')))
     check(compilation['success'], 'public design-intent fixture compiles offline')
     def same_requested_fields(actual, requested):
@@ -182,7 +179,7 @@ try:
     tampered=json.loads(feature_plan['ir_json']);tampered['design_intent']['configurations'][1]['feature_suppression']*=2
     invalid_feature=call('cad_build_model',dict(irJson=json.dumps(tampered,ensure_ascii=False),dryRun=True))
     check(not invalid_feature['success'],'duplicate suppression rejected by dry run')
-    expression_draft=json.loads((plugin/'skills/auto-solidworks/references/examples/design-expression-plate.json').read_text(encoding='utf-8'))
+    expression_draft=json.loads((root/'plugins/auto-solidworks/skills/auto-solidworks/references/examples/design-expression-plate.json').read_text(encoding='utf-8'))
     expression_plan=call('cad_create_model_plan',dict(draft=expression_draft,nativeOutputPath=str(output/'expression.SLDPRT')))
     check(expression_plan['success'], 'configuration function and dimension input public compile')
     check(same_requested_fields(expression_plan['plan']['design_intent'],expression_draft['design_intent']), 'all expression fields preserved')
@@ -230,7 +227,7 @@ try:
             depends_on=[ir['operations'][-1]['id']], options=dict(kind='SurfaceFill',surface=dict(fill_boundaries=[boundary]))))
         rejected = call('cad_build_model', dict(irJson=json.dumps(ir,ensure_ascii=False),dryRun=True))
         check(not rejected['success'], 'public fill support contract rejection '+label)
-    bowed = json.loads((plugin/'skills/auto-solidworks/references/examples/surface-boundary.json').read_text(encoding='utf-8'))
+    bowed = json.loads((root/'plugins/auto-solidworks/skills/auto-solidworks/references/examples/surface-boundary.json').read_text(encoding='utf-8'))
     spatial = json.loads((root/'tests/fixtures/local-integration/spatial-boundary.json').read_text(encoding='utf-8'))
     for label, fixture in [('bowed',bowed),('spatial',spatial)]:
         built = call('cad_create_model_plan',dict(draft=fixture,nativeOutputPath=str(output/(label+'.SLDPRT'))))
@@ -283,13 +280,23 @@ try:
         check(not rejected['success'],'public bounded history rejects '+label)
     check(not list(output.glob('*.SLDPRT')), 'no native model created')
     check(not (output/'unexpected-executor-logs').exists(), 'executor never started')
-    names=[t['name'] for t in listing['tools']]
-    check(len(names)==len(set(names)) and {'cad_create_model_plan','cad_build_model','cad_store_model_input','cad_compare_source_projection','cad_review_model_delivery'}.issubset(names),
-          'active tool catalog retains modeling, source projection and delivery review without duplicates')
-    check(capabilities['source_workflow']['steps']==['recognition','dimension_binding','compile','model']
-          and capabilities['iterative_delivery']['default_required'] is False
-          and capabilities['iterative_delivery']['native_success_is_not_visual_acceptance'] is True,
-          'four-stage default is public and separate delivery review is not mandatory')
+    names = [tool['name'] for tool in listing['tools']]
+    check(len(names) == 8 and set(names) == set(capabilities['public_tools']),
+          'runtime exposes only the eight core tools, regardless of the old tool profile flag')
+    assembly_contract = call('cad_get_contract', {'contract': 'assembly'})
+    check('export_drawing' not in assembly_contract.get('required', []), 'the assembly drawing flag is optional')
+    handle_plan = call('cad_create_model_plan', dict(text='80 x 50 x 10 mm plate',
+                       nativeOutputPath=str(output/'handle-plate.SLDPRT')))
+    handle_result = call('cad_build_model', dict(planId=handle_plan['plan_id'], dryRun=True, responseDetail='summary'))
+    check(handle_result['success'] and handle_result['status'] == 'dry_run_passed', 'public plan handle supports dry-run')
+    page = call('cad_read_result', dict(artifactId=handle_result['artifact_id']))
+    check(isinstance(page, dict), 'result handle is readable')
+    source_image = root/'docs/examples/hollow-shaft/model-preview.png'
+    readback = call('cad_read_drawing', dict(inputPath=str(source_image), artifactRoot=str(output/'drawing')))
+    check(readback['outcome'] in ('Succeeded', 'SucceededWithWarnings') and readback['binding_workspace']['workspace_id'],
+          'public drawing input has a usable pixel/binding workspace')
+    check(not list(output.glob('*.SLDPRT')) and not (output/'unexpected-executor-logs').exists(),
+          'lite workflow verification stayed offline')
     (output/'summary.json').write_text(json.dumps(dict(status='pass', passed=len(checks), checks=checks,
         evidence_layer='source_runtime_mcp_schema_compile_and_dry_run_only', native_acceptance='not_run',
         source_files=len(identity['source_hashes']), runtime_files=len(identity['runtime_hashes']),

@@ -1,23 +1,21 @@
 {
   "name": "auto-solidworks",
-  "version": "1120",
-  "description": "本地 SolidWorks 建模：识图、尺寸绑定、编译、建模四步",
+  "version": "1127",
+  "description": "本地 SolidWorks 基础零件建模与装配。",
   "author": {
     "name": "csj17"
   },
   "keywords": [
     "solidworks",
     "cad",
-    "modeling",
-    "mcp",
-    "engineering-drawing"
+    "mcp"
   ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "Auto SolidWorks 1120",
-    "shortDescription": "仅保留识图 → 尺寸绑定 → 编译 → 建模。",
-    "longDescription": "根据工程图或尺寸创建本地 SolidWorks 参数化零件与装配体。默认仅识图、尺寸绑定、编译、建模四步；尺寸绑定保留真实对象、基准、端点和参数归属，编译通过直接执行并保存原生文件。默认不追加复核台账、材料探针、预览合成图、源投影比较或独立交付审核。",
+    "displayName": "Auto SolidWorks 1127 精简版",
+    "shortDescription": "按尺寸或工程图创建零件，装配本地模型。",
+    "longDescription": "在本机 SolidWorks 中创建可编辑的零件和装配体，支持 STEP、STL 导出。",
     "developerName": "csj17",
     "category": "Developer Tools",
     "capabilities": [
@@ -25,8 +23,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "根据这张图按识图、尺寸绑定、编译、建模四步创建本地SolidWorks零件，保存原生文件并简短返回结果。未声明单位按mm处理。",
-      "根据我的尺寸描述创建零件，并保存 SLDPRT 和 STEP。"
+      "创建一块 80 × 50 × 10 mm 的安装板，保存为 SLDPRT。",
+      "按这张工程图创建 SolidWorks 零件。",
+      "把这些本地零件按给定基准装配，保存为 SLDASM。"
     ],
     "brandColor": "#D71920"
   }

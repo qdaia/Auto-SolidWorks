@@ -12,7 +12,7 @@ internal sealed partial class SolidWorksComExecutor
         try { return await _sta.InvokeAsync(()=>
         {
             var result=BuildAssemblyOnSta(plan,cancellationToken);
-            if(!result.Success) return result;
+            if (!result.Success || !plan.ExportDrawing) return result;
             // BuildAssemblyOnSta has closed its documents before drawing export begins.
             // Keep both stages on the same STA and under the same serial gate.
             if(cancellationToken.IsCancellationRequested)return result with{Success=false,Message="执行在装配读回后停止；绘图阶段未提交。"};

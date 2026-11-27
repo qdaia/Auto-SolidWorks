@@ -267,22 +267,6 @@
       "project": "https://dot.net/"
     },
     {
-      "package": "OpenCvSharp4",
-      "version": "4.13.0.20260627",
-      "license": "Apache-2.0",
-      "copyright": "Copyright 2008-2026",
-      "project": "https://github.com/shimat/opencvsharp",
-      "repository_commit": "b161e7e012f5101f6d5dc68a835c59db6cc88b18"
-    },
-    {
-      "package": "OpenCvSharp4.runtime.win",
-      "version": "4.13.0.20260627",
-      "license": "Apache-2.0",
-      "copyright": "Copyright 2008-2026",
-      "project": "https://github.com/shimat/opencvsharp",
-      "repository_commit": "b161e7e012f5101f6d5dc68a835c59db6cc88b18"
-    },
-    {
       "package": "System.Memory",
       "version": "4.6.3",
       "license": "MIT",
@@ -328,24 +312,6 @@
       "source": "https://github.com/UglyToad/PdfPig/blob/master/NOTICES.txt",
       "git_blob": "b31cbe75835abeeeaa162ff1dd0508f7758212e5",
       "sha256": "d7a07a105f64d9240ed40a8ebe0c45658616c1660bf9fd8a36e2dbf3165f6e92"
-    },
-    {
-      "file": "opencvsharp-LICENSE.txt",
-      "source": "https://github.com/shimat/opencvsharp/blob/b161e7e012f5101f6d5dc68a835c59db6cc88b18/LICENSE",
-      "revision": "b161e7e012f5101f6d5dc68a835c59db6cc88b18",
-      "sha256": "3b8e2788bb24bf5282f67dabfa5d880dbc7759676086879d3bc5581c25cc966d"
-    },
-    {
-      "file": "opencv-LICENSE.txt",
-      "source": "https://github.com/opencv/opencv/blob/4.13.0/LICENSE",
-      "revision": "4.13.0",
-      "sha256": "8c6db340475136df3c1201d458fa5755698eace76e510471ecc9d857d6083dac"
-    },
-    {
-      "file": "opencv-contrib-LICENSE.txt",
-      "source": "https://github.com/opencv/opencv_contrib/blob/4.13.0/LICENSE",
-      "revision": "4.13.0",
-      "sha256": "8c6db340475136df3c1201d458fa5755698eace76e510471ecc9d857d6083dac"
     }
   ]
 }

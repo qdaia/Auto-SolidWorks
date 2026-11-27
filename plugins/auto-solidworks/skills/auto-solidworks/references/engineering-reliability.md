@@ -1,8 +1,8 @@
 # 建模可靠性修复
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-本地版本：`1120`；修订：`source-four-stage-2`。默认仅识图、尺寸绑定、编译、建模四步；保留真实参数/单位/源图端点检查和建模保存，移除强制复核台账、分区探针、预览与独立交付审核。历史草案仍按原修订校验。不认证完整图纸/BREP/GD&T等价。详见[能力清单](capability-manifest.json)。
-<!-- Capability manifest SHA256: fd61c03a4e300a3a032698ea6be903747f4bb05be7cca6f2349e8e11606679c7 -->
+本地版本：`1127`；修订：`source-four-stage-2`。默认仅识图、尺寸绑定、编译、建模四步；保留真实参数/单位/源图端点检查和建模保存，移除强制复核台账、分区探针、预览与独立交付审核。历史草案仍按原修订校验。不认证完整图纸/BREP/GD&T等价。详见[能力清单](capability-manifest.json)。
+<!-- Capability manifest SHA256: da5b1c411b6abd4f0eba30d326d137f777bbefb1e8dcdd33fd84db58d5010694 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
 本轮只修复建模执行和验收路径。默认长度仍为 mm，新增字段沿用 snake_case。原生证据来自 SolidWorks 2025（33.0.0）。源码回归入口为 `tests/EngineeringHardeningRegression`，原生测试输出保存在项目的独立 artifacts 目录。

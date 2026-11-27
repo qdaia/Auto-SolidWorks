@@ -17,6 +17,8 @@ public static class BindingErrorImages
         return BindingWorkspaceImages.Sta(()=>
         {
             var records=new List<BindingErrorRegion>();var used=new HashSet<int>();var imageCount=0;
+            string? cachedPagePath = null;
+            BitmapSource? cachedPage = null;
             // Group by exact source identity; matching numeric values never combines errors.
             foreach(var item in context.Dimensions.Select(d=>(Kind:"dimension",Id:d.Id,View:d.BindingEvidence?.ViewId,Fact:(DrawingDimensionFact?)d,Anchor:(DrawingGeometryAnchor?)null))
                 .Concat(context.GeometryAnchors.Select(a=>(Kind:"anchor",Id:a.Id,View:(string?)a.ViewId,Fact:(DrawingDimensionFact?)null,Anchor:(DrawingGeometryAnchor?)a))))
@@ -41,7 +43,13 @@ public static class BindingErrorImages
                 if(points.Length>0){left=Math.Max(0,(int)Math.Floor(points.Min(p=>p.X)*frame.PageWidth)-24);top=Math.Max(0,(int)Math.Floor(points.Min(p=>p.Y)*frame.PageHeight)-24);
                     right=Math.Min(frame.PageWidth,(int)Math.Ceiling(points.Max(p=>p.X)*frame.PageWidth)+24);bottom=Math.Min(frame.PageHeight,(int)Math.Ceiling(points.Max(p=>p.Y)*frame.PageHeight)+24);}
                 if(right<=left||bottom<=top){left=top=0;right=frame.PageWidth;bottom=frame.PageHeight;}
-                var bitmap=BindingWorkspaceImages.Read(frame.ImagePath);var visual=new DrawingVisual();
+                if (cachedPage is null || !string.Equals(cachedPagePath, frame.ImagePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    cachedPage = BindingWorkspaceImages.Read(frame.ImagePath);
+                    cachedPagePath = frame.ImagePath;
+                }
+                var bitmap = cachedPage;
+                var visual=new DrawingVisual();
                 using(var dc=visual.RenderOpen())
                 {
                     dc.PushClip(new RectangleGeometry(new Rect(0,0,right-left,bottom-top)));

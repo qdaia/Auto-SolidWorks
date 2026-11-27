@@ -9,6 +9,7 @@ public static partial class DimensionEvidenceValidation
     public const string Revision = "dimension-evidence-4";
     public static IReadOnlyList<ModelingDiagnostic> Validate(DrawingPlanContext context)
     {
+        using var readScope = SourceValidationReadScope.Begin();
         var errors = new List<ModelingDiagnostic>();
         errors.AddRange(SourceWorkflow.Validate(context));
         errors.AddRange(DimensionExpressions.Validate(context));

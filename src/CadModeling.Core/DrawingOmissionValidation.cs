@@ -30,9 +30,12 @@ public static partial class DrawingOmissionValidation
 
     public static DrawingOmissionInventory Load(string path, string? expectedHash = null)
     {
+        if (SourceValidationReadScope.FindInventory(path, expectedHash) is { } cachedInventory)
+            return cachedInventory;
         if (!Path.IsPathFullyQualified(path) || !File.Exists(path))
             throw new InvalidDataException("使用 cad_read_drawing 返回的绝对值 omission_inventory_path。");
         if (new FileInfo(path).Length > MaximumInventoryBytes) throw new InvalidDataException("遗漏清单超过32 MiB。");
+        SourceValidationReadScope.PinInventory(path);
         var bytes = File.ReadAllBytes(path);
         if (expectedHash is not null && !SameHash(expectedHash, Convert.ToHexString(SHA256.HashData(bytes))))
             throw new InvalidDataException("遗漏库存已更改。保留原始库存并在需要时重新读取源文件。");
@@ -80,6 +83,7 @@ public static partial class DrawingOmissionValidation
                     throw new InvalidDataException("源笔画掩码与图像尺寸不一致。");
             }
         }
+        SourceValidationReadScope.RememberInventory(path, expectedHash, inventory);
         return inventory;
     }
 

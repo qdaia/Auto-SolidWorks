@@ -16,10 +16,14 @@ public static class CompactResponses
     public static object Present(CompactArtifactStore store, object result, string detail)
     {
         ValidateDetail(detail);
-        var (receipt, artifactError) = TrySave(store, result);
-        if (detail == "full") return result;
-        var node = JsonSerializer.SerializeToNode(result, ModelingIrJson.Options) as JsonObject ?? new();
-        var summary = Summarize(node);
+        if (detail == "full")
+        {
+            TrySave(store, result);
+            return result;
+        }
+        var node = JsonSerializer.SerializeToNode(result, ModelingIrJson.Options);
+        var (receipt, artifactError) = TrySave(store, node ?? result);
+        var summary = Summarize(node as JsonObject ?? new());
         summary["artifact_id"] = receipt?.ArtifactId; summary["artifact_sha256"] = receipt?.Sha256;
         summary["artifact_path"] = receipt?.Path; summary["artifact_error"] = artifactError; summary["response_detail"] = "summary";
         summary["full_drawing_equivalence"] = false;

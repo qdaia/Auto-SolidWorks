@@ -1,14 +1,14 @@
 # Auto SolidWorks
 
-**版本 1120 · 2026-11-20 · Windows x64 · Codex / MCP**
+**版本 1127 · 2026-11-27 · Windows x64 · Codex / MCP**
 
 把工程图与尺寸描述转成本机 SolidWorks 参数化模型。默认按 **识图 → 尺寸绑定 → 编译 → 建模** 四步执行，保存原生文件。
 
 **简体中文** | [English](README.en.md)
 
-[下载 Windows 统一包](docs/download.zh-CN.md) · [更新说明与验证范围](docs/release-1120.zh-CN.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1120)
+[下载 Windows 统一包](docs/download.zh-CN.md) · [更新说明与验证范围](docs/release-1127.zh-CN.md) · [GitHub Release](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1127)
 
-**本次发布仅做了离线测试，未做真实 SolidWorks 回归验收。** 一个 Windows 插件包覆盖 2018–2026 的 11 个执行器构建，安装时按本机 Interop 版本选择。
+精简版提供 8 个工具。统一 Windows 包沿用 2018–2026 的 11 个执行器构建，安装时按本机 Interop 选择。各年度的验证范围见[发布说明](docs/release-1127.zh-CN.md)。
 
 ## 从输入到交付
 
@@ -17,12 +17,10 @@
 | 工作内容 | 提供的能力与输出 |
 | --- | --- |
 | 参数化零件 | 草图与约束、拉伸、旋转、孔、圆角倒角、扫描、放样、阵列、多实体、钣金和焊件；SLDPRT / STEP / STL |
-| 曲面与空间曲线 | Boundary / Fill / Sweep / Offset 的类型化控制、三维曲线与螺旋线；本地 Gordon 曲线网格与 NURBS 文件 |
 | 设计参数 | 全局变量、尺寸方程、配置表达式、单位检查、特征抑制及保存后的读回 |
 | 既有模型 | 副本修改、持久引用、局部及整件几何检查、限定范围的拓扑历史与修复回执 |
 | 装配体 | 组件、配合、干涉检查、限定空间树机构自由度检查；SLDASM |
-| 工程图 | 第一角投影视图、原生尺寸导入、视图布局与分页；SLDDRW / PDF |
-| 执行管理 | 状态查询、暂停、截止时间、跨进程租约、检查点与恢复身份核对 |
+| 执行管理 | 请求状态与结果查询，执行器保留超时、租约和恢复检查 |
 
 ## 测试案例
 
@@ -47,7 +45,7 @@
 ## 快速开始
 
 1. 准备 Windows x64、已激活的本机 SolidWorks、[.NET 9 Windows Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)，以及支持插件的 Codex。
-2. 下载并解压 [1120 Windows 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1120/auto-solidworks-1120-windows-x64.zip)，在解压目录运行：
+2. 下载并解压 [1127 Windows 安装包](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1127/auto-solidworks-1127-windows-x64.zip)，在解压目录运行：
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
@@ -61,17 +59,17 @@
 
 ## 本地运行与能力查询
 
-CAD 执行、原生文件和几何检查在本机完成。SolidWorks 由使用者安装并授权；Gordon 另需本地 FreeCAD。图片 / PDF 的理解使用你选择的模型与服务，OCR 和 PDF 栅格化依赖可按需配置。
+CAD 执行、原生文件和几何检查在本机完成。SolidWorks 由使用者安装并授权。图片和 PDF 由模型判读。PDF 栅格化依赖可按需配置。
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-本地版本：`1120`；修订：`source-four-stage-2`。默认仅识图、尺寸绑定、编译、建模四步；保留真实参数/单位/源图端点检查和建模保存，移除强制复核台账、分区探针、预览与独立交付审核。历史草案仍按原修订校验。不认证完整图纸/BREP/GD&T等价。详见[能力清单](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json)。
-<!-- Capability manifest SHA256: fd61c03a4e300a3a032698ea6be903747f4bb05be7cca6f2349e8e11606679c7 -->
+本地版本：`1127`；修订：`source-four-stage-2`。默认仅识图、尺寸绑定、编译、建模四步；保留真实参数/单位/源图端点检查和建模保存，移除强制复核台账、分区探针、预览与独立交付审核。历史草案仍按原修订校验。不认证完整图纸/BREP/GD&T等价。详见[能力清单](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json)。
+<!-- Capability manifest SHA256: da5b1c411b6abd4f0eba30d326d137f777bbefb1e8dcdd33fd84db58d5010694 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
-[功能参数](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md) · [Gordon 使用](plugins/auto-solidworks/skills/auto-solidworks/references/gordon-surface.md) · [曲面控制](plugins/auto-solidworks/skills/auto-solidworks/references/surface-modeling.md) · [几何验证](plugins/auto-solidworks/skills/auto-solidworks/references/local-geometry-verification.md)
+[基础示例](plugins/auto-solidworks/skills/auto-solidworks/basic-examples.md)
 
 ## 开发与反馈
 
 [源码构建与测试](docs/development.md) · [架构说明](docs/architecture.md) · [第三方声明](THIRD_PARTY_NOTICES.md) · [提交问题](https://github.com/qdaia/Auto-SolidWorks/issues)
 
-项目使用 MIT 许可证，见 [LICENSE](LICENSE)。SolidWorks、FreeCAD 及其他第三方组件遵循各自的授权与许可。
+项目使用 MIT 许可证，见 [LICENSE](LICENSE)。SolidWorks 及其他第三方组件遵循各自的授权与许可。

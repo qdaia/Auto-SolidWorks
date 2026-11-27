@@ -9,7 +9,7 @@
 
 ## 按 SolidWorks 年度版本构建和验证
 
-从修订后的源码运行 `scripts\build.ps1 -SolidWorksInteropDir <目标版本的安装目录>`。目录须同时包含 `SolidWorks.Interop.sldworks.dll` 和 `SolidWorks.Interop.swconst.dll`。执行器按所引用的年度版本选择 COM 应用。安装器发现年度不匹配或本机引用低于构建版本时，会报告 `SW_INTEROP_MISMATCH`。1120 为统一 ZIP，在解压根目录运行 install.ps1 即可选择匹配的执行器。安装器会显示选中的构建和实际安装目录。
+从修订后的源码运行 `scripts\build.ps1 -SolidWorksInteropDir <目标版本的安装目录>`。目录须同时包含 `SolidWorks.Interop.sldworks.dll` 和 `SolidWorks.Interop.swconst.dll`。执行器按所引用的年度版本选择 COM 应用。安装器发现年度不匹配或本机引用低于构建版本时，会报告 `SW_INTEROP_MISMATCH`。1127 为统一 ZIP，在解压根目录运行 install.ps1 即可选择匹配的执行器。安装器会显示选中的构建和实际安装目录。
 
 2018 和 2019 构建通过旧版质量属性接口读取实体体积和质心；截面交线检查使用临时实体副本和旧版配对交线接口。2018 构建无法验证同心配合旋转锁定，2018 SP2 之前的引用还缺少高精度射线检查接口。每个年度版本可用下面的脚本从 MCP 验证连接、矩形板建模、保存、重开和尺寸读回。请填写实际测试年度，并提供一个新的输出目录。
 

@@ -1,6 +1,6 @@
 # Third-party notices
 
-The local Gordon surface addition bundles unmodified [CurvesWB](https://github.com/tomate44/CurvesWB) source at commit `e47b47927f59c87b93a1820c9f6ad4b4dc187076` under `plugins/auto-solidworks/surface/CurvesWB/`. The workbench uses LGPL-2.1-or-later (`LICENSE-CODE` and original per-file headers); the DLR TiGL-derived Gordon/BSpline algorithms use Apache-2.0 (`LICENSE-TIGL` and original per-file headers). Both license texts and original source/attributions are preserved. This does not relicense those files under the project's MIT license. FreeCAD/OpenCascade and their dependencies are separate local installations, not bundled in the plugin ZIP.
+The source tree retains its historical Gordon workbench with the original CurvesWB license files. The 1127 Windows package includes the basic modeling runtime.
 
 Auto SolidWorks source is MIT licensed. Dependencies retain their own licenses. This list is generated from the built MCP dependency manifest and local NuGet metadata. Upstream license and notice texts are preserved under `third-party/`.
 
@@ -62,13 +62,3 @@ SolidWorks and its interop assemblies are external proprietary dependencies. The
 .NET Windows Desktop Runtime and Poppler are external local dependencies. The default drawing workflow does not invoke OCR or require OCR language data.
 
 Dependency versions and license-document provenance are recorded in [dependencies.json](third-party/dependencies.json).
-
-
-## Circular image geometry
-
-OpenCvSharp4 and OpenCvSharp4.runtime.win 4.13.0.20260627 are bundled for local image geometry. Their source revision is b161e7e012f5101f6d5dc68a835c59db6cc88b18; the engine is OpenCV 4.13.0 with contrib. This plugin invokes EdgeDrawing/EDCircles for geometric proposals, not text/OCR recognition. Native runtime files are covered by build-identity hashes.
-
-- [OpenCvSharp license](third-party/opencvsharp-LICENSE.txt)
-- [OpenCV license](third-party/opencv-LICENSE.txt)
-- [OpenCV contrib license](third-party/opencv-contrib-LICENSE.txt)
-- Algorithm reference: C. Akinlar and C. Topal, EDCircles: A Real-time Circle Detector with a False Detection Control, Pattern Recognition 46(3), 725-740, 2013.

@@ -140,6 +140,7 @@ public sealed partial class GenericPlanCompiler
         bool overwriteAllowed = false)
     {
         using var timing = CadModeling.Ir.PerformanceTrace.Begin("plan.compile");
+        using var readScope = SourceValidationReadScope.Begin();
         if(draft.Recipe is not null)
         {
             var expanded=MechanicalRecipes.Expand(draft);

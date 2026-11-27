@@ -25,7 +25,8 @@ public sealed class CompactArtifactStore
             typeof(GenericPlanCompiler).Assembly, typeof(ModelingPlan).Assembly }.Select(a => a.ManifestModule.ModuleVersionId.ToString("N")));
     }
 
-    public ArtifactReceipt SaveResult(object result) => Save("result", JsonSerializer.SerializeToNode(result, ModelingIrJson.Options)!, []);
+    public ArtifactReceipt SaveResult(object result) => Save("result",
+        result is JsonNode node ? node.DeepClone() : JsonSerializer.SerializeToNode(result, ModelingIrJson.Options)!, []);
     public ArtifactReceipt SaveInput(string kind, JsonNode payload, string? sourceModelPath, DrawingPlanContext? context, ModelingRecoveryOptions? recovery)
     {
         if (kind is not ("context" or "draft")) throw new ArgumentException("输入类型必须是 context 或 draft。");

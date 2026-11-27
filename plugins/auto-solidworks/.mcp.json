@@ -2,7 +2,7 @@
   "mcpServers": {
     "auto-solidworks": {
       "title": "Auto SolidWorks",
-      "description": "本地 SolidWorks 零件与装配建模、图纸读取、模型编辑及原生／STEP／STL 输出；默认毫米与简体中文。",
+      "description": "本地零件建模与装配，默认使用毫米。",
       "cwd": ".",
       "command": "powershell.exe",
       "args": [

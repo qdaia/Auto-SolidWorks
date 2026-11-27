@@ -224,19 +224,12 @@ public sealed class SourceBindingTools
             regions=details.Regions.Take(12),regions_truncated=details.Regions.Count>12,region_count=details.Regions.Count,
             complete_regions_section="/regions",complete_diagnostics_section="/diagnostics",semantic_review_complete=false},ModelingIrJson.Options);
     }
-    internal static object QuickStart()=>new {
-        contracts=new[]{"sketch_frame","primitive","dimension_fact","placement_intent"},
-        contract_section_example="cad_get_contract(contract='draft', section='/properties/operations/items')",
-        input="cad_read_drawing(inputPath=absolute_path); use review_workspace.drawing_context_input_id and binding_workspace.workspace_id",
-        coordinates="Direct draft: original page normalized x/page_width,y/page_height. Sheet: unscaled frame pixels. Never mix the two.",
-        avoid_first_compile_errors="Linear/angle traces need model_direction; source anchor bounds must contain their complete source_path; ThreePointArc needs start/end/point_on_arc (xmm,ymm); preview_views uses isometric/front/top/right/left/back, or omit for the four-stage workflow. Correct these in one draft before compile.",
-        angular_source="A uniformly stretched drawing needs independently reviewed normal circles in drawing_context.page_metrics before angular arc checks. Bind source angles through Sin/Cos(Degree)->Unitless frame expressions; isolated construction dimensions do not control a solid. Direction-driving angles also require model_orientation with reviewed front basis and signed source-ray bindings; see cad_get_binding_guide.",
-        finite_extrusion="Drawing finite extrusions require placement_intent: axis_direction, datum_point_mm, minimum_mm, maximum_mm, tolerance_mm, source_explanation, observation_ids. Bounds are signed millimetres along the normalized axis from datum. Source expectation must be independently read from the drawing, never copied from current extrusion settings; observation_ids must reference registered dimension observations.",
-        compile="cad_create_model_plan(draft=..., nativeOutputPath=..., workspaceId=...); errors include binding_review regions; repair only reported fields using immutable input patches.",
-        geometry_proposals="cad_find_source_geometry(workspaceId,frameId) proposes all-angle source lines with frame/source coordinates and an overlay. AI must inspect the original image and choose actual endpoints and ownership; candidates stay Unresolved.",
-        circular_proposals="cad_find_source_circles(workspaceId,frameId) proposes pixel centers/radii and only ink-supported arc intervals. Concentric candidates remain separate; half-circles are not closed automatically. These are image geometry proposals, not hole identification or source dimensions. AI must still read the annotation and target object.",
-        fine_detail="If a leader, surface or dimension endpoint is unclear in the whole-page image, cad_add_binding_crops(workspaceId,crops) appends up to 12 source-resolution crops in one call and returns a new workspace_id. Include the text, full leader and target contour; compare another view when needed. A nearby dimension label alone does not establish the target. Reuse the returned frame_id and original crop pixels for binding.",
-        source_binding="Keep actual source endpoints/ink and same-page Geometry/ResidualInk evidence. After changing anchor bounds, recheck overlapping evidence IDs. No auto Reviewed or geometry inference."
+    internal static object QuickStart() => new
+    {
+        contracts = new[] { "draft", "sketch_frame", "primitive", "dimension_fact", "placement_intent" },
+        coordinates = "原页坐标使用 x/页宽、y/页高。查看原图并绑定标注、实际操作参数和端点。",
+        extrusion = "图纸的有限厚度拉伸须填写 placement_intent。以原图基准和起止位置定义厚度区间。",
+        orientation = "角度驱动草图方向时，使用 model_orientation 绑定主视图基向量和原图角度射线。",
+        compile = "将 draft、nativeOutputPath 和可用的 workspaceId 传给 cad_create_model_plan；失败时查看 binding_review。"
     };
-
 }

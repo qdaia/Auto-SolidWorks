@@ -36,6 +36,7 @@ public sealed record AssemblyPlan
     public IReadOnlyList<string> ExportPaths { get; init; } = [];
     public IReadOnlyList<AssemblyComponentSpec> Components { get; init; } = [];
     public IReadOnlyList<AssemblyMateSpec> Mates { get; init; } = [];
+    public bool ExportDrawing { get; init; }
     public bool OverwriteAllowed { get; init; }
     public bool CheckInterference { get; init; } = true;
     public bool RejectUnapprovedInterference { get; init; } = true;
@@ -63,7 +64,8 @@ public static class AssemblyPlanValidation
     public static void Validate(AssemblyPlan p)
     {
         if(!Path.IsPathFullyQualified(p.NativePath)||!p.NativePath.EndsWith(".sldasm",StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("输出的装配需要一个绝对的 SLDASM 路径。");
-        DrawingExportValidation.ValidateOutputs(DrawingExportValidation.ForAssembly(p.NativePath));
+        if (p.ExportDrawing)
+            DrawingExportValidation.ValidateOutputs(DrawingExportValidation.ForAssembly(p.NativePath));
         if(p.Components.Count==0||p.Components.Select(c=>c.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count()!=p.Components.Count) throw new ArgumentException("装配需要具有唯一ID的组件。");
         foreach(var c in p.Components)
         {

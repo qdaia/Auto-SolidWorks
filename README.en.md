@@ -1,14 +1,14 @@
 # Auto SolidWorks
 
-**Version 1120 · 2026-11-20 · Windows x64 · Codex / MCP**
+**Version 1127 · 2026-11-27 · Windows x64 · Codex / MCP**
 
 Turn drawings and dimensions into parametric models in local SolidWorks. Four default stages: **recognition → dimension binding → compile → model**, ending with a saved native file.
 
 [简体中文](README.md) | **English**
 
-[Download the unified Windows package](docs/download.en.md) · [Release notes](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1120)
+[Download the unified Windows package](docs/download.en.md) · [Release notes](https://github.com/qdaia/Auto-SolidWorks/releases/tag/v1127)
 
-**Offline tests only. No regression acceptance was performed in a real SOLIDWORKS session for this release.** One Windows package selects among 11 executor builds for 2018–2026.
+The lite edition exposes eight tools. One Windows package selects among 11 executor builds for 2018–2026. See the [release notes](docs/release-1127.zh-CN.md) for the validation scope.
 
 ## From input to deliverable
 
@@ -17,12 +17,10 @@ Provide an engineering image, PDF or explicit dimensions. The plugin turns the i
 | Workflow | Capabilities and outputs |
 | --- | --- |
 | Parametric parts | Sketches and constraints, extrudes, revolves, holes, fillets/chamfers, sweeps, lofts, patterns, multi-body parts, sheet metal and weldments; SLDPRT / STEP / STL |
-| Surfaces and spatial curves | Typed Boundary / Fill / Sweep / Offset controls, spatial curves and helices; local Gordon networks and NURBS files |
 | Design parameters | Global variables, dimension equations, configuration expressions, unit checks, feature suppression and saved readback |
 | Existing models | Copy-based edits, persistent references, local/whole-model geometry checks, bounded topology history and repair receipts |
 | Assemblies | Components, mates, interference checks and bounded spatial-tree mobility checks; SLDASM |
-| Drawings | First-angle views, native dimension import, view layout and pagination; SLDDRW / PDF |
-| Execution management | Status, pause, deadlines, cross-process leases, checkpoints and recovery identity checks |
+| Execution management | Execution status and results. The executor keeps its timeout, lease and recovery checks. |
 
 ## Examples
 
@@ -47,7 +45,7 @@ Engineering drawing PDF: `docs/examples/hollow-shaft/drawing.pdf`
 ## Quick start
 
 1. Prepare Windows x64, an activated local SolidWorks installation, [.NET 9 Windows Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/9.0), and Codex with plugin support.
-2. Download and extract the [1120 Windows package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1120/auto-solidworks-1120-windows-x64.zip). Run this command in the extracted directory:
+2. Download and extract the [1127 Windows package](https://github.com/qdaia/Auto-SolidWorks/releases/download/v1127/auto-solidworks-1127-windows-x64.zip). Run this command in the extracted directory:
 
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
@@ -61,17 +59,17 @@ The installer prefers the CLI bundled with the Codex desktop app and prepares In
 
 ## Local execution and capability queries
 
-CAD execution, native files and geometry checks run locally. Users install and license SolidWorks; Gordon also requires local FreeCAD. Image / PDF interpretation uses your selected model and service. AI reviews drawings without OCR; PDF rasterization dependencies can be configured as needed.
+CAD execution, native files and geometry checks run locally. Users install and license SolidWorks. The selected model interprets images and PDF pages. PDF rasterization dependencies can be configured as needed.
 
 <!-- AUTO-SOLIDWORKS-CONTRACT:BEGIN -->
-Local version: `1120`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json).
-<!-- Capability manifest SHA256: fd61c03a4e300a3a032698ea6be903747f4bb05be7cca6f2349e8e11606679c7 -->
+Local version: `1127`; revision: `source-four-stage-2`. Four default stages: recognition, dimension binding, compile, model. Retains real parameter/unit/source endpoint checks and native save. Removes mandatory review ledgers, material probes, previews and separate delivery review. Explicit legacy revisions retain their original rules. No full drawing/BREP/GDT equivalence claim. See [capability manifest](plugins/auto-solidworks/skills/auto-solidworks/references/capability-manifest.json).
+<!-- Capability manifest SHA256: da5b1c411b6abd4f0eba30d326d137f777bbefb1e8dcdd33fd84db58d5010694 -->
 <!-- AUTO-SOLIDWORKS-CONTRACT:END -->
 
-[Feature parameters](plugins/auto-solidworks/skills/auto-solidworks/references/modeling-operations.md) · [Gordon guide](plugins/auto-solidworks/skills/auto-solidworks/references/gordon-surface.md) · [Surface controls](plugins/auto-solidworks/skills/auto-solidworks/references/surface-modeling.md) · [Geometry verification](plugins/auto-solidworks/skills/auto-solidworks/references/local-geometry-verification.md)
+[Basic examples](plugins/auto-solidworks/skills/auto-solidworks/basic-examples.md)
 
 ## Development and feedback
 
 [Build and test](docs/development.en.md) · [Architecture](docs/architecture.en.md) · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Report an issue](https://github.com/qdaia/Auto-SolidWorks/issues)
 
-This project uses the MIT license; see [LICENSE](LICENSE). SolidWorks, FreeCAD and other third-party components retain their own licenses.
+This project uses the MIT license; see [LICENSE](LICENSE). SolidWorks and other third-party components retain their own licenses.

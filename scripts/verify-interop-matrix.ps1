@@ -33,7 +33,7 @@ $rows = foreach ($year in $Years) {
             & dotnet build $project -c Release --artifacts-path $stage "-p:SolidWorksInteropDir=$dir" -p:NuGetAudit=false --nologo -v:q *> (Join-Path $stage 'build.log')
             if ($LASTEXITCODE) { throw 'Build failed; see build.log.' }
             $bin = Join-Path $stage 'bin\CadModeling.Executor.SolidWorks\release'
-            $executor = [Reflection.Assembly]::LoadFile((Join-Path $bin 'CadModeling.Executor.SolidWorks.dll'))
+            $executor = [Reflection.Assembly]::Load([IO.File]::ReadAllBytes((Join-Path $bin 'CadModeling.Executor.SolidWorks.dll')))
             $references = $executor.GetReferencedAssemblies()
             foreach ($expected in $row.references) {
                 $match = @($references | Where-Object FullName -eq $expected.identity)

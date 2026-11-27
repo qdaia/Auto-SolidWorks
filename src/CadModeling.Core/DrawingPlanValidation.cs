@@ -7,6 +7,7 @@ public static class DrawingPlanValidation
 {
     public static IReadOnlyList<ModelingDiagnostic> Validate(GenericModelDraft draft)
     {
+        using var readScope = SourceValidationReadScope.Begin();
         if(draft.DrawingContext is not { } context) return [];
         var errors=new List<ModelingDiagnostic>();
         if (context.ShapeDecomposition is { Features: not null } shape)
@@ -121,6 +122,12 @@ public static class DrawingPlanValidation
 
     public static IEnumerable<ModelingDiagnostic> ValidateCompiled(ModelingPlan plan)
     {
+        using var readScope = SourceValidationReadScope.Begin();
+        return ValidateCompiledCore(plan).ToArray();
+    }
+
+    private static IEnumerable<ModelingDiagnostic> ValidateCompiledCore(ModelingPlan plan)
+    {
         if(plan.DrawingContext is null && plan.DrawingBindingDigest is null) yield break;
         if(plan.DrawingContext is null || plan.DrawingBindingDigest!=Digest(plan))
             yield return new("DRAWING_COMPILED_CHANGED",DiagnosticSeverity.Error,"绘制绑定或操作在编译后更改。请重新编译修正后的类型化草案。","drawing_binding_digest");
@@ -138,9 +145,5 @@ public static class DrawingPlanValidation
             foreach(var error in DrawingOmissionValidation.Diagnostics(context)) yield return error;
         }
     }
-    public static string FileHash(string path)
-    {
-        using var stream=File.OpenRead(path);
-        return Convert.ToHexString(SHA256.HashData(stream));
-    }
+    public static string FileHash(string path) => SourceValidationReadScope.HashFile(path);
 }

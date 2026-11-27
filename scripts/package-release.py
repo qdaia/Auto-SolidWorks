@@ -22,9 +22,14 @@ archive = args.output/f'auto-solidworks-{version}-windows-x64.zip'
 selected = [root/p for p in ('README.md','README.en.md','LICENSE','CHANGELOG.md','THIRD_PARTY_NOTICES.md','install.ps1',
     '.agents/plugins/marketplace.json','scripts/find-solidworks.ps1','scripts/recover-health-lease.ps1','scripts/verify-native-compatibility.py')]
 selected += [p for p in (root/'docs').rglob('*') if p.is_file()]
-selected += [p for p in (root/'third-party').rglob('*') if p.is_file()]
-selected += [p for p in plugin.rglob('*') if p.is_file() and p.suffix.lower() != '.pdb'
-             and p.suffix.lower() not in ('.pyc', '.pyo') and '__pycache__' not in p.parts
+selected += [p for p in (root/'third-party').rglob('*') if p.is_file() and not p.name.startswith('opencv')]
+selected += [plugin/p for p in (
+    '.codex-plugin/plugin.json', '.mcp.json', 'README.md',
+    'scripts/run-auto-solidworks-mcp.ps1',
+    'skills/auto-solidworks/SKILL.md', 'skills/auto-solidworks/basic-examples.md',
+    'skills/auto-solidworks/references/capability-manifest.json',
+)]
+selected += [p for p in (plugin/'runtime').rglob('*') if p.is_file() and p.suffix.lower() != '.pdb'
              and not p.name.startswith('SolidWorks.Interop.')]
 hashes = {p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(selected)}
 with zipfile.ZipFile(archive, 'x', compression=zipfile.ZIP_DEFLATED) as z:

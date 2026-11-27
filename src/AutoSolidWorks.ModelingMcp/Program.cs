@@ -36,16 +36,9 @@ builder.Services.AddSingleton<ITextObservationProvider, AgentVisionTextObservati
 builder.Services.AddSingleton<IPrimitiveObservationProvider, DeterministicPrimitiveObservationProvider>();
 builder.Services.AddSingleton<IObservationFusionService, ObservationFusionService>();
 builder.Services.AddSingleton<IEngineeringDrawingIngestionService, EngineeringDrawingIngestionService>();
-var profile = Environment.GetEnvironmentVariable("AUTO_SOLIDWORKS_TOOL_PROFILE") ?? "compact";
-if (profile is not ("compact" or "full")) throw new ArgumentException("AUTO_SOLIDWORKS_TOOL_PROFILE 必须是 compact 或 full。");
-var mcp = builder.Services.AddMcpServer().WithStdioServerTransport().WithTools<CompactModelingTools>(ModelingIrJson.Options).WithTools<GordonSurfaceTools>(ModelingIrJson.Options);
-mcp.WithTools<SourceProjectionComparisonTools>(ModelingIrJson.Options);
-mcp.WithTools<DeliveryReviewTools>(ModelingIrJson.Options);
-mcp.WithTools<SourceBindingTools>(ModelingIrJson.Options);
-mcp.WithTools<SourceGeometryTools>(ModelingIrJson.Options);
-mcp.WithTools<SourceGeometryBindingTools>(ModelingIrJson.Options);
-mcp.WithTools<SourceCircleTools>(ModelingIrJson.Options);
-if (profile == "full") mcp.WithTools<AdvancedModelingTools>(ModelingIrJson.Options);
+var mcp = builder.Services.AddMcpServer()
+    .WithStdioServerTransport()
+    .WithTools<CompactModelingTools>(ModelingIrJson.Options);
 mcp.WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, cancellationToken) =>
     {
         CallToolResult result;
